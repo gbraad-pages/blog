@@ -1,11 +1,13 @@
 image: registry.gitlab.com/gbraad/fedora:24
 
 before_script:
-  - dnf install -y python-pip make
+  - dnf install -y git make python-pip
   - pip install pelican markdown
+  - git clone https://github.com/getpelican/pelican-themes.git themes --depth 1
 
 pages:
   script:
+    - pelican-themes --symlink `pwd`/themes/pelican-bootstrap3
     - make publish
     - mv output public
   artifacts:
