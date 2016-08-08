@@ -1,0 +1,13 @@
+image: registry.gitlab.com/gbraad/fedora:24
+
+before_script:
+  - dnf install -y python-pip make
+  - pip install pelican markdown
+
+pages:
+  script:
+    - make publish
+    - mv output public
+  artifacts:
+    paths:
+      - public
