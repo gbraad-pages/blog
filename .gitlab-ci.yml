@@ -1,13 +1,9 @@
-image: registry.gitlab.com/gbraad/fedora:24
-
-before_script:
-  - dnf install -y git make python-pip
-  - pip install pelican markdown
-  - mkdir -p themes
-  - git clone https://github.com/gbraad/blog-theme.git themes/gbraad --depth 1
+image: registry.gitlab.com/gbraad/sitegen:latest
 
 pages:
   script:
+    - mkdir -p themes
+    - git clone https://github.com/gbraad/blog-theme.git themes/gbraad --depth 1
     - pelican-themes --symlink `pwd`/themes/gbraad
     - make publish
     - mv output public
