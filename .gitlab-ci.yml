@@ -1,6 +1,6 @@
 stages:
   - build
-  - deploy
+  - publish
 
 build_page:
   image: registry.gitlab.com/gbraad/sitegen:latest
@@ -17,7 +17,7 @@ build_page:
 
 publish:
   image: registry.gitlab.com/gbraad/docker:git
-  stage: deploy
+  stage: publish
   script:
     - cd public
     - git init
@@ -31,7 +31,7 @@ publish:
     - git push github gh-pages
 
 pages:
-  stage: deploy
+  stage: publish
   artifacts:
     paths:
       - public
