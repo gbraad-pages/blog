@@ -11,6 +11,7 @@ build_page:
     - git clone https://github.com/gbraad/blog-theme.git themes/gbraad --depth 1
     - pelican-themes --symlink `pwd`/themes/gbraad
     - git clone https://github.com/getpelican/pelican-plugins plugins --depth 1 --recursive
+    - pip install disqus-python
     - make publish
     - mv output public
   artifacts:

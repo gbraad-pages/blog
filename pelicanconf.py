@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*- #
 from __future__ import unicode_literals
+import os
 
 AUTHOR = u'Gerard Braad <me@gbraad.nl>'
 SITENAME = u"Gerard Braad's blog"
@@ -31,3 +31,11 @@ DEFAULT_PAGINATION = 5
 #RELATIVE_URLS = True
 
 THEME = u'gbraad'
+
+PLUGIN_PATHS = ['plugins']
+PLUGINS = [u"disqus_static"]
+
+# Disqus
+DISQUS_SITENAME = u'gbraad-blog'
+DISQUS_PUBLIC_KEY = os.environ['DISQUS_PUBLIC_KEY']
+DISQUS_SECRET_KEY = os.environ['DISQUS_SECRET_KEY']
