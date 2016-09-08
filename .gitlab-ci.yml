@@ -12,9 +12,7 @@ build_page:
     - pelican-themes --symlink `pwd`/themes/gbraad
     - git clone https://github.com/getpelican/pelican-plugins plugins --depth 1 --recursive
     - pip install disqus-python
-    - pip install pygments-style-tomorrownightbright
     - make publish
-    - pygmentize -S tomorrownightbright -f html > output/theme/css/pygments/tomorrownightbright.css
     - mv output public
   artifacts:
     paths:
