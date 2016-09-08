@@ -10,6 +10,7 @@ build_page:
     - mkdir -p themes
     - git clone https://github.com/gbraad/blog-theme.git themes/gbraad --depth 1
     - pelican-themes --symlink `pwd`/themes/gbraad
+    - git clone https://github.com/getpelican/pelican-plugins plugins --depth 1 --recursive
     - make publish
     - mv output public
   artifacts:
