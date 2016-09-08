@@ -39,3 +39,5 @@ PLUGINS = [u"disqus_static"]
 DISQUS_SITENAME = u'gbraad-blog'
 DISQUS_PUBLIC_KEY = os.environ['DISQUS_PUBLIC_KEY']
 DISQUS_SECRET_KEY = os.environ['DISQUS_SECRET_KEY']
+
+PYGMENTS_STYLE = u'tomorrownightbright'
