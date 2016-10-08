@@ -6,9 +6,9 @@ build_page:
   image: registry.gitlab.com/gbraad/sitegen:latest
   stage: build
   script:
-    - git clone https://github.com/gbraad/blog-content.git content --depth 1
+    - git clone https://gitlab.com/gbraad/blog-content.git content --depth 1
     - mkdir -p themes
-    - git clone https://github.com/gbraad/blog-theme.git themes/gbraad --depth 1
+    - git clone https://gitlab.com/gbraad/blog-theme.git themes/gbraad --depth 1
     - pelican-themes --symlink `pwd`/themes/gbraad
     - git clone https://github.com/getpelican/pelican-plugins plugins --depth 1 --recursive
     - pip install disqus-python
