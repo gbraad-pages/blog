@@ -10,7 +10,7 @@ build_page:
     - mkdir -p themes
     - git clone https://gitlab.com/gbraad/blog-theme.git themes/gbraad --depth 1
     - pelican-themes --symlink `pwd`/themes/gbraad
-    - git clone https://gitlab.com/unofficial-mirrors/pelican-plugins.git plugins --depth 1 --recursive
+    - git clone https://github.com/getpelican/pelican-plugins plugins --depth 1 --recursive
     - pip install disqus-python
     - make publish
     - mv output public
