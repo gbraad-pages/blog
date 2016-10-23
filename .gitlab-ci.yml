@@ -34,6 +34,7 @@ publish:
     - git push github gh-pages
 
 pages:
+  image: registry.gitlab.com/gbraad/docker:git
   stage: publish
   artifacts:
     paths:
