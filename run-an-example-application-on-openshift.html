@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Run an example application on OpenShift - Gerard Braad's blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="http://gbraad.nl/blog/run-an-example-application-on-openshift.html">
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="containers,openshift,example,ruby,docker,devops" />
+        <meta name="description" content="In a previous article I have written on how easy it is to stand up a test environment of OpenShift. In this article I will describe an example application from the sourcecode to the created image and how this gets deployed. The steps are explained using manual steps, and how ..." />
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Run an example application on OpenShift"/>
+        <meta property="og:url" content="http://gbraad.nl/blog/run-an-example-application-on-openshift.html"/>
+        <meta property="og:description" content="In a previous article I have written on how easy it is to stand up a test environment of OpenShift. In this article I will describe an example application from the sourcecode to the created image and how this gets deployed. The steps are explained using manual steps, and how ..."/>
+        <meta property="article:published_time" content="2016-09-29" />
+            <meta property="article:section" content="Containers" />
+            <meta property="article:tag" content="containers" />
+            <meta property="article:tag" content="openshift" />
+            <meta property="article:tag" content="example" />
+            <meta property="article:tag" content="ruby" />
+            <meta property="article:tag" content="docker" />
+            <meta property="article:tag" content="devops" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <!-- Bootstrap -->
+	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+
+        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="http://gbraad.nl/blog/feeds/containers.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Containers ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+Gerard Braad's blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://gbraad.nl/blog/run-an-example-application-on-openshift.html"
+                       rel="bookmark"
+                       title="Permalink to Run an example application on OpenShift">
+                        Run an example application on OpenShift
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2016-09-29T00:00:00+08:00"> Thu 29 September 2016</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://gbraad.nl/blog/tag/containers.html">containers</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/openshift.html">openshift</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/example.html">example</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/ruby.html">ruby</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/docker.html">docker</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/devops.html">devops</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>In a <a href="./deploy-an-openshift-test-cluster.html" title="Deploy an OpenShift test cluster">previous article</a> I have written
+on how easy it is to stand up a test environment of OpenShift. In this article
+I will describe an example application from the sourcecode to the created image
+and how this gets deployed. The steps are explained using manual steps, and how
+OpenShift does it all automated. You will notice, at no point do you have to
+write a <code>Dockerfile</code>.</p>
+<h2>Preparation</h2>
+<p>For this article it is not necessary to have a working test environment, however
+it does make things clearer. I would suggest you to use OpenShift Origin v1.3 on
+CentOS 7. Although my previous article showed how to get it up and running on
+Fedora 24, I experienced an issue with deployment not succeeding<a href="https://lists.openshift.redhat.com/openshift-archives/users/2016-September/msg00198.html" title="Deployment of ruby-ex times out">*</a>.
+The steps in the deployment article can be performed by replacing <code>dnf</code> with
+<code>yum</code>. </p>
+<h2>Description of the example</h2>
+<p>The OpenShift project publishes several test applications on GitHub, of which
+one is a very simple Ruby applica8080. Please, have a look at: <a href="https://github.com/openshift/ruby-ex" title="Ruby example">http://github.com/openshift/ruby-ex</a></p>
+<p>You will see it consists of four files:</p>
+<ul>
+<li><code>Gemfile</code></li>
+<li><code>Gemfile.local</code></li>
+<li><code>config.ru</code></li>
+<li><code>README.md</code></li>
+</ul>
+<p>The application itself is only described in <code>config.ru</code> and the needed dependencies
+are in <code>Gemfile</code>.</p>
+<h3>Dependencies</h3>
+<p>To make the application work, we first need:</p>
+<div class="highlight"><pre><span></span>$ gem install bundler
+</pre></div>
+
+
+<p>This will install <code>bundler</code> that can install dependencies as described in the
+<code>Gemfile</code>. This file describes:</p>
+<div class="highlight"><pre><span></span>source &#39;https://rubygems.org&#39;
+gem &#39;rack&#39;
+gem &#39;puma&#39;
+</pre></div>
+
+
+<p>The first line says <code>source</code> which points to a gem repository, and each line
+starting wih <code>gem</code> are bundled packages containing libraries for use in your
+project. To install all of the required gems (dependencies) from the specified
+sources:</p>
+<div class="highlight"><pre><span></span>$ bundle install
+</pre></div>
+
+
+<p>The file <code>Gemfile.lock</code> is a snapshot of the Gemfile and is used internally.</p>
+<h3>config.ru</h3>
+<p>The application is specified in the file called <code>config.ru</code>. If you open the
+file you will see it contains route mappings, lines starting  with <code>map</code>, for
+three urls:</p>
+<ul>
+<li><code>/health</code></li>
+<li><code>/lobster</code></li>
+<li><code>/</code></li>
+</ul>
+<h4><code>/health</code></h4>
+<p>This is a commonly used to provide a simple health-check for applications that
+are automatically deployed. It allows to quickly test if the application got
+deployed. In projects I worked on, we also did quick dependency checks, such as
+a configuration file exists, or another needed endpoint is available. In this
+application it will respond with a HTTP status code 200 and returns <code>1</code> as
+value.</p>
+<h4><code>/lobster</code></h4>
+<p>This is a test provided by rack. It shows an ASCII-art lobster. By adding a
+variable to the URL querystring <code>?flip=left</code> the direction can be changed.</p>
+<h4><code>/</code></h4>
+<p>This is the mapping to a bare route. It shows a greeting message on how to use
+the application using OpenShift to trigger automated builds.</p>
+<h3>Rackup</h3>
+<p>Rack is an interface for using Ruby and Ruby frameworks with webservers. It
+provides an application called <code>rackup</code> to start the application:</p>
+<div class="highlight"><pre><span></span>$ bundle <span class="nb">exec</span> rackup -p <span class="m">8080</span> config.ru
+</pre></div>
+
+
+<p>Using this command the webserver will bind to port 8080, according to the
+description in the <code>config.ru</code> file. To see what the mappings do, open:</p>
+<ul>
+<li><a href="http://localhost:8080/health" title="Example health-check">http://localhost:8080/health</a></li>
+<li><a href="http://localhost:8080/lobster" title="Example lobster">http://localhost:8080/lobster</a></li>
+<li><a href="http://localhost:8080/" title="Example bare">http://localhost:8080/</a></li>
+</ul>
+<h2>Use the example with OpenShift</h2>
+<p>Deploying an application on OpenShift from source is very simple. A single
+command can do this. First have a look</p>
+<div class="highlight"><pre><span></span>$ oc new-app openshift/ruby-20-centos7~https://github.com/<span class="o">[</span>username<span class="o">]</span>/ruby-ex
+</pre></div>
+
+
+<p>But before we do, I will explain what this command does. Oversimplified
+OpenShift does two things:</p>
+<ol>
+<li>Build</li>
+<li>Deploy</li>
+</ol>
+<p>Note: If you want to perform the command, go ahead. Please fork the repository
+and change the <code>[username]</code> in this command.</p>
+<h3>Build: source to image</h3>
+<p>OpenShift runs container images which are in the Docker format. It will run
+the <code>CMD</code> instruction for this. So, how does OpenShift know what to run?
+Convention. Most frameworks have a standard way of doing things, and this is
+as you noticed also the case with the Ruby example. The creation of the image
+happens with a tool called source-to-image (S2I).</p>
+<p><a href="https://github.com/openshift/source-to-image/" title="Source-to-image">Source-to-Image (S2I)</a> is a toolkit and workflow for building
+reproducible Docker images from source code. It uses a base image, and will
+layer the application on top, configures the runn command, which then results in
+a containter image for use.</p>
+<div class="highlight"><pre><span></span>$ s2i build https://github.com/<span class="o">[</span>username<span class="o">]</span>/ruby-ex openshift/ruby-20-centos7 ruby-ex
+</pre></div>
+
+
+<h4>base image</h4>
+<p>The base image here is <a href="https://hub.docker.com/r/openshift/ruby-20-centos7" title="Ruby base image">openshift/ruby-20-centos7</a>. The source
+of this image can be found at the following GitHub repository: <a href="https://github.com/sclorg/s2i-ruby-container/" title="Ruby base image source">s2i-ruby-container</a></p>
+<p>If you look at the <code>Dockerfile</code> <a href="https://github.com/sclorg/s2i-ruby-container/blob/master/2.0/Dockerfile" title="Ruby base Dockerfile">source</a>, you will see
+<a href="https://www.softwarecollections.org/en/" title="Software Collections">Software Collections</a> is used to install a specific Ruby version.
+In this case version 2.0. Software collections solves one of the biggest
+complaints of using CentOS (or RHEL) as a basis as part of your delivery. It
+allows you to use multiple versions of software on the same system, without
+affecting system-wide installed packages.</p>
+<p>The image also describes a label <code>io.openshift.expose-services="8080:http"</code>
+which inidcate that the application on port 8080 will be exposed as HTTP
+traffic. This also means the container does not need root privileges as the port
+assignment is above 1024. The application itself will be installed into the
+folder: <code>/opt/app-root/src</code>.</p>
+<p>Running this container can be done with:</p>
+<div class="highlight"><pre><span></span>$ docker run -p 8080:8080 ruby-ex
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[1] Puma starting in cluster mode...
+[1] * Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl
+[1] * Min threads: 0, max threads: 16
+[1] * Environment: production
+[1] * Process workers: 1
+[1] * Phased restart available
+[1] * Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+</pre></div>
+
+
+<p>Open the links as previously stated will yield the same results.</p>
+<div class="highlight"><pre><span></span>$ curl http://localhost:8080/health
+</pre></div>
+
+
+<p>The build process can be as simple as a copy for static content, to compiling
+Java or C/C++ code.  For the purpose of this article I will not explain more
+about the S2I process, but this will certainly be explained in future articles.</p>
+<h2>New application</h2>
+<p>If we now look at the previous command again:</p>
+<div class="highlight"><pre><span></span>$ oc new-app openshift/ruby-20-centos7~https://github.com/<span class="o">[</span>username<span class="o">]</span>/ruby-ex
+</pre></div>
+
+
+<p>you can clear see the structure. The first element <code>openshift/ruby-20-centos7</code>
+describes the S2I container image for Ruby as hosted at the Docker hub. The
+second part is the source code path pointing to a git repository.</p>
+<p>Please try the command now... OpenShift will create containers for each of the
+stages used: <code>build</code>, <code>deploy</code> and the final running container. You can check
+the containers using the command:</p>
+<div class="highlight"><pre><span></span>$ oc get pod
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>NAME               READY     STATUS         RESTARTS   AGE
+ruby-ex-1-build    0/1       Completed      0          1m
+</pre></div>
+
+
+<h3>Build stage</h3>
+<p>If you create this new application, a new container named <code>ruby-ex-1-build</code>.
+What happened is that the Source-to-image container got pulled which uses the 
+base image and layers the source code on top.</p>
+<p>To see what happened, as with the previous command, you can see the build
+configuration:</p>
+<div class="highlight"><pre><span></span>$ oc logs bc/ruby-ex
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Cloning &quot;https://github.com/gbraad/ruby-ex&quot; ...
+        Commit: f63d076b602441ebd65fd0749c5c58ea4bafaf90 (Merge pull request #2 from mfojtik/add-puma)
+        Author: Michal Fojtik &lt;mi@mifo.sk&gt;
+        Date:   Thu Jun 30 10:47:53 2016 +0200
+---&gt; Installing application source ...
+---&gt; Building your Ruby application from source ...
+---&gt; Running &#39;bundle install --deployment&#39; ...
+Fetching gem metadata from https://rubygems.org/...............
+Installing puma (3.4.0)
+Installing rack (1.6.4)
+Using bundler (1.3.5)
+Cannot write a changed lockfile while frozen.
+Your bundle is complete!
+It was installed into ./bundle
+---&gt; Cleaning up unused ruby gems ...
+Pushing image 172.30.108.129:5000/myproject/ruby-ex:latest ...
+Pushed 0/10 layers, 10% complete
+Pushed 1/10 layers, 34% complete
+Pushed 2/10 layers, 49% complete
+Pushed 3/10 layers, 50% complete
+Pushed 4/10 layers, 50% complete
+Pushed 5/10 layers, 50% complete
+Pushed 6/10 layers, 61% complete
+Pushed 7/10 layers, 71% complete
+Pushed 8/10 layers, 88% complete
+Pushed 9/10 layers, 99% complete
+Pushed 10/10 layers, 100% complete
+Push successful
+</pre></div>
+
+
+<p>The difference is that the resulting image will be placed in the <code>myproject</code>
+namespace, and pushed to the local repository.</p>
+<h3>Deployment stage</h3>
+<p>After the image has been composed, OpenShift will run the container image on the
+scheduled node. What happens here can be checked with:</p>
+<div class="highlight"><pre><span></span>$ oc get pod                                                                                                                                                          
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>NAME              READY     STATUS      RESTARTS   AGE
+ruby-ex-1-an801   1/1       Running     0          26s
+ruby-ex-1-build   0/1       Completed   0          1m
+</pre></div>
+
+
+<p>This means that the build succeeded, the image got deployed and now runs in the
+a container identified with <code>ruby-ex-1-an801</code>. Note: The container
+<code>ruby-ex-1-deploy</code> is not shown here as only the logs are of importance.</p>
+<p>The deployment configuration logs can be shown with:</p>
+<div class="highlight"><pre><span></span>$ oc logs dc/ruby-ex
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>[1] Puma starting in cluster mode...
+[1] * Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl
+[1] * Min threads: 0, max threads: 16
+[1] * Environment: production
+[1] * Process workers: 2
+[1] * Phased restart available
+[1] * Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+[1] - Worker 1 (pid: 35) booted, phase: 0
+</pre></div>
+
+
+<h3>Events</h3>
+<p>To see the flow of execution, you can have a look at:</p>
+<div class="highlight"><pre><span></span>$ oc get events
+</pre></div>
+
+
+<p>This can be helpful if an error occured.</p>
+<h3>Verify</h3>
+<p>Now that the application has been deployed on OpenShift, we need to look up the 
+IP address that has been assigned. For this we use:</p>
+<div class="highlight"><pre><span></span>$ oc get svc
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>NAME      CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+ruby-ex   172.30.91.160   &lt;none&gt;        8080/TCP   21h
+</pre></div>
+
+
+<p>Now we can open the application as <code>http://172.30.91.160:8080/</code></p>
+<h2>Conclusion</h2>
+<p>OpenShift allows you to run prebuilt images or applications based on source.
+The Source-to-image tooling makes it possible to create reproducible images for
+deployment of applications based on source. This tool itself is very helpful
+and is certainly something I will be using, even outside the use of OpenShift.
+There is no need to create or modify a <code>Dockerfile</code>, which means that the
+developer can focus on the development process.</p>
+<p>If you want to know more about the automated builds, please have a look at the
+README of the <a href="https://github.com/openshift/ruby-ex" title="Ruby example">Ruby example</a>. In future articles more 
+detailed descriptions about these topics will certainly be given. I hope this
+has been helpful. Please consider leaving feedback or tweet this article.</p>
+            </div>
+            <!-- /.entry-content -->
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Comments</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'run-an-example-application-on-openshift';
+                var disqus_url = 'http://gbraad.nl/blog/run-an-example-application-on-openshift.html';
+
+            var disqus_config = function () {
+                this.language = "en";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+
+
+
+
+
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

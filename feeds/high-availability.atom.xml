@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/high-availability.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-09-12T00:00:00+08:00</updated><entry><title>Highly Available storage using GlusterFS</title><link href="http://gbraad.nl/blog/highly-available-storage-using-glusterfs.html" rel="alternate"></link><published>2016-09-12T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-12:blog/highly-available-storage-using-glusterfs.html</id><summary type="html">&lt;p&gt;In this article I will describe how you can setup a webserver environment with
+Highly Available (HA) storage, provided by GlusterFS. We will be setting up a
+simple environment in which storage between two webservers needs to be replicated.&lt;/p&gt;
+&lt;p&gt;GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It
+is free and open source software and can utilize common off-the-shelf hardware.
+To learn more, please see the Gluster project &lt;a href="http://www.gluster.org/"&gt;home page&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;You will need two servers available, each with a dedicated disk for storage,
+such as &lt;code&gt;/dev/vdb&lt;/code&gt; or &lt;code&gt;/dev/sdb&lt;/code&gt;. I will be using Fedora 24, which of writing
+is the latest version.&lt;/p&gt;
+&lt;p&gt;The following needs to be installed on both servers:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ dnf install -y glusterfs-server xfsprogs
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This includes the server component for the distributed filesystem, and the tools
+needed to format the disk we will use to store the files. Gluster recommends to
+use XFS as the filesystem.&lt;/p&gt;
+&lt;p&gt;We will assume for this article, that the machines will be running Apache. If
+this is not installed already, you can do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ dnf install -y httpd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Hostnames&lt;/h2&gt;
+&lt;p&gt;Make sure the hostnames and IP addresses of the servers are known to each other.
+For this, check the content of &lt;code&gt;/etc/hosts&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/etc/hosts&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;37.153.173.244 server01-public
+37.153.173.245 server01-public
+10.3.0.44 server01-private
+10.3.0.45 server02-private
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: these servers have two interfaces, Although this is not necessary, it is
+strongly recommended to separate the traffic from the web and what you use for
+the storage network. In our case, the web-facing IP addresses have not been
+load-balanced yet. This is a topic for future articles.&lt;/p&gt;
+&lt;h2&gt;Prepare disks&lt;/h2&gt;
+&lt;p&gt;Since Gluster relies on extended file attributes (xattr), we will need to increase
+the inode size when formatting the disks.&lt;/p&gt;
+&lt;p&gt;Perform on the following on both the servers&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkfs.xfs -i &lt;span class="nv"&gt;size&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;512&lt;/span&gt; /dev/vdb
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;meta-data=/dev/vdb               isize=512    agcount=4, agsize=3276800 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=0
+data     =                       bsize=4096   blocks=13107200, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal log           bsize=4096   blocks=6400, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we need to create a mountpoint for the filesystem. We will use
+&lt;code&gt;/data/var-www/brick01&lt;/code&gt; on &lt;code&gt;server01&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir -p /data/var-www/brick01
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;/dev/vdb /data/var-www/brick01 xfs defaults 1 2&amp;#39;&lt;/span&gt; &amp;gt;&amp;gt; /etc/fstab
+$ mount -a 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and &lt;code&gt;/data/var-www/brick02&lt;/code&gt; on &lt;code&gt;server02&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir -p /data/var-www/brick02
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;/dev/vdb /data/var-www/brick02 xfs defaults 1 2&amp;#39;&lt;/span&gt; &amp;gt;&amp;gt; /etc/fstab
+$ mount -a 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Setup Gluster&lt;/h2&gt;
+&lt;p&gt;You will now create a cluster of Gluster servers, which means that we will create
+a trust between the two nodes. But before we can do this, we need to make sure
+the Gluster daemon is running on the nodes. Perform the following commands on
+both of the nodes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; glusterd
+$ systemctl start glusterd
+$ systemctl status glusterd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we need to create the trusted connection. The following commands will only
+need to be used on one of the nodes. In my case, this will be &lt;code&gt;server01&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gluster peer probe server02-private
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;peer probe: success.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: the hostname here refers to the private IP address. This is not the same
+range as the public network. For security purposes you will likely separate the
+traffic.&lt;/p&gt;
+&lt;p&gt;You can verify is the trust exists by running:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gluster peer status
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Number of Peers: 1
+
+Hostname: server02-private
+Uuid: af523e9b-4257-485d-aa45-ebd24f115c42
+State: Peer in Cluster (Connected)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you would run this command also on &lt;code&gt;server02&lt;/code&gt;, you would get a similar result:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Number of Peers: 1
+
+Hostname: server01-private
+Uuid: 74c77082-b62c-4cc4-b33f-02de36083990
+State: Peer in Cluster (Connected)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Create Gluster volume&lt;/h2&gt;
+&lt;p&gt;In case of a failure, we do not want our data to be unavailable. Therefore we
+need to have two copies of our data, and we do this by creating a replicated
+volume.&lt;/p&gt;
+&lt;p&gt;This command will only need to be run on one node, as Gluster will take care of
+the related nodes.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gluster volume create var-www replica &lt;span class="m"&gt;2&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+          server01-private:/data/var-www/brick01/volume &lt;span class="se"&gt;\&lt;/span&gt;
+          server02-private:/data/var-www/brick02/volume
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;volume create: var-www: success: please start the volume to access data
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gluster volume start var-www
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;volume start: var-www: success
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gluster volume info
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Volume Name: var-www
+Type: Replicate
+Volume ID: e91014ca-f98c-42e5-8e75-de4d2e65f569
+Status: Started
+Number of Bricks: 1 x 2 = 2
+Transport-type: tcp
+Bricks:
+Brick1: server01-private:/data/var-www/brick01/volume
+Brick2: server02-private:/data/var-www/brick02/volume
+Options Reconfigured:
+transport.address-family: inet
+performance.readdir-ahead: on
+nfs.disable: on
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Mount Gluster volume&lt;/h2&gt;
+&lt;p&gt;Before you can mount the volume on &lt;code&gt;/var/www&lt;/code&gt; to share the webpages, we need to
+move the original &lt;code&gt;/var/www&lt;/code&gt; out of the way and create a new directory to mount.
+Perform the following commands on both the servers:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl stop httpd
+$ mv /var/www&lt;span class="o"&gt;{&lt;/span&gt;,.orig&lt;span class="o"&gt;}&lt;/span&gt;
+$ mkdir /var/www
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now that we have the mountpoint, we can add an entry to &lt;code&gt;fstab&lt;/code&gt; to deal with
+mounting of our volume. On &lt;code&gt;server01&lt;/code&gt; you need to do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;server01-private:/var-www /var/www glusterfs defaults,_netdev,fetch-attempts=3 0 0&amp;#39;&lt;/span&gt; &amp;gt;&amp;gt; /etc/fstab
+$ mount -a
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And on &lt;code&gt;server02&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;server02-private:/var-www /var/www glusterfs defaults,_netdev,fetch-attempts=3 0 0&amp;#39;&lt;/span&gt; &amp;gt;&amp;gt; /etc/fstab
+$ mount -a
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now the volume has been mounted and replication is available. We use &lt;code&gt;_netdev&lt;/code&gt;
+because network needs to be up before we can use this filesystem, and &lt;code&gt;fetch_attempts&lt;/code&gt;
+will deal with the volume information in case of a failure. Since we have multiple
+IP address, this is a suggested setting.&lt;/p&gt;
+&lt;h2&gt;Test replication&lt;/h2&gt;
+&lt;p&gt;On &lt;code&gt;server01&lt;/code&gt; you can do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir -p /var/www/html
+$ &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Hello, World!&amp;#39;&lt;/span&gt; &amp;gt; /var/www/html/index.html
+$ systemctl start httpd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you would now open the web facing IP address, you should see the message:
+&lt;code&gt;Hello, World!&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Note: if you have issues opening the page, or the default Fedora test page gets
+returned, you might have SELinux enabled. In this case, you need to turn on the
+following boolean:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ setsebool -P httpd_use_fusefs 1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;which will allow Apache to use the FUSE filesystem mount as used by GlusterFS.&lt;/p&gt;
+&lt;p&gt;Now, on &lt;code&gt;server02&lt;/code&gt; you can check the content of the folder:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls /var/www/html
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and you would see an &lt;code&gt;index.html&lt;/code&gt; file. Now start Apache and you will see that
+the content is also served from this server.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl start httpd
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Using GlusterFS it is easy to setup an environment that can handle issues with
+storage availability. You now have a replicate volume that is available on two
+servers. Actions we take on each of these servers, will be replicated to the
+other server.&lt;/p&gt;
+&lt;p&gt;In this case we have setup the servers to handle both the storage and act as a
+client to read these files. More advanced are available and are described in the
+&lt;a href="http://gluster.readthedocs.io/en/latest/"&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Next step&lt;/h2&gt;
+&lt;p&gt;Now that we have implemented replicated storage for our webservers, we need to
+provide a HA solution to deal with the traffic on the webfacing IP addresses.
+In an OpenStack environment you could use Neutron to setup a loadbalancer and 
+health monitor for the two servers. How to set this up in described in the
+&lt;a href="./building-a-multi-tier-application-using-openstack-packstack.html"&gt;following article&lt;/a&gt;.
+However, you can also do so with HAProxy and a failover mechanism, which will be
+the topic of a future article.&lt;/p&gt;
+&lt;p&gt;If you have questions please let me know on Twitter at &lt;a href="http://twitter.com/gbraad"&gt;@gbraad&lt;/a&gt; or by email.&lt;/p&gt;</summary><category term="gluster"></category><category term="high availability"></category><category term="web"></category><category term="storage"></category></entry></feed>

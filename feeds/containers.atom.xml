@@ -1,0 +1,1324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/containers.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-11-08T00:00:00+08:00</updated><entry><title>Presentation: Atomic, FUDCon Phnom Penh</title><link href="http://gbraad.nl/blog/presentation-atomic-fudcon-phnom-penh.html" rel="alternate"></link><published>2016-11-08T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-11-08:blog/presentation-atomic-fudcon-phnom-penh.html</id><summary type="html">&lt;p&gt;This is the presentation as given at the FUDCon Phnom Penh. In short it explains
+what Project Atomic is, how to use Atomic Host, and some advanced use-cases;
+deployment of a composed application, and customization of the Atomic images.
+The presentation relied heavily on showing usage in the form of a demo,
+therefore please see the links to the other relevant articles on this blog.&lt;/p&gt;
+&lt;h2&gt;Presentation&lt;/h2&gt;
+&lt;p&gt;&lt;iframe src="//gbraad.gitlab.io/presentation-fudcon-phnompenh/" width="1024" height="768"&gt;
+  &lt;p&gt;Your browser does not support iframes.&lt;/p&gt;
+&lt;/iframe&gt;&lt;/p&gt;
+&lt;h2&gt;Feedback&lt;/h2&gt;
+&lt;p&gt;If you have any suggestion, please discuss below or send me an email.&lt;/p&gt;</summary><category term="atomic"></category><category term="ostree"></category><category term="containers"></category></entry><entry><title>Run an example application on OpenShift</title><link href="http://gbraad.nl/blog/run-an-example-application-on-openshift.html" rel="alternate"></link><published>2016-09-29T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-29:blog/run-an-example-application-on-openshift.html</id><summary type="html">&lt;p&gt;In a &lt;a href="./deploy-an-openshift-test-cluster.html" title="Deploy an OpenShift test cluster"&gt;previous article&lt;/a&gt; I have written
+on how easy it is to stand up a test environment of OpenShift. In this article
+I will describe an example application from the sourcecode to the created image
+and how this gets deployed. The steps are explained using manual steps, and how
+OpenShift does it all automated. You will notice, at no point do you have to
+write a &lt;code&gt;Dockerfile&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Preparation&lt;/h2&gt;
+&lt;p&gt;For this article it is not necessary to have a working test environment, however
+it does make things clearer. I would suggest you to use OpenShift Origin v1.3 on
+CentOS 7. Although my previous article showed how to get it up and running on
+Fedora 24, I experienced an issue with deployment not succeeding&lt;a href="https://lists.openshift.redhat.com/openshift-archives/users/2016-September/msg00198.html" title="Deployment of ruby-ex times out"&gt;*&lt;/a&gt;.
+The steps in the deployment article can be performed by replacing &lt;code&gt;dnf&lt;/code&gt; with
+&lt;code&gt;yum&lt;/code&gt;. &lt;/p&gt;
+&lt;h2&gt;Description of the example&lt;/h2&gt;
+&lt;p&gt;The OpenShift project publishes several test applications on GitHub, of which
+one is a very simple Ruby applica8080. Please, have a look at: &lt;a href="https://github.com/openshift/ruby-ex" title="Ruby example"&gt;http://github.com/openshift/ruby-ex&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You will see it consists of four files:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Gemfile&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Gemfile.local&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;config.ru&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;README.md&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The application itself is only described in &lt;code&gt;config.ru&lt;/code&gt; and the needed dependencies
+are in &lt;code&gt;Gemfile&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Dependencies&lt;/h3&gt;
+&lt;p&gt;To make the application work, we first need:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gem install bundler
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will install &lt;code&gt;bundler&lt;/code&gt; that can install dependencies as described in the
+&lt;code&gt;Gemfile&lt;/code&gt;. This file describes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;source &amp;#39;https://rubygems.org&amp;#39;
+gem &amp;#39;rack&amp;#39;
+gem &amp;#39;puma&amp;#39;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The first line says &lt;code&gt;source&lt;/code&gt; which points to a gem repository, and each line
+starting wih &lt;code&gt;gem&lt;/code&gt; are bundled packages containing libraries for use in your
+project. To install all of the required gems (dependencies) from the specified
+sources:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ bundle install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The file &lt;code&gt;Gemfile.lock&lt;/code&gt; is a snapshot of the Gemfile and is used internally.&lt;/p&gt;
+&lt;h3&gt;config.ru&lt;/h3&gt;
+&lt;p&gt;The application is specified in the file called &lt;code&gt;config.ru&lt;/code&gt;. If you open the
+file you will see it contains route mappings, lines starting  with &lt;code&gt;map&lt;/code&gt;, for
+three urls:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;/health&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/lobster&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;/health&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This is a commonly used to provide a simple health-check for applications that
+are automatically deployed. It allows to quickly test if the application got
+deployed. In projects I worked on, we also did quick dependency checks, such as
+a configuration file exists, or another needed endpoint is available. In this
+application it will respond with a HTTP status code 200 and returns &lt;code&gt;1&lt;/code&gt; as
+value.&lt;/p&gt;
+&lt;h4&gt;&lt;code&gt;/lobster&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This is a test provided by rack. It shows an ASCII-art lobster. By adding a
+variable to the URL querystring &lt;code&gt;?flip=left&lt;/code&gt; the direction can be changed.&lt;/p&gt;
+&lt;h4&gt;&lt;code&gt;/&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This is the mapping to a bare route. It shows a greeting message on how to use
+the application using OpenShift to trigger automated builds.&lt;/p&gt;
+&lt;h3&gt;Rackup&lt;/h3&gt;
+&lt;p&gt;Rack is an interface for using Ruby and Ruby frameworks with webservers. It
+provides an application called &lt;code&gt;rackup&lt;/code&gt; to start the application:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ bundle &lt;span class="nb"&gt;exec&lt;/span&gt; rackup -p &lt;span class="m"&gt;8080&lt;/span&gt; config.ru
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Using this command the webserver will bind to port 8080, according to the
+description in the &lt;code&gt;config.ru&lt;/code&gt; file. To see what the mappings do, open:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://localhost:8080/health" title="Example health-check"&gt;http://localhost:8080/health&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://localhost:8080/lobster" title="Example lobster"&gt;http://localhost:8080/lobster&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://localhost:8080/" title="Example bare"&gt;http://localhost:8080/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Use the example with OpenShift&lt;/h2&gt;
+&lt;p&gt;Deploying an application on OpenShift from source is very simple. A single
+command can do this. First have a look&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc new-app openshift/ruby-20-centos7~https://github.com/&lt;span class="o"&gt;[&lt;/span&gt;username&lt;span class="o"&gt;]&lt;/span&gt;/ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But before we do, I will explain what this command does. Oversimplified
+OpenShift does two things:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Build&lt;/li&gt;
+&lt;li&gt;Deploy&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Note: If you want to perform the command, go ahead. Please fork the repository
+and change the &lt;code&gt;[username]&lt;/code&gt; in this command.&lt;/p&gt;
+&lt;h3&gt;Build: source to image&lt;/h3&gt;
+&lt;p&gt;OpenShift runs container images which are in the Docker format. It will run
+the &lt;code&gt;CMD&lt;/code&gt; instruction for this. So, how does OpenShift know what to run?
+Convention. Most frameworks have a standard way of doing things, and this is
+as you noticed also the case with the Ruby example. The creation of the image
+happens with a tool called source-to-image (S2I).&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/openshift/source-to-image/" title="Source-to-image"&gt;Source-to-Image (S2I)&lt;/a&gt; is a toolkit and workflow for building
+reproducible Docker images from source code. It uses a base image, and will
+layer the application on top, configures the runn command, which then results in
+a containter image for use.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ s2i build https://github.com/&lt;span class="o"&gt;[&lt;/span&gt;username&lt;span class="o"&gt;]&lt;/span&gt;/ruby-ex openshift/ruby-20-centos7 ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;base image&lt;/h4&gt;
+&lt;p&gt;The base image here is &lt;a href="https://hub.docker.com/r/openshift/ruby-20-centos7" title="Ruby base image"&gt;openshift/ruby-20-centos7&lt;/a&gt;. The source
+of this image can be found at the following GitHub repository: &lt;a href="https://github.com/sclorg/s2i-ruby-container/" title="Ruby base image source"&gt;s2i-ruby-container&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;If you look at the &lt;code&gt;Dockerfile&lt;/code&gt; &lt;a href="https://github.com/sclorg/s2i-ruby-container/blob/master/2.0/Dockerfile" title="Ruby base Dockerfile"&gt;source&lt;/a&gt;, you will see
+&lt;a href="https://www.softwarecollections.org/en/" title="Software Collections"&gt;Software Collections&lt;/a&gt; is used to install a specific Ruby version.
+In this case version 2.0. Software collections solves one of the biggest
+complaints of using CentOS (or RHEL) as a basis as part of your delivery. It
+allows you to use multiple versions of software on the same system, without
+affecting system-wide installed packages.&lt;/p&gt;
+&lt;p&gt;The image also describes a label &lt;code&gt;io.openshift.expose-services="8080:http"&lt;/code&gt;
+which inidcate that the application on port 8080 will be exposed as HTTP
+traffic. This also means the container does not need root privileges as the port
+assignment is above 1024. The application itself will be installed into the
+folder: &lt;code&gt;/opt/app-root/src&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Running this container can be done with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker run -p 8080:8080 ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[1] Puma starting in cluster mode...
+[1] * Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl
+[1] * Min threads: 0, max threads: 16
+[1] * Environment: production
+[1] * Process workers: 1
+[1] * Phased restart available
+[1] * Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Open the links as previously stated will yield the same results.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl http://localhost:8080/health
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The build process can be as simple as a copy for static content, to compiling
+Java or C/C++ code.  For the purpose of this article I will not explain more
+about the S2I process, but this will certainly be explained in future articles.&lt;/p&gt;
+&lt;h2&gt;New application&lt;/h2&gt;
+&lt;p&gt;If we now look at the previous command again:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc new-app openshift/ruby-20-centos7~https://github.com/&lt;span class="o"&gt;[&lt;/span&gt;username&lt;span class="o"&gt;]&lt;/span&gt;/ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;you can clear see the structure. The first element &lt;code&gt;openshift/ruby-20-centos7&lt;/code&gt;
+describes the S2I container image for Ruby as hosted at the Docker hub. The
+second part is the source code path pointing to a git repository.&lt;/p&gt;
+&lt;p&gt;Please try the command now... OpenShift will create containers for each of the
+stages used: &lt;code&gt;build&lt;/code&gt;, &lt;code&gt;deploy&lt;/code&gt; and the final running container. You can check
+the containers using the command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get pod
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME               READY     STATUS         RESTARTS   AGE
+ruby-ex-1-build    0/1       Completed      0          1m
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Build stage&lt;/h3&gt;
+&lt;p&gt;If you create this new application, a new container named &lt;code&gt;ruby-ex-1-build&lt;/code&gt;.
+What happened is that the Source-to-image container got pulled which uses the 
+base image and layers the source code on top.&lt;/p&gt;
+&lt;p&gt;To see what happened, as with the previous command, you can see the build
+configuration:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc logs bc/ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Cloning &amp;quot;https://github.com/gbraad/ruby-ex&amp;quot; ...
+        Commit: f63d076b602441ebd65fd0749c5c58ea4bafaf90 (Merge pull request #2 from mfojtik/add-puma)
+        Author: Michal Fojtik &amp;lt;mi@mifo.sk&amp;gt;
+        Date:   Thu Jun 30 10:47:53 2016 +0200
+---&amp;gt; Installing application source ...
+---&amp;gt; Building your Ruby application from source ...
+---&amp;gt; Running &amp;#39;bundle install --deployment&amp;#39; ...
+Fetching gem metadata from https://rubygems.org/...............
+Installing puma (3.4.0)
+Installing rack (1.6.4)
+Using bundler (1.3.5)
+Cannot write a changed lockfile while frozen.
+Your bundle is complete!
+It was installed into ./bundle
+---&amp;gt; Cleaning up unused ruby gems ...
+Pushing image 172.30.108.129:5000/myproject/ruby-ex:latest ...
+Pushed 0/10 layers, 10% complete
+Pushed 1/10 layers, 34% complete
+Pushed 2/10 layers, 49% complete
+Pushed 3/10 layers, 50% complete
+Pushed 4/10 layers, 50% complete
+Pushed 5/10 layers, 50% complete
+Pushed 6/10 layers, 61% complete
+Pushed 7/10 layers, 71% complete
+Pushed 8/10 layers, 88% complete
+Pushed 9/10 layers, 99% complete
+Pushed 10/10 layers, 100% complete
+Push successful
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The difference is that the resulting image will be placed in the &lt;code&gt;myproject&lt;/code&gt;
+namespace, and pushed to the local repository.&lt;/p&gt;
+&lt;h3&gt;Deployment stage&lt;/h3&gt;
+&lt;p&gt;After the image has been composed, OpenShift will run the container image on the
+scheduled node. What happens here can be checked with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get pod                                                                                                                                                          
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME              READY     STATUS      RESTARTS   AGE
+ruby-ex-1-an801   1/1       Running     0          26s
+ruby-ex-1-build   0/1       Completed   0          1m
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This means that the build succeeded, the image got deployed and now runs in the
+a container identified with &lt;code&gt;ruby-ex-1-an801&lt;/code&gt;. Note: The container
+&lt;code&gt;ruby-ex-1-deploy&lt;/code&gt; is not shown here as only the logs are of importance.&lt;/p&gt;
+&lt;p&gt;The deployment configuration logs can be shown with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc logs dc/ruby-ex
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[1] Puma starting in cluster mode...
+[1] * Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl
+[1] * Min threads: 0, max threads: 16
+[1] * Environment: production
+[1] * Process workers: 2
+[1] * Phased restart available
+[1] * Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+[1] - Worker 1 (pid: 35) booted, phase: 0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Events&lt;/h3&gt;
+&lt;p&gt;To see the flow of execution, you can have a look at:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get events
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This can be helpful if an error occured.&lt;/p&gt;
+&lt;h3&gt;Verify&lt;/h3&gt;
+&lt;p&gt;Now that the application has been deployed on OpenShift, we need to look up the 
+IP address that has been assigned. For this we use:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get svc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME      CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+ruby-ex   172.30.91.160   &amp;lt;none&amp;gt;        8080/TCP   21h
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we can open the application as &lt;code&gt;http://172.30.91.160:8080/&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;OpenShift allows you to run prebuilt images or applications based on source.
+The Source-to-image tooling makes it possible to create reproducible images for
+deployment of applications based on source. This tool itself is very helpful
+and is certainly something I will be using, even outside the use of OpenShift.
+There is no need to create or modify a &lt;code&gt;Dockerfile&lt;/code&gt;, which means that the
+developer can focus on the development process.&lt;/p&gt;
+&lt;p&gt;If you want to know more about the automated builds, please have a look at the
+README of the &lt;a href="https://github.com/openshift/ruby-ex" title="Ruby example"&gt;Ruby example&lt;/a&gt;. In future articles more 
+detailed descriptions about these topics will certainly be given. I hope this
+has been helpful. Please consider leaving feedback or tweet this article.&lt;/p&gt;</summary><category term="containers"></category><category term="openshift"></category><category term="example"></category><category term="ruby"></category><category term="docker"></category><category term="devops"></category></entry><entry><title>Setup Docker storage to use LVM thin pool</title><link href="http://gbraad.nl/blog/setup-docker-storage-to-use-lvm-thin-pool.html" rel="alternate"></link><published>2016-09-28T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-28:blog/setup-docker-storage-to-use-lvm-thin-pool.html</id><summary type="html">&lt;p&gt;If you install Docker on a new Fedora or CentOS system, it is very likely that
+you use devicemapper. Especially in the case of Fedora cloud images, no special
+configuration is done to the image. While Atomic images come pre-configured with
+a dedicated pool. Using devicemapper with loopback can lead to unpredictable
+behaviour, and while OverlayFS is a nice replacement, you will not be able to
+use SELinux at the moment. In this short article I will show how to setup a pool
+for storing the Docker images.&lt;/p&gt;
+&lt;h2&gt;Preparation&lt;/h2&gt;
+&lt;p&gt;For this article I will be using a Fedora 24 installation on an OpenStack cloud
+provider&lt;a href="http://citycloud.com"&gt;*&lt;/a&gt;. It is a standard Cloud image, which means the
+root is configured as 'ext4'. I will be attaching a storage volume to the
+instance. Just like using Virtual Manager, the disk will be identified as
+&lt;code&gt;/dev/vdb&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;First you need to stop the Docker process and remove the existing location. This
+means you will loose the images, but if they are important, you can either
+export or push them somewhere else.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl stop docker
+$ rm -rf /var/lib/docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this we will create a basic LVM setup which will use the whole storage
+volume.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pvcreate /dev/vdb
+$ vgcreate docker_vol /dev/vdb
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We know have a &lt;code&gt;volumegroup&lt;/code&gt; named &lt;code&gt;docker_vol&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Setup Docker storage&lt;/h2&gt;
+&lt;p&gt;Fedora comes with a tool that makes it easy to setup the storage for Docker,
+called &lt;code&gt;docker-storage-setup&lt;/code&gt;. The configuration is done with a file, and in
+our case it needs to contain the identification of the volume group to use:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ vi /etc/sysconfig/docker-storage-setup 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;VG=&amp;quot;docker_vol&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now you can run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker-storage-setup
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will create the filesystem and configures Docker to use the storage pool.
+After this successfully finishes, it has configured the pool to use the xfs
+filesystem.&lt;/p&gt;
+&lt;h2&gt;Verify&lt;/h2&gt;
+&lt;p&gt;To verify these changes, we will start Docker and run a basic image.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl start docker
+$ docker info
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Storage Driver: devicemapper
+ Pool Name: docker_vol-docker--pool
+ Pool Blocksize: 524.3 kB
+ Base Device Size: 10.74 GB
+ Backing Filesystem: xfs
+ Data file: 
+ Metadata file: 
+ Data Space Used: 37.75 MB
+ Data Space Total: 21.45 GB
+ Data Space Available: 21.41 GB
+ Metadata Space Used: 53.25 kB
+ Metadata Space Total: 54.53 MB
+ Metadata Space Available: 54.47 MB
+ Udev Sync Supported: true
+ Deferred Removal Enabled: true
+ Deferred Deletion Enabled: true
+ Deferred Deleted Device Count: 0
+ Library Version: 1.02.122 (2016-04-09)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker pull busybox
+$ docker run -it --rm busybox
+/ &lt;span class="c1"&gt;# &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Configuration of storage has been really simplified and shouldn't be a reason
+not to do this. However, still to many people are not aware of the issues with
+devicemapper and loopback. Having to assign additional software to use Docker
+can also be a reason why people do not consider doing this, but even OverlayFS
+is not perfect. Using overlay with SELinux will be possible in the future, and
+hopefully soon these steps will also not be needed. In any case, the steps
+involved are simple and if you use Docker on Fedora, needed!&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.projectatomic.io/blog/2015/06/notes-on-fedora-centos-and-docker-storage-drivers/"&gt;Friends Don't Let Friends Run Docker on Loopback in Production&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.projectatomic.io/docs/docker-storage-recommendation/"&gt;Setting up storage&lt;/a&gt; for Project Atomic&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="docker"></category><category term="containers"></category><category term="atomic"></category><category term="storage"></category></entry><entry><title>Deploy an OpenShift test cluster</title><link href="http://gbraad.nl/blog/deploy-an-openshift-test-cluster.html" rel="alternate"></link><published>2016-09-27T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-27:blog/deploy-an-openshift-test-cluster.html</id><summary type="html">&lt;p&gt;In my previous article I described how I used an Ansible playbook and a few roles
+to stand-up a Kubernetes test environment. In that article I mentioned that to
+deploy a production-ready environment some work more was required. Luckily, it
+is now very easy to stand up a production and enterprise-ready container
+platform for hosting applications, called &lt;a href="https://www.openshift.com"&gt;OpenShift&lt;/a&gt;.
+Through the years OpenShift has undergone a lot of changes, and the latest
+version Origin v1.3 is very different from the original version. OpenShift sets
+up a complete Kubernetes environment and with a set of tools it can take care of
+the whole application lifecycle, from source to deployment. In this article I
+will give an introduction to setting up a test environment for a developer.&lt;/p&gt;
+&lt;h2&gt;Setup machine&lt;/h2&gt;
+&lt;p&gt;I will setup the environment on a standard Fedora 24 installation. You can use a
+cloud image as all the needed packages will be specified. After installing the
+machine, you login as a standard user, which can do a password-less sudo.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="n"&gt;fedora&lt;/span&gt;&lt;span class="mf"&gt;@89.42.141.96&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;su&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;
+&lt;span class="cp"&gt;#&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Install docker and client&lt;/h3&gt;
+&lt;p&gt;From here all the commands will be run as root, unless otherwise specified.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ dnf install -y docker curl
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will install the basic packages we need to setup the test cluster. Now from
+a browser you open the following page: &lt;a href="https://github.com/openshift/origin/releases/tag/v1.3.0"&gt;https://github.com/openshift/origin/releases/tag/v1.3.0&lt;/a&gt;.
+This shows the current deliverables for the OpenShift Origin v1.3 release. You
+need to download the file called like &lt;code&gt;openshift-origin-client-tools-v1.3.0-[...]-linux-64bit.tar.gz&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl -sSL https://github.com/openshift/origin/releases/download/v1.3.0/openshift-origin-client-tools-v1.3.0-3ab7af3d097b57f933eccef684a714f2368804e7-linux-64bit.tar.gz -o oc-client.tar.gz
+$ tar -zxvf oc-client.tar.gz
+$ mkdir -p /opt/openshift/client
+$ cp ./openshift-origin-client-tools-v1.3.0-3ab7af3d097b57f933eccef684a714f2368804e7-linux-64bit/oc /opt/openshift/client/oc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: I do not install the binary in &lt;code&gt;/usr/bin&lt;/code&gt; or &lt;code&gt;/usr/sbin&lt;/code&gt; to prevent a
+conflict with a packaged version, but also because this makes it easier for me
+to work on a different version of the application. E.g. the current packaged
+version is v1.2 and does not provide the command we will be using in the next
+step.&lt;/p&gt;
+&lt;h3&gt;Configure docker&lt;/h3&gt;
+&lt;p&gt;To allow OpenShift to pull and locally cache images, it will deploy a local
+docker registry. But before docker would be able to use this, we need to
+specify an insecure registry in the configuration. For this you need to add
+&lt;code&gt;--insecure-registry 172.30.0.0/16&lt;/code&gt; to &lt;code&gt;/etc/sysconfig/docker&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ vi /etc/sysconfig/docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;OPTIONS=&amp;#39;--selinux-enabled --log-driver=journald --insecure-registry 172.30.0.0/16&amp;#39;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this we will setup to allow the standard user to communicate with the
+docker daemon over the docker socket. This is not a necessary step, and does not
+make the system more secure. It does make it easier not having to move between
+user and using sudo all the time.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ groupadd docker
+$ usermod -a -G docker fedora
+$ chgrp docker /var/run/docker.sock
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Edit: I recently created an &lt;a href="https://github.com/gbraad/ansible-playbooks/blob/master/playbooks/enable-ansible-user-for-docker.yml"&gt;Ansible playbook&lt;/a&gt;
+to perform these steps, as I had to do this on several Atomic hosts. I uses the
+current Ansible user and adds it to a group, and changes the socket permissions.&lt;/p&gt;
+&lt;p&gt;After this you can start docker and move on the actual installation of OpenShift.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; docker
+$ systemctl start docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: we will be running this environment with devicemapper as Storage Driver.
+This is not an ideal situation. If you do further tests, consider changing the
+storage with &lt;code&gt;docker-storage-setup&lt;/code&gt; to use a dedicated volume.&lt;/p&gt;
+&lt;h2&gt;Running OpenShift&lt;/h2&gt;
+&lt;p&gt;Since version 1.3 of OpenShift, the client provides a &lt;code&gt;cluster up&lt;/code&gt; commands
+which stands up a very simple all-in-one cluster, with a configured registry,
+router, image streams, and default templates.&lt;/p&gt;
+&lt;p&gt;As the fedora user, you can check if you can access docker&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker ps
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CONTAINER ID    IMAGE   COMMAND     CREATED     STATUS      PORTS   NAMES
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;No containers should be returned. This mean you can communicate with the docker
+daemon. Now you are ready to start the test cluster. &lt;/p&gt;
+&lt;h3&gt;&lt;code&gt;cluster up&lt;/code&gt;&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$PATH&lt;/span&gt;:/opt/openshift/client/
+$ ./oc cluster up
+-- Checking OpenShift client ... OK
+-- Checking Docker client ... OK
+-- Checking Docker version ... OK
+-- Checking &lt;span class="k"&gt;for&lt;/span&gt; existing OpenShift container ... OK
+-- Checking &lt;span class="k"&gt;for&lt;/span&gt; openshift/origin:v1.3.0 image ... OK
+-- Checking Docker daemon configuration ... OK
+-- Checking &lt;span class="k"&gt;for&lt;/span&gt; available ports ... OK
+-- Checking &lt;span class="nb"&gt;type&lt;/span&gt; of volume mount ... 
+   Using nsenter mounter &lt;span class="k"&gt;for&lt;/span&gt; OpenShift volumes
+-- Creating host directories ... OK
+-- Finding server IP ... 
+   Using 10.5.0.27 as the server IP
+-- Starting OpenShift container ... 
+   Creating initial OpenShift configuration
+   Starting OpenShift using container &lt;span class="s1"&gt;&amp;#39;origin&amp;#39;&lt;/span&gt;
+   Waiting &lt;span class="k"&gt;for&lt;/span&gt; API server to start listening
+   OpenShift server started
+-- Installing registry ... OK
+-- Installing router ... OK
+-- Importing image streams ... OK
+-- Importing templates ... OK
+-- Login to server ... OK
+-- Creating initial project &lt;span class="s2"&gt;&amp;quot;myproject&amp;quot;&lt;/span&gt; ... OK
+-- Server Information ... 
+   OpenShift server started.
+   The server is accessible via web console at:
+       https://10.5.0.27:8443
+
+   You are logged in as:
+       User:     developer
+       Password: developer
+
+   To login as administrator:
+       oc login -u system:admin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And that was it! Now you are running an OpenShift environment. You can check
+this as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker ps
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS              PORTS               NAMES
+cebba70022a6        openshift/origin-haproxy-router:v1.3.0    &amp;quot;/usr/bin/openshift-r&amp;quot;   16 seconds ago      Up 15 seconds                           k8s_router.9426645a_router-1-o3454_default_ba2e0814-8483-11e6-924a-fa163e29da46_e9a13a8d
+32aa5e84a04d        openshift/origin-docker-registry:v1.3.0   &amp;quot;/bin/sh -c &amp;#39;DOCKER_R&amp;quot;   17 seconds ago      Up 15 seconds                           k8s_registry.f0a205a4_docker-registry-1-v57os_default_b9fc0130-8483-11e6-924a-fa163e29da46_24863324
+03ee38d125cb        openshift/origin-pod:v1.3.0               &amp;quot;/pod&amp;quot;                   18 seconds ago      Up 16 seconds                           k8s_POD.4a82dc9f_router-1-o3454_default_ba2e0814-8483-11e6-924a-fa163e29da46_ea6d1d08
+44d6f8d2d9d6        openshift/origin-pod:v1.3.0               &amp;quot;/pod&amp;quot;                   18 seconds ago      Up 16 seconds                           k8s_POD.9fa2fe82_docker-registry-1-v57os_default_b9fc0130-8483-11e6-924a-fa163e29da46_76754271
+60e7cc5f4e5d        openshift/origin-deployer:v1.3.0          &amp;quot;/usr/bin/openshift-d&amp;quot;   21 seconds ago      Up 19 seconds                           k8s_deployment.59c7ba3f_router-1-deploy_default_b3660c7b-8483-11e6-924a-fa163e29da46_8e02f47a
+f1fe993ddcac        openshift/origin-pod:v1.3.0               &amp;quot;/pod&amp;quot;                   22 seconds ago      Up 20 seconds                           k8s_POD.4a82dc9f_router-1-deploy_default_b3660c7b-8483-11e6-924a-fa163e29da46_9a38fe5e
+72068a244ac8        openshift/origin:v1.3.0                   &amp;quot;/usr/bin/openshift s&amp;quot;   49 seconds ago      Up 48 seconds                           origin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Client connection&lt;/h3&gt;
+&lt;p&gt;After running the command &lt;code&gt;oc cluster up&lt;/code&gt; you will be automatically logged in.
+For this it writes the login configuration in &lt;code&gt;~/.kube/&lt;/code&gt;. If you want to change
+you can login using:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc login
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The standard user provided is &lt;code&gt;developer&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Verify&lt;/h3&gt;
+&lt;p&gt;Now we need to verify if we can deploy a simple application. However, without
+changes, OpenShift will not run containers with a root-user process. For example
+an nginx container would fail with a &lt;code&gt;permission denied&lt;/code&gt; error.&lt;/p&gt;
+&lt;p&gt;Instead, we will for now run a simple Hello container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc run hello-openshift --image&lt;span class="o"&gt;=&lt;/span&gt;docker.io/openshift/hello-openshift:latest --port&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;8080&lt;/span&gt; --expose
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;service &amp;quot;hello-openshift&amp;quot; created
+deploymentconfig &amp;quot;hello-openshift&amp;quot; created
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This would create the container and schedule it. You can check the progress with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get pod
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME                        READY     STATUS    RESTARTS   AGE
+hello-openshift-1-xi7f0     1/1       Running   0          9m
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You will also see a &lt;code&gt;-deploy&lt;/code&gt; container. This is not needed for our verification.&lt;/p&gt;
+&lt;p&gt;To check the application, we need to get the IP address that has been assigned
+to the Pod. You can do this as follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc get pod hello-openshift-1-xi7f0 -o yaml &lt;span class="p"&gt;|&lt;/span&gt; grep podIP
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;  podIP: 172.17.0.7
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All you have to do now is open the endpoint:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl 172.17.0.7:8080
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Hello OpenShift!
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And that is it, you have a working OpenShift test cluster.&lt;/p&gt;
+&lt;h3&gt;Teardown&lt;/h3&gt;
+&lt;p&gt;If you are down with this, you simply do a:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ oc cluster down
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and all the containers used in the deployment will be torn down.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Using OpenShift's &lt;code&gt;cluster up&lt;/code&gt; command you can easily setup an environment for
+developers to run and test their applications. The current of OpenShift
+provided with Fedora 24 does not offer this command, as the packaged version is
+v1.2. However, this change is in Rawhide and is therefore expected to be
+released as part of Fedora 25.&lt;/p&gt;
+&lt;p&gt;In future articles I will detail more about how to create applications for the
+OpenShift container platform, and how to check and maintain the life cycle of
+the deployed application. For now, take a look at the other source of
+information below.&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;OpenShift &lt;a href="https://www.openshift.com/"&gt;Homepage&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/openshift/origin"&gt;OpenShift Origin&lt;/a&gt; at GitHub&lt;/li&gt;
+&lt;li&gt;Knowledge-base article about &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/openshift.md"&gt;OpenShift&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="openshift"></category><category term="kubernetes"></category><category term="containers"></category><category term="docker"></category></entry><entry><title>Deploying Kubernetes using Ansible</title><link href="http://gbraad.nl/blog/deploying-kubernetes-using-ansible.html" rel="alternate"></link><published>2016-09-26T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-26:blog/deploying-kubernetes-using-ansible.html</id><summary type="html">&lt;p&gt;Recently I did a lot of tests with Atomic, such as a &lt;a href="./deployment-of-ceph-using-custom-atomic-images.html"&gt;creating custom images&lt;/a&gt; for &lt;a href="./tag/ceph.html"&gt;Ceph&lt;/a&gt;, and ways to provide an immutable infrastructure. However, Atomic is meant to be a host platform for a container platform using Kubernetes. Their &lt;a href="http://www.projectatomic.io/docs/gettingstarted/"&gt;Getting Started guide&lt;/a&gt; describes how to setup a basic environment to host containerized applications. However, this is a manual approach and with the help of Vincent&lt;a href="https://blog.vanderkussen.org/deploy-kubernetes-with-ansible-on-atomic.html"&gt;*&lt;/a&gt; I create a way to deploy this Kubernetes environment on Atomic and a standard CentOS installation using Ansible. In this article I will describe the components and provide instructions on how to deploy this basic environment yourself.&lt;/p&gt;
+&lt;h2&gt;Requirements&lt;/h2&gt;
+&lt;p&gt;To deploy the Kubernetes environment you will need either &lt;a href="http://www.projectatomic.io/download/"&gt;Atomic Host&lt;/a&gt; or a standard &lt;a href="https://www.centos.org/download/"&gt;CentOS&lt;/a&gt; installation. If you are using this for testing purposes, a cloud image on an OpenStack provider will do. The described Ansible scripts will work properly on both Atomic Host and CentOS cloud images. Although it has not been tested on Fedora, it should be able to make this work with minimal changes. If you do, please contribute these changes back.&lt;/p&gt;
+&lt;p&gt;You will need at least 2 (virtual) machines. One will be configured as the Kubernetes master and the remaining node(s) can be configured as minions or deployment nodes. I have used at least 4 nodes; a general controller node to perform the deployment from (also configured to install the Kubernetes client), a master node and at least two deployment nodes. Take note that this deployment does not handle &lt;code&gt;docker-storage-setup&lt;/code&gt; and High Availability.&lt;/p&gt;
+&lt;h2&gt;Setup for deployment&lt;/h2&gt;
+&lt;p&gt;Almost all the deployments I perform are initiated from a short-lived controller node. This is a machine that allows
+incoming and outgoing traffic, and mostly gets configured with an external Floating IP. This host can be seen as a jumphost. I will configure it with a dedicated set of SSH keys for communication with the other machines. You do not have to do this, and if you have limited resources, consider this host to be the same as the Kubernetes master node.&lt;/p&gt;
+&lt;p&gt;On this machine do the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ yum install -y ansible git
+$ git clone https://gitlab.com/gbraad/ansible-playbook-kubernetes.git
+$ &lt;span class="nb"&gt;cd&lt;/span&gt; ansible-playbook-kubernetes
+$ ansible-galaxy install -r roles.txt
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will install the Ansible playbook and the required roles:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;gbraad.docker
+gbraad.docker-registry
+gbraad.kubernetes-master
+gbraad.kubernetes-node
+gbraad.kubernetes-client
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Each of the roles take care of the installation and/or configuration of the environment. Do take note that the Docker and Kubernetes roles do not install packages on the Atomic hosts as these already come with the needed software.&lt;/p&gt;
+&lt;h2&gt;Configure the deployment&lt;/h2&gt;
+&lt;p&gt;If you look at the files &lt;code&gt;deploy-kubernetes.yml&lt;/code&gt; you will see three tasks for a different group of hosts. As mentioned before, they will each take care of the installation when needed.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;- name: Deploy kubernetes Master
+  hosts: k8s-master
+  remote_user: centos
+  become: true
+  roles:
+  - gbraad.docker
+  - gbraad.kubernetes-master
+
+- name: Deploy kubernetes Nodes
+  hosts: k8s-nodes
+  remote_user: centos
+  become: true
+  roles:
+  - gbraad.docker
+  - gbraad.kubernetes-node
+
+- name: Install kubernetes client
+  hosts: k8s-client
+  remote_user: centos
+  become: true
+  roles:
+  - gbraad.kubernetes-client
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Take notice of the setting of &lt;code&gt;remote_user&lt;/code&gt;. On an Atomic host this is a passwordless sudo user, which can also login with SSH using a passwordless key-based authentication. If you use CentOS, please configure a user and allow add an entry with &lt;code&gt;echo "username ALL=(root) NOPASSWD:ALL" &amp;gt; /etc/sudoers.d/username&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Change the inventory&lt;/h3&gt;
+&lt;p&gt;Ansible targets a playbook against a single or group of nodes that you specify in an inventory file. This file is named &lt;code&gt;hosts&lt;/code&gt; in this playbook repository. When you open it you will see the same set of names as specified above in the &lt;code&gt;hosts&lt;/code&gt; entry in the &lt;code&gt;deploy-kubernetes.yml&lt;/code&gt; playbook. For our purposes you will always have to deploy a master and a node. If you do not specify the master node, the installation will fail as some of the deployment variables will be used for configuration of the nodes.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ vi hosts
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[k8s-master]&lt;/span&gt;
+&lt;span class="na"&gt;atomic-01 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.5.0.11&lt;/span&gt;
+
+&lt;span class="k"&gt;[k8s-nodes]&lt;/span&gt;
+&lt;span class="na"&gt;atomic-02 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.5.0.14&lt;/span&gt;
+&lt;span class="na"&gt;atomic-03 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.5.0.13&lt;/span&gt;
+&lt;span class="na"&gt;atomic-04 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.5.0.12&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Group variables&lt;/h3&gt;
+&lt;p&gt;At the moment the roles are not very configurable as they are mainly targeting a simple test environment. Inside the folder &lt;code&gt;group_vars&lt;/code&gt; you will find the configration for the Kubernetes nodes. These are as follows&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;skydns_enable&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+&lt;span class="n"&gt;dns_server&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;10.254&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="mf"&gt;0.10&lt;/span&gt;
+&lt;span class="n"&gt;dns_domain&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;kubernetes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;local&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Perform the deployment&lt;/h2&gt;
+&lt;p&gt;After changing the variables in the &lt;code&gt;hosts&lt;/code&gt; inventory file and the group variables, you are actually all set to perform the deployment. We will start with the following.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible-playbook -i hosts deploy-docker-registry.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This first step will install Docker on the master node and pull the Docker Registry container. This is needed to provide a local cache of container images that you have pulled.&lt;/p&gt;
+&lt;p&gt;After this we can install the Kubernetes environment with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible-playbook -i hosts deploy-kubernetes.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Below I will describe what each part of the playbook does and some information about the functionality.&lt;/p&gt;
+&lt;h2&gt;Playbook and role description&lt;/h2&gt;
+&lt;p&gt;Below I will give a short description of what each part of the playbook and role does.&lt;/p&gt;
+&lt;h3&gt;Role &lt;code&gt;gbraad.docker&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Each node in the playbook will be targeted with the following role: &lt;code&gt;gbraad.docker&lt;/code&gt;. This role determines if the node is an Atomic Host or not. This check is performed in the &lt;code&gt;tasks/main.yml&lt;/code&gt; file. It the node is not an Atomic Host, it will include &lt;code&gt;install.yml&lt;/code&gt; to perform additional installation tasks. At the moment this is a simple package installation for &lt;code&gt;docker&lt;/code&gt;. After this step, the role will set state &lt;code&gt;started&lt;/code&gt; and &lt;code&gt;enabled&lt;/code&gt; for the services; &lt;code&gt;docker&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/gbraad/ansible-role-docker"&gt;Source&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Role: &lt;code&gt;gbraad.kubernetes-master&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;As part of the playbook, first we will configure the master node. For this, the role &lt;code&gt;gbraad.kubernetes-master&lt;/code&gt; is used. Just like in the previous role, file &lt;code&gt;tasks/main.yml&lt;/code&gt; will perform a simple check to determine if an Atomic Host is used or not. If not, some packages will be installed:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kubernetes-master&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;flannel&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;etcd&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href="https://github.com/gbraad/ansible-role-kubernetes-master"&gt;Source&lt;/a&gt;&lt;/p&gt;
+&lt;h4&gt;Configure Kubernetes&lt;/h4&gt;
+&lt;p&gt;After this step Kubernetes will be configured on this hosts. Tasks are described in the file &lt;code&gt;tasks/configure_k8s.yml&lt;/code&gt;, &lt;a href="https://github.com/gbraad/ansible-role-kubernetes-master/blob/master/tasks/configure_k8s.yml"&gt;source&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://galaxy.ansible.com/gbraad/kubernetes-master"&gt;Role&lt;/a&gt;&lt;/p&gt;
+&lt;h5&gt;Congfigure Kubernetes: etcd&lt;/h5&gt;
+&lt;p&gt;This role will create a single 'etcd' server on the master. For simplicty all IP address will be allowed by using &lt;code&gt;0.0.0.0&lt;/code&gt; as the endpoint. The port used for etcd clients is 2379, but since 4001 is also widely used we will also configure to use this.&lt;/p&gt;
+&lt;p&gt;Tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Configure etcd LISTEN CLIENTS&lt;/li&gt;
+&lt;li&gt;Configure etcd ADVERTISE CLIENTS&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Configure Kubernetes: common services&lt;/h5&gt;
+&lt;p&gt;After this the role will set an entry in the file &lt;code&gt;/etc/kubernetes/config&lt;/code&gt;. This is a general configuration file used by all the services. It sets the local IP address, identified as &lt;code&gt;default_ipv4_address&lt;/code&gt; as etcd server and the kubernetes master nodes.&lt;/p&gt;
+&lt;p&gt;Tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Configure k8s common services&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5&gt;Configure Kubernetes: apiserver&lt;/h5&gt;
+&lt;p&gt;For the apiserer the file &lt;code&gt;/etc/kubernetes/apiserver&lt;/code&gt; is used. We will configure it to listen on all IP address. An admission control plug-in is a piece of code that intercepts requests to the Kubernetes API server prior to persistence of the object. For this role we removed &lt;code&gt;ServiceAccount&lt;/code&gt; which is normally used to limit the creation requests of Pods based on the service account.&lt;/p&gt;
+&lt;h5&gt;Restart services&lt;/h5&gt;
+&lt;p&gt;After this the services of the master node are &lt;code&gt;started&lt;/code&gt; and &lt;code&gt;enabled&lt;/code&gt;. These are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;etcd&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kube-apiserver&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kube-controller-manager&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kube-scheduler&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Configure flannel&lt;/h4&gt;
+&lt;p&gt;For this environment we will use flannel to provide an overlay network. An overlay network exists on top of another network to provide a virtual path between nodes who use this overlay network. The steps for this are specified in &lt;code&gt;tasks/configure_flannel.yml&lt;/code&gt; &lt;a href="https://github.com/gbraad/ansible-role-kubernetes-master/blob/master/tasks/configure_flannel.yml"&gt;source&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The configuration of flannel is controller by etcd. We will copy a file to the master node containing:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{
+  &amp;quot;Network&amp;quot;: &amp;quot;172.16.0.0/12&amp;quot;,
+  &amp;quot;SubnetLen&amp;quot;: 24,
+  &amp;quot;Backend&amp;quot;: {
+    &amp;quot;Type&amp;quot;: &amp;quot;vxlan&amp;quot;
+  }
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This file is located in the role as &lt;code&gt;files/flanneld-conf.json&lt;/code&gt;. Using &lt;code&gt;curl&lt;/code&gt; we will post this file to etcd on the master.&lt;/p&gt;
+&lt;p&gt;Tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Copy json with network config&lt;/li&gt;
+&lt;li&gt;Configure subnet&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After these steps the Kubernetes master is configured.&lt;/p&gt;
+&lt;h3&gt;Role: &lt;code&gt;gbraad.kubernetes-node&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;For the configuration of a Kubernetes node we use the role &lt;code&gt;gbraad.kubernetes-node&lt;/code&gt;. Just like in the previous roles we determine in &lt;code&gt;tasks/main.yml&lt;/code&gt; to install packages or not. For all the nodes we will configure:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SELinux&lt;/li&gt;
+&lt;li&gt;flannel&lt;/li&gt;
+&lt;li&gt;kubernetes specific settings&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href="https://github.com/gbraad/ansible-role-kubernetes-node"&gt;Source&lt;/a&gt;, &lt;a href="https://galaxy.ansible.com/gbraad/kubernetes-node/"&gt;Role&lt;/a&gt;&lt;/p&gt;
+&lt;h4&gt;Configure SELinux&lt;/h4&gt;
+&lt;p&gt;Because I use persistent storage using NFS with Docker, I configure SELinux to set the boolean &lt;code&gt;virt_use_nfs&lt;/code&gt;.&lt;/p&gt;
+&lt;h4&gt;Configure flannel&lt;/h4&gt;
+&lt;p&gt;In the tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Overlay | configure etcd url&lt;/li&gt;
+&lt;li&gt;Overlay | configure etcd config key&lt;/li&gt;
+&lt;li&gt;Flannel systemd | create service.d&lt;/li&gt;
+&lt;li&gt;Flannel systemd | deploy unit file&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We configure all the nodes to use the etcd instance on &lt;code&gt;k8s-master&lt;/code&gt; as the endpoint for flannel configuration. These tasks configure the networking to use the flanneld provided bridge IP and MTU settings. Using the last two tasks we configure systemd to start the service.&lt;/p&gt;
+&lt;p&gt;After this change we will restart the &lt;code&gt;flanneld&lt;/code&gt; service.&lt;/p&gt;
+&lt;h4&gt;Configure Kubernetes&lt;/h4&gt;
+&lt;p&gt;In the file &lt;code&gt;tasks/configure_k8s.yml&lt;/code&gt; we do final configuration of the Kubernetes node to point it to the master node.&lt;/p&gt;
+&lt;p&gt;In the tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;k8s client configuration&lt;/li&gt;
+&lt;li&gt;k8s client configuration | KUBELET_HOSTNAME&lt;/li&gt;
+&lt;li&gt;k8s client configuration | KUBELET_ARGS&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;we configure how the node is identified.&lt;/p&gt;
+&lt;p&gt;In the tasks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;k8s client configuration | KUBELET_API_SERVER&lt;/li&gt;
+&lt;li&gt;Configure k8s master on client | KUBE_MASTER&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;we set the location of the API server and the master node. Both of these will point to the IP address of the &lt;code&gt;k8s-master&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;After this change we will restart the &lt;code&gt;kubelet&lt;/code&gt; and &lt;code&gt;kube-proxy&lt;/code&gt; service.&lt;/p&gt;
+&lt;h3&gt;After deployment&lt;/h3&gt;
+&lt;p&gt;If all these tasks succeeded, you should have a working Kubernetes deployment. In the next steps we will perform some simple commands to verify if the environment works.&lt;/p&gt;
+&lt;h2&gt;Deploy client and verify environment&lt;/h2&gt;
+&lt;p&gt;As you have noticed from the &lt;code&gt;hosts&lt;/code&gt; inventory file, there is a possibility to specify a client host:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[k8s-client]&lt;/span&gt;
+&lt;span class="na"&gt;controller ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.5.0.3&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You do not have to deploy a kubernetes client using this playbook. It will install a single package, but you could also just use the statically compiled Go binary that is provided from the Kubernetes releases:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wget http://storage.googleapis.com/kubernetes-release/release/v1.3.4/bin/linux/amd64/kubectl
+$ chmod +x kubectl
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Verify nodes&lt;/h3&gt;
+&lt;p&gt;Oncae all the nodes have been deployed using the playbook, you canb verify communication. From a client node you can perform the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl --server&lt;span class="o"&gt;=&lt;/span&gt;10.5.0.11:8080 get node&lt;span class="sb"&gt;`&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME             LABELS    STATUS
+10.5.0.12        &amp;lt;none&amp;gt;    Ready
+10.5.0.13        &amp;lt;none&amp;gt;    Ready
+10.5.0.14        &amp;lt;none&amp;gt;    Ready
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Schedule workload&lt;/h3&gt;
+&lt;p&gt;If all looks good, you can schedule a workload on the environment. The following commands will create a simple &lt;code&gt;nginx&lt;/code&gt; instance.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ vi kube-nginx.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;apiVersion&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;v1&lt;/span&gt;
+&lt;span class="n"&gt;kind&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Pod&lt;/span&gt;
+&lt;span class="n"&gt;metadata&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;www&lt;/span&gt;
+&lt;span class="n"&gt;spec&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;containers&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;
+      &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;
+      &lt;span class="n"&gt;ports&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+        &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;containerPort&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;
+          &lt;span class="n"&gt;hostPort&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;8080&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This file described a Pod with a container called &lt;code&gt;nginx&lt;/code&gt; using the 'nginx' image. To schedule it, do:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl --server&lt;span class="o"&gt;=&lt;/span&gt;10.5.0.11:8080 create -f kube-nginx.yml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;pods/www
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Using the following command you can check the status:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl --server&lt;span class="o"&gt;=&lt;/span&gt;192.168.124.40:8080 get pods
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;POD       IP            CONTAINER(S)   IMAGE(S)   HOST                            LABELS    STATUS    CREATED      MESSAGE
+www       172.16.59.2                             10.5.0.12/10.5.0.12             &amp;lt;none&amp;gt;    Running   52 seconds
+                        nginx          nginx                                                Running   24 seconds
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you now open a browser pointing to the node Kubernetes used to create it (&lt;a href="http://10.5.0.12:8080/"&gt;http://10.5.0.12:8080/&lt;/a&gt;), you will see an nginx welcome page.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Setting up Kubernetes can be a daunting task as there are many different components involved. Kelsey Hightower has a very good guide, called &lt;a href="https://github.com/kelseyhightower/kubernetes-the-hard-way"&gt;Kubernetes The Hard Way&lt;/a&gt; that will teach you how to deploy kubernetes manually on different cloud providers, such as AWS and the Google Compute Engine. After gaining some experience, it is advised to look at automation to deploy an environment, such as the the Ansible scripts that can be found in the &lt;a href="https://github.com/kubernetes/contrib"&gt;contrib&lt;/a&gt; repository of Kubernetes. this allows you to stand up an environment with High Availability. The scripts described in this article should only serve as an introduction to gain understanding what is needed for a Kubernetes environment.&lt;/p&gt;
+&lt;p&gt;If you want a production-ready environment, please have a look at OpenShift. OpenShift deals with setting up a cluster of kubernetes nodes, scheduling workload and most important, how to set up images for deployment. This is done using what is called 'source to image'. This and OpenShift itself will be the topic of future articles.&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Knowledge-base article about &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/atomic.md#kubernetes-on-atomic"&gt;Kubernetes on Atomic&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Knowledge-base article about &lt;a href="https://gitlab.com/gbraad/knowledge-base/tree/master/technology/kubernetes"&gt;Kubernestes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Hands-on-Lab: &lt;a href="http://gbraad.gitlab.io/kubernetes-handsonlabs/deploying-Kubernetes-on-OpenStack.html"&gt;Kubernetes on OpenStack&lt;/a&gt; (Not all material published yet)&lt;/li&gt;
+&lt;li&gt;Deploying Kubernetes &lt;a href="https://blog.vanderkussen.org/deploy-kubernetes-with-ansible-on-atomic.html"&gt;on Atomic hosts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="kubernetes"></category><category term="atomic"></category><category term="ansible"></category><category term="docker"></category><category term="centos"></category><category term="containers"></category></entry><entry><title>non-root user inside a Docker container</title><link href="http://gbraad.nl/blog/non-root-user-inside-a-docker-container.html" rel="alternate"></link><published>2016-09-08T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-08:blog/non-root-user-inside-a-docker-container.html</id><summary type="html">&lt;p&gt;One of the things that you notice when using Docker, is that all commands you run from the &lt;code&gt;Dockerfile&lt;/code&gt; with &lt;code&gt;RUN&lt;/code&gt; or &lt;code&gt;CMD&lt;/code&gt; are performed as the &lt;code&gt;root&lt;/code&gt; user. This is not only a bad security practice for running internet facing services, it might even prevent certain applications from working properly. So, how do you run commands as a non-root user? For people using Red Hat-based systems, such as Fedora or CentOS I will explain how you can do this.&lt;/p&gt;
+&lt;h2&gt;Let's begin&lt;/h2&gt;
+&lt;p&gt;Let's say you have a &lt;code&gt;Dockerfile&lt;/code&gt; using Fedora as a base:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM fedora:24
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Create user&lt;/h2&gt;
+&lt;p&gt;Before we can use a different user, we need to create one:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;RUN adduser user
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Run as user&lt;/h2&gt;
+&lt;p&gt;Now you can run commands as this user by doing:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;RUN su - user -c &amp;quot;touch me&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The container start process can be changed to:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CMD [&amp;quot;su&amp;quot;, &amp;quot;-&amp;quot;, &amp;quot;user&amp;quot;, &amp;quot;-c&amp;quot;, &amp;quot;/bin/bash&amp;quot;]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This way, a &lt;code&gt;bash&lt;/code&gt; shell will open as the user.&lt;/p&gt;
+&lt;h2&gt;Allow &lt;code&gt;sudo&lt;/code&gt; usage&lt;/h2&gt;
+&lt;p&gt;Since you are running a normal user, it might be handy to install the following package inside the container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;RUN dnf install -y sudo
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will allow you to use &lt;code&gt;sudo&lt;/code&gt; to perform actions as the root user:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;RUN echo &amp;quot;user ALL=(root) NOPASSWD:ALL&amp;quot; &amp;gt; /etc/sudoers.d/user &amp;amp;&amp;amp; \
+    chmod 0440 /etc/sudoers.d/user
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Final &lt;code&gt;Dockerfile&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;To combine all of this, your &lt;code&gt;Dockerfile&lt;/code&gt; would look as follows:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Dockerfile&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM fedora:24
+
+RUN dnf install -y sudo &amp;amp;&amp;amp; \
+    adduser user &amp;amp;&amp;amp; \
+    echo &amp;quot;user ALL=(root) NOPASSWD:ALL&amp;quot; &amp;gt; /etc/sudoers.d/user &amp;amp;&amp;amp; \
+    chmod 0440 /etc/sudoers.d/user
+
+RUN su - user -c &amp;quot;touch mine&amp;quot;
+
+CMD [&amp;quot;su&amp;quot;, &amp;quot;-&amp;quot;, &amp;quot;user&amp;quot;, &amp;quot;-c&amp;quot;, &amp;quot;/bin/bash&amp;quot;]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Result&lt;/h2&gt;
+&lt;p&gt;Building this container is simple:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker build -t user .
+Step 1 : FROM fedora:24
+ ---&amp;gt; f9873d530588
+Step 2 : RUN dnf install -y sudo &amp;amp;&amp;amp;     adduser user &amp;amp;&amp;amp;     echo &amp;quot;user ALL=(root) NOPASSWD:ALL&amp;quot; &amp;gt; /etc/sudoers.d/user &amp;amp;&amp;amp;     chmod 0440 /etc/sudoers.d/user
+ ---&amp;gt; Using cache
+ ---&amp;gt; 05c3f3c7e9fc
+Step 3 : RUN su - user -c &amp;quot;touch me&amp;quot;
+ ---&amp;gt; Running in 584ab0ad025b
+ ---&amp;gt; 66ea558b9855
+Removing intermediate container 584ab0ad025b
+Step 4 : CMD su - user -c /bin/bash
+ ---&amp;gt; Running in 780e0ccd5f61
+ ---&amp;gt; b19a10012b28
+Removing intermediate container 780e0ccd5f61
+Successfully built b19a10012b28
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Running it will produce the following result:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$ &lt;/span&gt;&lt;span class="n"&gt;docker&lt;/span&gt; &lt;span class="n"&gt;run&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;it&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;rm&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="mi"&gt;@48&lt;/span&gt;&lt;span class="n"&gt;add6313ab6&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;ls&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;al&lt;/span&gt;
+&lt;span class="n"&gt;total&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;
+&lt;span class="n"&gt;drwx&lt;/span&gt;&lt;span class="o"&gt;------&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="mi"&gt;4096&lt;/span&gt; &lt;span class="n"&gt;Sep&lt;/span&gt;  &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;51&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;drwxr&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;xr&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="mi"&gt;4096&lt;/span&gt; &lt;span class="n"&gt;Sep&lt;/span&gt;  &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;46&lt;/span&gt; &lt;span class="p"&gt;..&lt;/span&gt;
+&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;rw&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;   &lt;span class="mi"&gt;18&lt;/span&gt; &lt;span class="n"&gt;May&lt;/span&gt; &lt;span class="mi"&gt;17&lt;/span&gt; &lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;22&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bash_logout&lt;/span&gt;
+&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;rw&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;  &lt;span class="mi"&gt;193&lt;/span&gt; &lt;span class="n"&gt;May&lt;/span&gt; &lt;span class="mi"&gt;17&lt;/span&gt; &lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;22&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bash_profile&lt;/span&gt;
+&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;rw&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;  &lt;span class="mi"&gt;231&lt;/span&gt; &lt;span class="n"&gt;May&lt;/span&gt; &lt;span class="mi"&gt;17&lt;/span&gt; &lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;22&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bashrc&lt;/span&gt;
+&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;rw&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;rw&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;    &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;Sep&lt;/span&gt;  &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;51&lt;/span&gt; &lt;span class="n"&gt;me&lt;/span&gt;
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="mi"&gt;@48&lt;/span&gt;&lt;span class="n"&gt;add6313ab6&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;pwd&lt;/span&gt;
+&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="mi"&gt;@48&lt;/span&gt;&lt;span class="n"&gt;add6313ab6&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Base images&lt;/h2&gt;
+&lt;p&gt;If you are setting up base images for re-use, it can be handy to use the &lt;code&gt;USER&lt;/code&gt; keyword. This will run all the following commqnds as a particalur. Lets say, you want to use a service, which is Node.JS based, you can create the following &lt;code&gt;Dockerfile&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM centos:7
+MAINTAINER Gerard Braad &amp;lt;me@gbraad.nl&amp;gt;
+
+# Run update and install dependencies
+RUN yum update -y &amp;amp;&amp;amp; yum install -y nodejs npm
+
+# Add the user UID:1000, GID:1000, home at /app
+RUN groupadd -r app -g 1000 &amp;amp;&amp;amp; useradd -u 1000 -r -g app -m -d /app -s /sbin/nologin -c &amp;quot;App user&amp;quot; app &amp;amp;&amp;amp; \
+    chmod 755 /app
+
+# Set the working directory to app home directory
+WORKDIR /app
+
+# Specify the user to execute all commands below
+USER app
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can then use this container as a base for NodeJS based applications. You copy the application to &lt;code&gt;/app&lt;/code&gt; and when commands are run, they will use the user named &lt;code&gt;user&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;I hope this has been of some help to you. You can &lt;a href="https://twitter.com/gbraad"&gt;follow me&lt;/a&gt; on Twitter or leave a comment below.&lt;/p&gt;</summary><category term="docker"></category><category term="fedora"></category></entry><entry><title>Deployment of Ceph using custom Atomic images</title><link href="http://gbraad.nl/blog/deployment-of-ceph-using-custom-atomic-images.html" rel="alternate"></link><published>2016-09-07T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-07:blog/deployment-of-ceph-using-custom-atomic-images.html</id><summary type="html">&lt;p&gt;As part of providing a scalable infrastructure, many components in the datacenter are now moving towards software-based solutions, such as SDN (for networking) and SDS (for storage). Ceph one of these projects to provide a scalable, software-based software solution. It is often used in conjuction with OpenStack for storing disk images and block access for volumes. Setting up an environment usually involves installing a base operating system and configuring the machine to join a storage cluster. In this article I will setup a Atomic based image that allows for fast deployment of Ceph cluster. This is not a recommended solution, but an exercise that shows how to cutomize Atomic Host and using Ansible to standup a Ceph cluster.&lt;/p&gt;
+&lt;h2&gt;Components&lt;/h2&gt;
+&lt;p&gt;&lt;a href="http://www.projectatomic.io/"&gt;Atomic&lt;/a&gt;&lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/atomic.md"&gt;*&lt;/a&gt; Host is a new generation of Operating Systems that used to create an immutable infrastructure to deploy and scale containerized applications. For this, it uses a technology called &lt;a href="https://ostree.readthedocs.io/en/latest/"&gt;OSTree&lt;/a&gt;&lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/ostree.md"&gt;*&lt;/a&gt; which is a git-like model for dealing with filesystem trees. It allows different filesystems to exist alongside of each other. If a filesystem is not booting properly, it is possible to move back to the previous state.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://ceph.com/"&gt;Ceph&lt;/a&gt;&lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/ceph.md"&gt;*&lt;/a&gt; is a distributed storage solution which provides Object Storage, Block Storage and FIlesystem access. Ceph comes with several software components which provides a role in the cluster, such as a monitor or storage daemon.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://www.ansible.com/"&gt;Ansible&lt;/a&gt;&lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/ansible.md"&gt;*&lt;/a&gt; is a configuration and system management tool which for example can do multi-node deployment of software or execution of commands&lt;/p&gt;
+&lt;p&gt;Although Atomic Hosts are primarily used to deploy Docker and Kubernetes environments, or even containerized versions of the Ceph daemons, I will show how it is possible to use ostree to deploy the Ceph software on nodes, with minimal effort. Ansible is used to send commands to these nodes and finalize the configuration.&lt;/p&gt;
+&lt;h2&gt;Preparation&lt;/h2&gt;
+&lt;p&gt;For this setup we will use about 7 machines. To simplify testing, I have performed these actions on an OpenStack environment, such as &lt;a href="https://www.dreamhost.com/cloud/computing/"&gt;DreamCompute&lt;/a&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1 controller and compose node, running Fedora 24 with IP address 10.3.0.2&lt;/li&gt;
+&lt;li&gt;3 Ceph monitors, running CentOS Atomic with IP addresses 10.3.0.3-5&lt;/li&gt;
+&lt;li&gt;3 Ceph storage nodes, running CentOS Atomic with IP addresses 10.3.0.6-8 and attached storage volume at &lt;code&gt;/dev/vdb&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To deploy you can start with setting up the Fedora node.&lt;/p&gt;
+&lt;h3&gt;Install controller&lt;/h3&gt;
+&lt;p&gt;To deploy our environment we setup a controller node which can access the other nodes in the network using SSH. In our case we will use Fedora 24.  After installing the operating system, perform the following commands:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ dnf update -y
+$ dnf install -y  ansible rpm-ostree git python
+$ ssh-keygen
+$ cat ~/.ssh/id_rsa.pub
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The last two commands generate an SSH authentication key and will show the result on the command line.&lt;/p&gt;
+&lt;h3&gt;Atomic nodes&lt;/h3&gt;
+&lt;p&gt;The installation media for Atomic can be found at the main project page. It comes in two different distribution types, CentOS or Fedora. For this article I used CentOS, and downloaded it from the following location:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wget http://http://cloud.centos.org/centos/7/atomic/images/CentOS-Atomic-Host-7-GenericCloud.qcow2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and uploaded it to my OpenStack environment with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack image create &lt;span class="s2"&gt;&amp;quot;CentOS7 Atomic&amp;quot;&lt;/span&gt; --progress --file CentOS-Atomic-Host-7-GenericCloud.qcow2 --disk-format qcow2 --container-format bare --property &lt;span class="nv"&gt;os_distro&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;centos
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this, I created six identical machines, with provisioning a predefined SSH key with cloud-init which we made on the controller node. If you are not using OpenStack, you have to use a cloud-init configdrive to configure the node with the SSH key. This process is described &lt;a href="http://www.projectatomic.io/docs/quickstart/"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The storage nodes need to have to configured with a dedicated volume for use with the &lt;code&gt;osd&lt;/code&gt; storage daemon of Ceph. By creating a volume and attaching them to the node, these will be identified as &lt;code&gt;/dev/vdb&lt;/code&gt;. There is no need to prepapre a filesystem on them. This will be handles by the deployment scripts.&lt;/p&gt;
+&lt;p&gt;Note: if you want to upload disk images to DreamCompute or other Ceph-backed OpenStack image services, you have to convert the disk image to raw format first. An example of this can be found in &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/openstack/client.md#examples"&gt;an example&lt;/a&gt; for use of the OpenStack client.&lt;/p&gt;
+&lt;h2&gt;Compose tree&lt;/h2&gt;
+&lt;p&gt;On the controller node we will create an ostree that will be used to setup the Ceph software on the Atomic host nodes. This process involves creating a definition for a filesystem tree that uses the base defintion of CentOS Atomic with the additional packages from the CentOS-specific Ceph packages.&lt;/p&gt;
+&lt;h3&gt;Atomic definition&lt;/h3&gt;
+&lt;p&gt;We will clone the git repositiory containing the base definition:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir -p /workspace
+$ &lt;span class="nb"&gt;cd&lt;/span&gt; /workspace
+$ git clone https://github.com/CentOS/sig-atomic-buildscripts.git &lt;span class="se"&gt;\&lt;/span&gt;
+    -b downstream &lt;span class="se"&gt;\&lt;/span&gt;
+    --depth &lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+    ceph-atomic
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Inside this folder you can add a RPM repository file where the Ceph packages are located:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ceph-atomic/centos-ceph-jewel.repo&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[centos-ceph-jewel]&lt;/span&gt;
+&lt;span class="na"&gt;name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;CentOS-7 - Ceph Jewel&lt;/span&gt;
+&lt;span class="na"&gt;baseurl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;http://buildlogs.centos.org/centos/7/storage/x86_64/ceph-jewel/&lt;/span&gt;
+&lt;span class="na"&gt;gpgcheck&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And then we will define an Atomic host for Ceph-Jewel and specify which additional repositories and packages are used:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ceph-atomic/ceph-atomic-host.json&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{
+    &amp;quot;include&amp;quot;: &amp;quot;centos-atomic-host.json&amp;quot;,
+    &amp;quot;ref&amp;quot;: &amp;quot;centos-atomic-host/7/x86_64/ceph-jewel&amp;quot;,
+    &amp;quot;automatic_version_prefix&amp;quot;: &amp;quot;2016.0&amp;quot;,
+    &amp;quot;repos&amp;quot;: [&amp;quot;centos-ceph-jewel&amp;quot;, &amp;quot;epel&amp;quot;],
+    &amp;quot;packages&amp;quot;: [
+        &amp;quot;ceph&amp;quot;,
+        &amp;quot;ntp&amp;quot;,
+        &amp;quot;ntpdate&amp;quot;,
+        &amp;quot;hdparm&amp;quot;,
+        &amp;quot;autogen-libopts&amp;quot;
+    ]
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: with &lt;code&gt;include&lt;/code&gt; we base our image off an existing definition. In our case this will simplify the process, but it also means we will end up with an image with unneeded components. For our test this is not an issue.&lt;/p&gt;
+&lt;p&gt;After this, the defintion for the Ceph-specific Atomic host is finished. Before we can compose the ostree, we have to create and initialize the repository directory:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir -p /srv/repo
+$ ostree --repo&lt;span class="o"&gt;=&lt;/span&gt;/srv/repo init --mode&lt;span class="o"&gt;=&lt;/span&gt;archive-z2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When you perform the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ rpm-ostree compose tree &lt;span class="se"&gt;\&lt;/span&gt;
+    --repo&lt;span class="o"&gt;=&lt;/span&gt;/srv/repo &lt;span class="se"&gt;\&lt;/span&gt;
+    ./ceph-atomic/ceph-atomic-host.json
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;packages will be fetched and committed to an ostree in &lt;code&gt;/srv/repo&lt;/code&gt;. After this, you will have a filesystem tree which can be served from a webserver, to be used by Atomic hosts.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; /srv/repo
+$ python -m SimpleHTTPServer
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will serve the content from &lt;code&gt;/srv/repo&lt;/code&gt; on the endpoint &lt;code&gt;http://10.3.0.2:8000/&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Deployment&lt;/h2&gt;
+&lt;p&gt;To get the Atomic hosts to use the tree, the following commands will have to be used to provision the Ceph-based filesystem tree:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo su -
+$ setenforce 0
+$ ostree remote add --set&lt;span class="o"&gt;=&lt;/span&gt;gpg-verify&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;false&lt;/span&gt; atomic-ceph http://10.3.0.2:8000/
+$ rpm-ostree rebase atomic-ceph:centos-atomic-host/7/x86_64/ceph-jewel
+$ systemctl reboot
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is however very cumbersome as we have to do this on six nodes. To optimize this process, we will use Ansible.&lt;/p&gt;
+&lt;p&gt;Note: &lt;code&gt;setenforce 0&lt;/code&gt; is used to prevent issue with SELinux label during the rebase action.&lt;/p&gt;
+&lt;h3&gt;OSTree provisioning using Ansible&lt;/h3&gt;
+&lt;p&gt;Create a file called &lt;code&gt;hosts&lt;/code&gt; in your home directory with the following content:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;~/hosts&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[mons]&lt;/span&gt;
+&lt;span class="na"&gt;atomic-01 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.3&lt;/span&gt;
+&lt;span class="na"&gt;atomic-02 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.4&lt;/span&gt;
+&lt;span class="na"&gt;atomic-03 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.5&lt;/span&gt;
+
+&lt;span class="k"&gt;[osds]&lt;/span&gt;
+&lt;span class="na"&gt;atomic-04 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.6&lt;/span&gt;
+&lt;span class="na"&gt;atomic-05 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.7&lt;/span&gt;
+&lt;span class="na"&gt;atomic-06 ansible_ssh_host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;10.3.0.8&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To test if the nodes are reachable, use the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible -i hosts all -u centos -s -m ping
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If no error occurs, you are all set.&lt;/p&gt;
+&lt;p&gt;Using Ansible and the hosts file we can perform these commands on all the nodes.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible -i hosts all -u centos -s -m shell -a &lt;span class="s2"&gt;&amp;quot;setenforce 0&amp;quot;&lt;/span&gt;
+$ ansible -i hosts all -u centos -s -m shell -a &lt;span class="s2"&gt;&amp;quot;ostree remote add --set=gpg-verify=false atomic-ceph http://10.3.0.2:8000/&amp;quot;&lt;/span&gt;
+$ ansible -i hosts all -u centos -s -m shell -a &lt;span class="s2"&gt;&amp;quot;rpm-ostree rebase atomic-ceph:centos-atomic-host/7/x86_64/ceph-jewel&amp;quot;&lt;/span&gt;
+$ ansible -i hosts all -u centos -s -m shell -a &lt;span class="s2"&gt;&amp;quot;systemctl disable docker&amp;quot;&lt;/span&gt;
+$ ansible -i hosts all -u centos -s -m shell -a &lt;span class="s2"&gt;&amp;quot;systemctl reboot&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The last command will throw errors, but this is expected as the connection to the node is dropped. To check if the nodes are up again, you can perform the previous ping test again.&lt;/p&gt;
+&lt;p&gt;Note: since we based on the original CentOS Atomic host image, it will have Docker installed. For this article we do not use it, so it is best to disable it.&lt;/p&gt;
+&lt;h2&gt;Deployment using &lt;code&gt;ceph-ansible&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;If the previous step succeeded you would have six atomic hosts that are ready to be configured to form a small Ceph cluster; 3 nodes will serve the role of monitor, while the other nodes will be storage nodes with an attached volume at &lt;code&gt;/dev/vdb&lt;/code&gt;. For the deployment we will use &lt;code&gt;ceph-ansible&lt;/code&gt;. This is a collection of playbooks to help with common scenarios for a Ceph storage cluster.&lt;/p&gt;
+&lt;p&gt;From your home folder perform the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ git clone https://github.com/ceph/ceph-ansible.git --depth 1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will clone the latest version of the playbooks. But before we can use them, we will need to configure it for our setup. But before we do, we initialize it with the base configuration. Take note that we will re-use our previosuly used &lt;code&gt;~/hosts&lt;/code&gt; file for Ansible.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;cd&lt;/span&gt; ceph-ansible
+$ cp site.yml.sample site.yml
+$ cp group_vars/all.sample group_vars/all
+$ cp group_vars/mons.sample group_vars/mons
+$ cp group_vars/osds.sample group_vars/osds
+$ ln -s ~/hosts hosts
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We will now customize the configuration by changing the following files and add the shows content to the top of the file:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;group_vars/all&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cluster_network&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;10.3&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="mf"&gt;0.0&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;
+&lt;span class="n"&gt;generate_fsid&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;true&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;ceph_origin&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;distro&lt;/span&gt;
+&lt;span class="n"&gt;monitor_interface&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;eth0&lt;/span&gt;
+&lt;span class="n"&gt;public_network&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;10.3&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="mf"&gt;0.0&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;
+&lt;span class="n"&gt;journal_size&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;5120&lt;/span&gt;
+&lt;span class="n"&gt;group_vars&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;mons&lt;/span&gt;
+&lt;span class="n"&gt;cephx&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;group_vars/mons&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;cephx&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;group_vars/osds&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;journal_collocation&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+&lt;span class="n"&gt;cephx&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;span class="n"&gt;devices&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+   &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="sr"&gt;/dev/&lt;/span&gt;&lt;span class="n"&gt;vdb&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After these changes are made, you have setup to use Ceph packages as provided by the distribution, and to deploy as a storage cluster on 10.3.0.0/24.&lt;/p&gt;
+&lt;p&gt;To deploy the storage cluster, all we need to do now is to run the playbook named &lt;code&gt;site.yml&lt;/code&gt; and skipping the tags named &lt;code&gt;with_pkg&lt;/code&gt; and &lt;code&gt;package-install&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ansible-playbook -i hosts site.yml --skip-tags with_pkg,package-install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this finishes a storage cluster should be available.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;This article showed how it is possible to customize an Atomic host image for a specific use-case and use this for deployment of a simple Ceph cluster. Using ostree it is possible to move between different trees, allowing a collection of packages to be upgraded in an atomic fashion. And when there is a failure for some reason, it is possible to rollback to the previous tree and allow the node to function in the former state.&lt;/p&gt;
+&lt;p&gt;This is part of the setup I usefor automated builds of Ceph packages and deployment tests. If you have questions about specific parts, please let me know on Twitter at &lt;a href="https://twitter.com/gbraad"&gt;@gbraad&lt;/a&gt; or by email. Input is appreciated as this can help with writing of future articles.&lt;/p&gt;
+&lt;h2&gt;Links&lt;/h2&gt;
+&lt;p&gt;Some information that can help with customizing your own images:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/jasonbrooks/byo-atomic"&gt;Build your own Atomic&lt;/a&gt;, and my &lt;a href="http://gitlab.com/gbraad/byo-atomic"&gt;automated build&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://gitlab.com/gbraad/ceph-atomic/"&gt;Tree definition&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://gbraad.gitlab.io/byo-atomic-ceph/"&gt;Remote location&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://gitlab.com/gbraad/byo-atomic-ceph/builds"&gt;Automated build&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="centos"></category><category term="ceph"></category><category term="atomic"></category><category term="ansible"></category><category term="ostree"></category><category term="storage"></category></entry><entry><title>Setting up a powerful self-hosted IDE in the cloud</title><link href="http://gbraad.nl/blog/setting-up-a-powerful-self-hosted-ide-in-the-cloud.html" rel="alternate"></link><published>2016-09-06T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-06:blog/setting-up-a-powerful-self-hosted-ide-in-the-cloud.html</id><summary type="html">&lt;p&gt;Setting up infrastructure should be as simple as playing with LEGO. With the advent of Docker, IT has underwent a dramatic change. For instance, it became easy to setup throw-away development environments. These could then be used to create clean environments to perform builds in. And eventually, containers are starting to move into the general infrastructure . This is a transaction that is currently still happening, helped by tools as Docker Swarm and Kubernetes. In this short article I will show how these ideas can help in setting up a composable infrastructure, providing you with a powerful IDE in the cloud, full with Let's Encrypt certificate generation.&lt;/p&gt;
+&lt;h2&gt;Cloud9&lt;/h2&gt;
+&lt;p&gt;We will be deploying C9, or Cloud9 IDE, is a full IDE which can be accessed from your browser. For convenience of use, I created a containerized version of this some while back and have ever since been using it. Although,, C9 also has a hosted environment, I grew worried after Amazon acquired the company. Support has since been slower to respond and this made me look into other ways to provide an alternative approach. After some testing with Docker Cloud it seemed like a good idea to deploy a self-hosted alternative.&lt;/p&gt;
+&lt;p&gt;But first about one of the main components. The &lt;a href="https://hub.docker.com/r/gbraad/c9ide/"&gt;container&lt;/a&gt; I created exposes port 8181, which is an unsecured endpoint. It allows you to simply setup a local instance with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;alias&lt;/span&gt; &lt;span class="nv"&gt;c9ide&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;docker run -it --rm -v $PWD:/workspace gbraad/c9ide:u1604&amp;#39;&lt;/span&gt;
+$ &lt;span class="nb"&gt;cd&lt;/span&gt; ~/Projects/gauth
+$ c9ide
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This would however work for a local environment and does not provide a secure solution. More was needed... such as secure solution and preferably automated. For this Nginx and Let's Encrypt is used.  More information about Cloud9 can be found in my Knowledge Base &lt;a href="https://github.com/gbraad/knowledge-base/blob/master/technology/c9ide.md"&gt;article&lt;/a&gt;&lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/c9ide.md"&gt;*&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Preparation&lt;/h2&gt;
+&lt;p&gt;To deploy the environment I used &lt;a href="http://fedoraproject.org"&gt;Fedora&lt;/a&gt; 24. Most cloud providers provide this as an image. In my case, &lt;a href="https://www.citycloud.com"&gt;CityCloud&lt;/a&gt; provided the latest version after placing a simple request. You can consider any size, but the more storage and memory, the better the performance will be. I set up a 4G and 2 cores instance, with 50G of storage. After logging in, perform the following commands&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ sudo su -
+$ dnf update -y
+$ dnf install -y docker
+$ setenforce 0
+$ sed &lt;span class="s1"&gt;&amp;#39;s/SELINUX=targeted/SELINUX=permisssive/g&amp;#39;&lt;/span&gt; /etc/selinux/config
+$ systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; docker
+$ systemctl start docker
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: SELinux is disabled because we will have a volume attached to the IDE container where the workspace will be located. We can however fix this, but this is something for a future blog post.&lt;/p&gt;
+&lt;h3&gt;Setup DNS&lt;/h3&gt;
+&lt;p&gt;After this, you host machine should be ready to host containers to will make up our environment. before we continue, we need to be sure we have DNS configured that can point to the running containers that host the C9 IDE. I used &lt;a href="https://www.cloudflare.com"&gt;CloudFlare&lt;/a&gt; and setup the following wildcard for my environment. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://cdn.gbraad.nl/images/blog/c9ide-dns.png" /&gt;&lt;/p&gt;
+&lt;p&gt;With this each hostname, such as &lt;code&gt;ubuntu.c9ide.spotsnel.net&lt;/code&gt; would point to the same machine that hosts our development containers.&lt;/p&gt;
+&lt;h3&gt;Deploy Nginx&lt;/h3&gt;
+&lt;p&gt;To allow a hostname to be resolved to a 'local' end-point a reverse proxy is needed. Jason Wilder created a container for this purpose called &lt;code&gt;nginx-proxy&lt;/code&gt;. It needs access to the &lt;code&gt;docker.sock&lt;/code&gt; to be notified of changes and it will accordingly create an endpoint in the hosted Nginx. For more information about this, please read &lt;a href="https://hub.docker.com/r/jwilder/nginx-proxy/"&gt;nginx-proxy&lt;/a&gt;'s description on Docker hub.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# docker run -d -p 80:80 -p 443:443 \
+   --name nginx-proxy \
+   -v /path/to/certs:/etc/nginx/certs:ro \
+   -v /etc/nginx/vhost.d \
+   -v /usr/share/nginx/html \
+   -v /var/run/docker.sock:/tmp/docker.sock:ro \
+   jwilder/nginx-proxy
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Opening any address pointing to this host would know result in a 503 error. This means that Nginx is listening and can not forward the request. We will deal with this later.&lt;/p&gt;
+&lt;h2&gt;Deploy Let's Encrypt companion&lt;/h2&gt;
+&lt;p&gt;Setting up a secure connection involves certificates which can be quite a hassle to obtain, and if trust of security is concerned, even very expensive. Luckily, initiatives exist that believe security should be available to all and &lt;a href="https://letsencrypt.org"&gt;Let's Encrypt&lt;/a&gt; provides a fully automated solution. Using the &lt;code&gt;letsencrypt-nginx-proxy-companion&lt;/code&gt; container created by Yves Blusseau, it is possible allow the proxy container to be provisioned with the needed certificates. More information about &lt;a href="https://hub.docker.com/r/jrcs/letsencrypt-nginx-proxy-companion/"&gt;this container&lt;/a&gt; can be found at Docker hub.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# docker run -d \
+   --name nginx-proxy-letsencrypt \
+   -v /path/to/certs:/etc/nginx/certs:rw \
+   --volumes-from nginx-proxy \
+   -v /var/run/docker.sock:/var/run/docker.sock:ro \
+   jrcs/letsencrypt-nginx-proxy-companion
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately we do not have a way to really test this. But if the container starts correctly and does not terminate, it is likely working correctly, waiting for notifications of newly created containers.&lt;/p&gt;
+&lt;h2&gt;Explanation&lt;/h2&gt;
+&lt;p&gt;Containers that provide metadata in the form of environment variables, indicate to these service containers what the endpoint will be.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;nginx-proxy&lt;/code&gt; service uses &lt;code&gt;VIRTUAL_HOST&lt;/code&gt; to know what the hostname endpoint will be. While the Let's Encrypt companion service uses &lt;code&gt;LETSENCRYPT_HOST&lt;/code&gt; for this. In the rest of this article the endpoints will be the same. With &lt;code&gt;LETSENCRYPT_EMAIL&lt;/code&gt; we indicate to who the certificate will be addressed.&lt;/p&gt;
+&lt;h2&gt;C9 IDE&lt;/h2&gt;
+&lt;p&gt;The container hosting C9 is available in different flavors. I have created them based on CentOS 7, Fedora 24 and Ubuntu Xenail (16.04). To prepare, it is a good idea to pull the images locally:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# docker pull gbraad/c9ide:c7
+# docker pull gbraad/c9ide:f24
+# docker pull gbraad/c9ide:u1604
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To setup the containers as endpoints, I created the following helper script. It will deal with setting up the host and email for login to the container.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;./create.sh [name] [host] [email] [password] [flavor] [volume]&lt;/code&gt;&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt; 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/sh -x&lt;/span&gt;
+&lt;span class="nb"&gt;set&lt;/span&gt; -e
+
+&lt;span class="nv"&gt;NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;test&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="nv"&gt;HOST&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;2&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;.local&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="nv"&gt;USER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;3&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;nobody@local&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="nv"&gt;PASS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;4&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;secrete&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;span class="nv"&gt;FLAVOR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;5&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;u1604&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;  &lt;span class="c1"&gt;# c7, f24, u1604&lt;/span&gt;
+&lt;span class="nv"&gt;VOLUME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;6&lt;/span&gt;&lt;span class="k"&gt;:-&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/workspaces/c9ide-&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;NAME&lt;/span&gt;&lt;span class="si"&gt;}}&lt;/span&gt;
+
+mkdir -p &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VOLUME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+docker run -d &lt;span class="se"&gt;\&lt;/span&gt;
+   --name &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   -v &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;VOLUME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;:/workspace:rw &lt;span class="se"&gt;\&lt;/span&gt;
+   -e &lt;span class="s2"&gt;&amp;quot;VIRTUAL_HOST=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;HOST&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   -e &lt;span class="s2"&gt;&amp;quot;LETSENCRYPT_HOST=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;HOST&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   -e &lt;span class="s2"&gt;&amp;quot;LETSENCRYPT_EMAIL=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;USER&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   -e &lt;span class="s2"&gt;&amp;quot;USERNAME=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;USER&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   -e &lt;span class="s2"&gt;&amp;quot;PASSWORD=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PASS&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+   gbraad/c9ide:&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;FLAVOR&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;The &lt;code&gt;USERNAME&lt;/code&gt; and &lt;code&gt;PASSWORD&lt;/code&gt; are used to perform basic authentication.  As you can see, the email address used for the certificates is also used for the username for login. This can of course customized.
+ After this, &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# chmod +x create.sh
+# mkdir /workspaces
+# ./create.sh ubuntu ubuntu.c9ide.spotsnel.net me@gbraad.nl verysecrete
+# ./create.sh centos quentin.c9ide.spotsnel.net me@quentinyong.nl verysecrete c7
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;will create two containers, hosted at &lt;code&gt;ubuntu.c9ide.spotsnel.net&lt;/code&gt; and &lt;code&gt;quentin.c9ide.spotsnel.net&lt;/code&gt;. Notice that I used &lt;code&gt;/workspaces&lt;/code&gt; to provide the storage location for all the host containers. Make sure this is hosted on a separate mountpoint for instance. &lt;/p&gt;
+&lt;p&gt;Now open your IDE by opening &lt;a href="https://ubuntu.c9ide.spotsnel.net"&gt;https://ubuntu.c9ide.spotsnel.net&lt;/a&gt; in your browser. If all goes well, you will be created by a login prompt. The username is &lt;code&gt;me@gbraad.nl&lt;/code&gt; and the password &lt;code&gt;verysecrete&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="https://cdn.gbraad.nl/images/blog/c9ide-final.png" /&gt;&lt;/p&gt;
+&lt;p&gt;In future articles I will detail more about the composability of infrastructure. if you enjoyed this article, consider tweeting about it. If you have comments, please find me online at &lt;a href="http://twitter.com/gbraad"&gt;@gbraad&lt;/a&gt;.&lt;/p&gt;</summary><category term="docker"></category><category term="c9ide"></category><category term="fedora"></category></entry><entry><title>Software Distribution for a new era</title><link href="http://gbraad.nl/blog/software-distribution-for-a-new-era.html" rel="alternate"></link><published>2016-09-10T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-07-30:blog/software-distribution-for-a-new-era.html</id><summary type="html">&lt;p&gt;In this presentation I will introduce Software Distribution for a new era. In
+short it will explain the negatives of using packages, how 'containers' improved
+on this, but now how to make this available for use on servers and desktops. &lt;/p&gt;
+&lt;p&gt;In short it will talk about the following topics:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;container and Docker&lt;/li&gt;
+&lt;li&gt;FlatPak&lt;/li&gt;
+&lt;li&gt;OSTree&lt;/li&gt;
+&lt;li&gt;Project Atomic (Fedora, CentOS)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Presentation&lt;/h2&gt;
+&lt;p&gt;&lt;iframe src="http://gbraad.gitlab.io/software-distribution-for-a-new-era/slides.html" width="1024" height="768"&gt;
+  &lt;p&gt;Your browser does not support iframes.&lt;/p&gt;
+&lt;/iframe&gt;&lt;/p&gt;
+&lt;h2&gt;Feedback&lt;/h2&gt;
+&lt;p&gt;If you have any suggestion, please discuss below or send me an email.&lt;/p&gt;
+&lt;p&gt;Note: the original presentation can be found at: &lt;a href="https://gitlab.com/gbraad/software-distribution-for-a-new-era"&gt;Software Distribution for a new era&lt;/a&gt;&lt;/p&gt;</summary><category term="flatpak"></category><category term="docker"></category><category term="ostree"></category><category term="atomic"></category><category term="fedora"></category><category term="centos"></category></entry></feed>

@@ -1,0 +1,1688 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/openstack.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-10-27T00:00:00+08:00</updated><entry><title>Setup OpenStack Keystone for testing purposes</title><link href="http://gbraad.nl/blog/setup-openstack-keystone-for-testing-purposes.html" rel="alternate"></link><published>2016-10-27T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-10-27:blog/setup-openstack-keystone-for-testing-purposes.html</id><summary type="html">&lt;p&gt;OpenStack can be seen as a set of projects which combined into a configuration
+can deliver a management solution for different use-cases. However, several of
+these projects can also exist on their own to provide a certain functionality,
+such as Keystone, Ironic, etc. Some of these I will describe in articles on this
+blog, but let's start with one of the most important one's that deal with
+Authenticatioin, namely Keystone.&lt;/p&gt;
+&lt;h2&gt;Keystone&lt;/h2&gt;
+&lt;p&gt;Keystone is one of the core projects of OpenStack and is responsible for
+providing Identity. It offersauthentication, authorization and service
+discovery mechanisms via HTTP. Especially this last property, offering the API
+to be accessed by HTTP as a ReSTful interface offers a lot of opportunities for
+re-use. More about the Keystone project can be found on the
+&lt;a href="http://docs.openstack.org/developer/keystone/"&gt;project homepage&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Containerized&lt;/h2&gt;
+&lt;p&gt;To simplify the deployment process, I have containerized Keystone. The image can
+be found at &lt;a href="https://gitlab.com/gbraad/openstack-keystone"&gt;GitLab&lt;/a&gt; and the
+&lt;a href="https://hub.docker.com/r/gbraad/openstack-keystone/"&gt;Docker Registry&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;&lt;code&gt;Dockerfile&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;The image is based on a standard CentOS 7 cloud image. To install Keystone, I
+used the packaged version from the &lt;a href="//www.rdoproject.org"&gt;RDO project&lt;/a&gt;. After
+an update, it install the repository information pointing to mitaka, and then
+it install the Keystone service, some useful utils to use with OpenStack and
+the SELinux configuration files.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;RUN yum update -y &amp;amp;&amp;amp; \
+    yum install -y centos-release-openstack-mitaka &amp;amp;&amp;amp; \
+    yum install -y openstack-keystone openstack-utils openstack-selinux &amp;amp;&amp;amp; \
+    yum clean all
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this we expose the ports that Keystone uses for interaction.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;EXPOSE 5000
+EXPOSE 35357
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;As the &lt;code&gt;CMD&lt;/code&gt; it will run a simple initialization script. It takes care to setup
+an admin token and use a MySQL connection. It then starts &lt;code&gt;keystone-manage&lt;/code&gt; to
+provision the database with the schemas. And finally, it will use &lt;code&gt;keystone-all&lt;/code&gt;
+to run the services on the exposed ports.&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5
+6
+7
+8&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+&lt;span class="nv"&gt;ADMIN_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;ADMIN_TOKEN&lt;/span&gt;&lt;span class="p"&gt;-&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;openssl rand -hex 10&lt;span class="sb"&gt;`&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+openstack-config --set /etc/keystone/keystone.conf DEFAULT admin_token &lt;span class="nv"&gt;$ADMIN_TOKEN&lt;/span&gt;
+openstack-config --set /etc/keystone/keystone.conf DEFAULT use_stderr True
+openstack-config --set /etc/keystone/keystone.conf database connection &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;CONNECTION&lt;/span&gt;&lt;span class="p"&gt;-mysql://keystone:&lt;/span&gt;&lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="p"&gt;@dbhost/keystone&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+su keystone -s /bin/sh -c &lt;span class="s2"&gt;&amp;quot;keystone-manage db_sync&amp;quot;&lt;/span&gt;
+
+/usr/bin/keystone-all
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;In the rest of the article I will describe how to use this image to setup the
+test environment. The first component you will need to use Keystone is the
+database to store the credentials and other relevant information.&lt;/p&gt;
+&lt;h3&gt;Setup database&lt;/h3&gt;
+&lt;p&gt;As you saw in the &lt;code&gt;Dockerfile&lt;/code&gt;, we specified a MySQL connection. To make it
+easy to deploy, we will also be using a container for this database server. I
+prefer to use MariaDB, as this is also what normally would come with CentOS. For
+this article I will be using MariaDB version 10.1.&lt;/p&gt;
+&lt;p&gt;To start the container perform the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker run -d --name keystone-database -e &lt;span class="nv"&gt;MYSQL_ROOT_PASSWORD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;secrete mariadb:10.1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will pull the container and start a named instance as &lt;code&gt;keystone-database&lt;/code&gt;.
+The &lt;code&gt;root&lt;/code&gt; password to configure the database is set using the environment
+variable to &lt;code&gt;secrete&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Using this password and container name, we will create a database for Keystone
+and grant priviliges:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-database mysql -psecrete -e &lt;span class="s2"&gt;&amp;quot;create database keystone;&amp;quot;&lt;/span&gt;
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-database mysql -psecrete -e &lt;span class="s2"&gt;&amp;quot;GRANT ALL ON keystone.* TO &amp;#39;keystone&amp;#39;@&amp;#39;%&amp;#39; IDENTIFIED BY &amp;#39;password&amp;#39;;&amp;quot;&lt;/span&gt;
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-database mysql -psecrete -e &lt;span class="s2"&gt;&amp;quot;GRANT ALL ON keystone.* TO &amp;#39;keystone&amp;#39;@&amp;#39;localhost&amp;#39; IDENTIFIED BY &amp;#39;password&amp;#39;;&amp;quot;&lt;/span&gt;
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-database mysql -psecrete -e &lt;span class="s2"&gt;&amp;quot;flush privileges;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this, all the setting for the database are done and we can just leave it
+running without further configuration.&lt;/p&gt;
+&lt;h3&gt;Generate token for API usage&lt;/h3&gt;
+&lt;p&gt;Just like MariaDB, Keystone can use a token to perform the initial configuration.
+It is preferred to make this admin token something that is random and not easily
+guessable. A random token can be generated for instance with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;openssl rand -hex 10&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In the rest of the article, this token will be used.&lt;/p&gt;
+&lt;h3&gt;Start container&lt;/h3&gt;
+&lt;p&gt;After the database has been setup, and a token has been decided, we can start
+the Keystone services. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker run -d --link keystone-database:dbhost -e &lt;span class="nv"&gt;ADMIN_TOKEN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$TOKEN&lt;/span&gt; -p 5000:5000 --name keystone-server gbraad/openstack-keystone:mitaka
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will link the keystone container to the database container. If all goes
+well, the service will now be available on the exposed ports. The container
+instance will be identified by the name &lt;code&gt;keystone-server&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;As mentioned earlier, when the container gets started, it will provision the
+database with the schemas that are needed.&lt;/p&gt;
+&lt;p&gt;In the following segment we will configure Keystone. &lt;/p&gt;
+&lt;h3&gt;Create service entry&lt;/h3&gt;
+&lt;p&gt;To finalize the Keystone configuration, we will insert the service and endpoints
+for the Identity service.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ service-create --name&lt;span class="o"&gt;=&lt;/span&gt;keystone --type&lt;span class="o"&gt;=&lt;/span&gt;identity --description&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Keystone Identity Service&amp;quot;&lt;/span&gt;
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ endpoint-create --service keystone --publicurl &lt;span class="s1"&gt;&amp;#39;http://localhost:5000/v2.0&amp;#39;&lt;/span&gt; --adminurl &lt;span class="s1"&gt;&amp;#39;http://localhost:35357/v2.0&amp;#39;&lt;/span&gt; --internalurl &lt;span class="s1"&gt;&amp;#39;http://localhost:5000/v2.0&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note that these command are performed inside the keystone container.&lt;/p&gt;
+&lt;h3&gt;Create admin user&lt;/h3&gt;
+&lt;p&gt;To allow access to keystone without using the admin token, we will need to
+create a user. The following commands will create a user named &lt;code&gt;admin&lt;/code&gt; with
+the password &lt;code&gt;password&lt;/code&gt; and add this to a tenant called &lt;code&gt;admin&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ user-create --name admin --pass password
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ role-create --name admin
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ tenant-create --name admin
+$ docker &lt;span class="nb"&gt;exec&lt;/span&gt; keystone-server keystone --os-token &lt;span class="nv"&gt;$TOKEN&lt;/span&gt; --os-endpoint http://localhost:35357/v2.0/ user-role-add --user admin --role admin --tenant admin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;More detailed setups are possible, and for this I will refer you to the Keystone
+documentation.&lt;/p&gt;
+&lt;h3&gt;Getting a user token&lt;/h3&gt;
+&lt;p&gt;To verify Keystone works, we will retrieve a token. First you need to know the
+IP address that has been assigned to your container.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker inspect --format&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;{{.NetworkSettings.IPAddress}}&amp;quot;&lt;/span&gt; keystone-server
+172.17.0.6
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This can be helpful to communicate between different containers on the same
+Docker network. You could create a new container, or pull my
+&lt;a href="https://gitlab.com/gbraad/openstack-client"&gt;OpenStack client&lt;/a&gt; container.&lt;/p&gt;
+&lt;h4&gt;Using the OpenStack client&lt;/h4&gt;
+&lt;p&gt;Using the OpenStack client you can retrieve a token using the following
+configuration:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;keystonerc&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;OS_IDENTITY_API_VERSION=3
+OS_AUTH_URL=http://172.17.0.6:5000/v3
+OS_USERNAME=admin
+OS_PASSWORD=password
+OS_PROJECT_NAME=admin
+OS_USER_DOMAIN_NAME=Default
+OS_PROJECT_DOMAIN_NAME=Default
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When you use the following commands you will be given a token:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;source&lt;/span&gt; keystonerc
+$ openstack token issue
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Using cURL&lt;/h4&gt;
+&lt;p&gt;Since Keystone uses a HTTP interface, you can also retrieve the token using the
+cURL command. When using the &lt;code&gt;-i&lt;/code&gt; parameter, cURL will return all the headers
+from the response. This will include the &lt;code&gt;X-SUBJECT-TOKEN&lt;/code&gt; we want.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl -i -H &lt;span class="s2"&gt;&amp;quot;Content-Type: application/json&amp;quot;&lt;/span&gt; -d &lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="s1"&gt;{ &amp;quot;auth&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;    &amp;quot;identity&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;      &amp;quot;methods&amp;quot;: [&amp;quot;password&amp;quot;],&lt;/span&gt;
+&lt;span class="s1"&gt;      &amp;quot;password&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;        &amp;quot;user&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;          &amp;quot;name&amp;quot;: &amp;quot;admin&amp;quot;,&lt;/span&gt;
+&lt;span class="s1"&gt;          &amp;quot;domain&amp;quot;: { &amp;quot;name&amp;quot;: &amp;quot;Default&amp;quot; },&lt;/span&gt;
+&lt;span class="s1"&gt;          &amp;quot;password&amp;quot;: &amp;quot;password&amp;quot;&lt;/span&gt;
+&lt;span class="s1"&gt;        }&lt;/span&gt;
+&lt;span class="s1"&gt;      }&lt;/span&gt;
+&lt;span class="s1"&gt;    },&lt;/span&gt;
+&lt;span class="s1"&gt;    &amp;quot;scope&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;      &amp;quot;project&amp;quot;: {&lt;/span&gt;
+&lt;span class="s1"&gt;        &amp;quot;name&amp;quot;: &amp;quot;admin&amp;quot;,&lt;/span&gt;
+&lt;span class="s1"&gt;        &amp;quot;domain&amp;quot;: { &amp;quot;name&amp;quot;: &amp;quot;Default&amp;quot; }&lt;/span&gt;
+&lt;span class="s1"&gt;      }&lt;/span&gt;
+&lt;span class="s1"&gt;    }&lt;/span&gt;
+&lt;span class="s1"&gt;  }&lt;/span&gt;
+&lt;span class="s1"&gt;}&amp;#39;&lt;/span&gt; http://172.17.0.6:5000/v3/auth/tokens
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;A response will follow. You need to set the value of &lt;code&gt;X-Subject-Token&lt;/code&gt; to
+&lt;code&gt;OS_TOKEN&lt;/code&gt;, or use in cURL as the &lt;code&gt;X-AUTH-TOKEN&lt;/code&gt; header. More about this can
+be found in the Keystone documentation: &lt;a href="http://docs.openstack.org/developer/keystone/api_curl_examples.html"&gt;API Examples using cURL&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;How this was used for development&lt;/h3&gt;
+&lt;p&gt;For the &lt;a href="https://github.com/projectatomic/commissaire"&gt;Commissaire project&lt;/a&gt; I
+added Keystone functionality using two methods; using
+&lt;a href="https://github.com/projectatomic/commissaire-http/issues/21"&gt;password&lt;/a&gt; and
+&lt;a href="https://github.com/projectatomic/commissaire-http/issues/28"&gt;token&lt;/a&gt;. The above
+described container was used to allow easy deployment and testing.&lt;/p&gt;
+&lt;p&gt;As I decided not to introduce unnecessary libraries as dependencies, the
+communication from Commissaire happens over the HTTP ReST interface. To
+authenticate using a basic authorization, using the password method, we only
+need to construct a simple JSON object:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{ &amp;quot;auth&amp;quot;: {
+    &amp;quot;identity&amp;quot;: {
+      &amp;quot;methods&amp;quot;: [&amp;quot;password&amp;quot;],
+      &amp;quot;password&amp;quot;: {
+        &amp;quot;user&amp;quot;: {
+          &amp;quot;name&amp;quot;: &amp;quot;admin&amp;quot;,
+          &amp;quot;domain&amp;quot;: { &amp;quot;name&amp;quot;: &amp;quot;Default&amp;quot; },
+          &amp;quot;password&amp;quot;: &amp;quot;password&amp;quot;
+        }
+      }
+    },
+    &amp;quot;scope&amp;quot;: {
+      &amp;quot;project&amp;quot;: {
+        &amp;quot;name&amp;quot;: &amp;quot;admin&amp;quot;,
+        &amp;quot;domain&amp;quot;: { &amp;quot;name&amp;quot;: &amp;quot;Default&amp;quot; }
+      }
+    }
+  }
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In code we described this with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        headers = {&amp;#39;Content-Type&amp;#39;: &amp;#39;application/json&amp;#39;}
+        body = {&amp;#39;auth&amp;#39;: {&amp;#39;identity&amp;#39;: {}}}
+        ident = body[&amp;#39;auth&amp;#39;][&amp;#39;identity&amp;#39;]
+
+        ident[&amp;#39;methods&amp;#39;] = [&amp;#39;password&amp;#39;]
+        ident[&amp;#39;password&amp;#39;] = {&amp;#39;user&amp;#39;: {
+            &amp;#39;name&amp;#39;: user,
+            &amp;#39;password&amp;#39;: passwd,
+            &amp;#39;domain&amp;#39;: {&amp;#39;name&amp;#39;: self.domain}}}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To perform the authentication, we send a request:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        response = requests.post(
+            self.url,
+            data=json.dumps(body),
+            headers=headers)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;to the endpoint exposed at: &lt;code&gt;http://172.17.0.6:5000/v3/auth/tokens&lt;/code&gt;. When the
+response includes the header &lt;code&gt;X-Subject-Token&lt;/code&gt; the authentication succeeded,
+else we failed and send a 403 as status code.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        if &amp;#39;X-Subject-Token&amp;#39; in response.headers:
+            return True
+
+        # Forbid by default
+        return False
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The Implementation for authentication using a token is quite similar, instead
+we will take the &lt;code&gt;X-Auth-Token&lt;/code&gt; from the request we received  and verify this
+against Keystone using the following request:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{
+    &amp;quot;auth&amp;quot;: {
+        &amp;quot;identity&amp;quot;: {
+            &amp;quot;methods&amp;quot;: [
+                &amp;quot;token&amp;quot;
+            ],
+            &amp;quot;token&amp;quot;: {
+                &amp;quot;id&amp;quot;: &amp;quot;faa166abf235430e81c9fa12ad248533&amp;quot;
+            }
+        }
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Just like in the previous example, the endpoint is:
+&lt;code&gt;http://172.17.0.6:5000/v3/auth/tokens&lt;/code&gt;. If the authentication is succesful
+the response will contain the &lt;code&gt;X-Subject-Token&lt;/code&gt; header.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Keystone is powerful service to provide authentication for your infrastructure.
+As you can see from this example, using a containerized (composed) environment,
+it is easy to get a basic setup running. And using the ReST API it is also 
+very simple to handle authentication outside of your own application. In future
+articles more advanced scenarios will be given.&lt;/p&gt;
+&lt;p&gt;At the moment, password authentication using Keystone and Commissaire is
+possible and hopefully soon we will also have integrated the token based
+authentication.&lt;/p&gt;
+&lt;p&gt;If you have comments or suggestions, please leave them below or consider sending
+a message to me on &lt;a href="http://twitter.com/gbraad"&gt;Twitter&lt;/a&gt;: @gbraad.&lt;/p&gt;</summary><category term="openstack"></category><category term="keystone"></category><category term="docker"></category><category term="containers"></category><category term="authentication"></category></entry><entry><title>Deploying OpenStack using TripleO</title><link href="http://gbraad.nl/blog/deploying-openstack-using-tripleo.html" rel="alternate"></link><published>2016-09-10T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-05-18:blog/deploying-openstack-using-tripleo.html</id><summary type="html">&lt;p&gt;In this article we will deploy an OpenStack environment using TripleO using
+the &lt;code&gt;tripleo-quickstart&lt;/code&gt; scripts. It will create a virtualized environment
+which consists of 1 Undercloud node and in total 9 nodes in the Overcloud;
+3 controller nodes (High Availability), 3 compute nodes and 3 Ceph storage
+nodes.&lt;/p&gt;
+&lt;h2&gt;What is TripleO, &lt;em&gt;undercloud&lt;/em&gt; and &lt;em&gt;overcloud&lt;/em&gt;?&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://wiki.openstack.org/wiki/TripleO"&gt;TripleO&lt;/a&gt; is a deployment method in
+which a dedicated OpenStack management environment is used to deploy another
+OpenStack environment which is used for the workload. The management environment
+is contained in a single machine, called the &lt;em&gt;undercloud&lt;/em&gt;. This OpenStack
+environment takes care of the monitoring and management of what is known as the
+&lt;em&gt;overcloud&lt;/em&gt;. The &lt;em&gt;overcloud&lt;/em&gt; is the actual OpenStack environment that will run
+the workload.&lt;/p&gt;
+&lt;h2&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;It is preferred to use a dedicated server for the following instructions.
+Consider using 32G of memory and have enough diskspace available in &lt;code&gt;/home&lt;/code&gt;.
+This target node has to be using CentOS 7 (or RHEL7).&lt;/p&gt;
+&lt;h2&gt;Prepare for deployment&lt;/h2&gt;
+&lt;p&gt;The deployment can be done from a workstation targeting a server, or from the
+server itself. Whatever your preferred method is, you will need the 
+&lt;a href="https://github.com/openstack/tripleo-quickstart"&gt;tripleo-quickstart&lt;/a&gt; scripts.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl -O https://raw.githubusercontent.com/openstack/tripleo-quickstart/master/quickstart.sh
+$ chmod u+x quickstart.sh
+$ ./quickstart.sh --install-deps
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will install the dependencies used by the &lt;code&gt;quickstart.sh&lt;/code&gt; script. Now you
+need to prepare the target node. Make sure you can login to this server without
+a password.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VIRTHOST&lt;/span&gt;&lt;span class="o"&gt;=[&lt;/span&gt;target&lt;span class="o"&gt;]&lt;/span&gt;
+$ ssh-copy-id root@&lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt;
+$ ssh root@&lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt; uname -a
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This article witll not describe the setup of passwordless or key-based
+authentication with SSH. If issues occur, please verify you have a generated
+keyset. If not, generate one with &lt;code&gt;ssh-keygen&lt;/code&gt;. For further information please
+consult the &lt;code&gt;man&lt;/code&gt; page or verify online.&lt;/p&gt;
+&lt;h2&gt;Cache deployment images locally&lt;/h2&gt;
+&lt;p&gt;Although this step is not necessary, you can pre-download the images and cache
+them locally. This can be helpful if you want to perform the deployment using
+different images and/or suffer from bad connectivity.&lt;/p&gt;
+&lt;p&gt;The location if the images is currently at &lt;code&gt;http://artifacts.ci.centos.org/rdo/images/{{release}}/delorean/stable/undercloud.qcow2&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;To download the &lt;em&gt;mitaka&lt;/em&gt; image, you can do this with&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ mkdir /var/lib/oooq-images
+$ curl http://artifacts.ci.centos.org/rdo/images/mitaka/delorean/stable/undercloud.qcow2 -o /var/lib/oooq-images/undercloud-mitaka.qcow2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Deployment configuration file&lt;/h2&gt;
+&lt;p&gt;We will create a virtual environment for out TripleO deployment. This will
+provide you with the knowledge you need to perform a bare-metal installation.&lt;/p&gt;
+&lt;p&gt;You can define the node deployment inside a configuration file, eg. called 
+&lt;code&gt;deploy-config.yml&lt;/code&gt;. This will contain the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;overcloud_nodes:
+  - name: control_0
+    flavor: control
+  - name: control_1
+    flavor: control
+  - name: control_2
+    flavor: control
+
+  - name: compute_0
+    flavor: compute
+  - name: compute_1
+    flavor: compute
+  - name: compute_2
+    flavor: compute
+
+  - name: storage_0
+    flavor: ceph
+  - name: storage_1
+    flavor: ceph
+  - name: storage_2
+    flavor: ceph
+
+extra_args: &amp;quot;--control-scale 3 --ceph-storage-scale 3 -e /usr/share/openstack-tripleo-heat-templates/environments/puppet-pacemaker.yaml --ntp-server pool.ntp.org&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Nodes can be assigned a role by setting the flavor:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;control&lt;/code&gt; sets up a controller node, which also handles the network.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;compute&lt;/code&gt; sets up a Nova compute node.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ceph&lt;/code&gt; sets up a node for Ceph storage.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The extra arguments allow you to modify the deployment that is performed.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;--control-scale 3&lt;/code&gt; instructs the deployment to assign 3 nodes with the
+      controller role.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--ceph-storage-scale 3&lt;/code&gt; instructs the deployment to assign 3 nodes to
+      be used for the Ceph storage backend.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-e puppet-pacemaker.yaml&lt;/code&gt; will setup pacemaker HA for the controller
+      nodes&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--ntp-server pool.ntp.org&lt;/code&gt; will sync time on the nodes using NTP.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Note: if you want to use all compute nodes at once, include &lt;code&gt;--compute-scale 3&lt;/code&gt;. But in this article I am using these additional nodes for scale out.&lt;/p&gt;
+&lt;h2&gt;Perform deployment&lt;/h2&gt;
+&lt;p&gt;Now you can perform the &lt;em&gt;undercloud&lt;/em&gt; deployment using:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ./quickstart.sh --config deploy-config.yml --undercloud-image-url file:///var/lib/oooq-images/undercloud-mitaka.qcow2 &lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But before you do, please continue reading about the &lt;code&gt;Deployment scripts&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The previous command will target the node as specified with the &lt;code&gt;$VIRTHOST&lt;/code&gt; 
+environment variable, and according to the &lt;code&gt;deploy-config.yml&lt;/code&gt; which we defined
+earlier.&lt;/p&gt;
+&lt;p&gt;It will login to this node and create a &lt;code&gt;stack&lt;/code&gt; user which will be running the
+virtual machines. Later we will inspect this. After creating the virtual
+machines it will prepare the &lt;code&gt;undercloud&lt;/code&gt; machine. After this, you still need to
+start the actual deployment. &lt;/p&gt;
+&lt;h2&gt;Deployment scripts&lt;/h2&gt;
+&lt;p&gt;To login to the undercloud:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ssh -F &lt;span class="nv"&gt;$OPT_WORKDIR&lt;/span&gt;/ssh.config.ansible undercloud
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The undercloud is not fully prepared, you would have to do so with the following
+scripts.&lt;/p&gt;
+&lt;p&gt;Undercloud (management)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;undercloud-install.sh&lt;/code&gt; will run the undercloud install and execute
+    diskimage elements.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;undercloud-post-install.sh&lt;/code&gt; will perform all pre-deploy steps, such as
+    uploading the images to &lt;em&gt;glance&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Overcloud (workload)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;overcloud-deploy.sh&lt;/code&gt; will deploy the overcloud, creating a &lt;em&gt;heat&lt;/em&gt; stack
+    and will use the nodes as defined in &lt;code&gt;instack-env.json&lt;/code&gt; and the extra
+    arguments given in the deployment configuration.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;overcloud-deploy-post.sh&lt;/code&gt; will do any post-deploy configuration
+    such as writing a local &lt;code&gt;/etc/hosts&lt;/code&gt; file.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;overcloud-validate.sh&lt;/code&gt; will run post-deploy validation, like a
+    &lt;em&gt;pingtest&lt;/em&gt; and possible &lt;em&gt;tempest&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You can run these scripts one by one... or install the whole &lt;em&gt;undercloud&lt;/em&gt; and
+&lt;em&gt;overcloud&lt;/em&gt; using the command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ./quickstart.sh --tags all --config deploy-config.yml --undercloud-image-url file:///var/lib/oooq-images/undercloud-mitaka.qcow2 &lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Using &lt;code&gt;--tags all&lt;/code&gt; will instruct ansible to perform all the steps and scripts
+as previously described. I suggest you to run the steps first each one by one
+and look into the scripts itself to understand how they interact with
+&lt;code&gt;python-tripleoclient&lt;/code&gt; (eg. &lt;code&gt;openstack undercloud&lt;/code&gt; and &lt;code&gt;openstack overcloud&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ ./undercloud-install.sh
+[stack@undercloud ~]$ ./undercloud-post-install.sh
+[stack@undercloud ~]$ ./overcloud-deploy.sh
+[stack@undercloud ~]$ ./overcloud-deploy-post.sh
+[stack@undercloud ~]$ ./overcloud-validate.sh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Undercloud node&lt;/h2&gt;
+&lt;p&gt;After running these commands, you will have a fully deployed environment.
+You can verify this from the &lt;em&gt;undercloud&lt;/em&gt; node.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ . stackrc
+[stack@undercloud ~]$ ironic node-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+
+| UUID                                 | Name      | Instance UUID                        | Power State | Provisioning State | Maintenance |
++--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+
+| 5c4f1ad5-3cea-41c2-8fa8-f3468e660447 | control-0 | aea0add0-f638-4a41-97ca-a2a64ac083a5 | None        | active             | True        |
+| 0a0bf5e8-e903-4f77-be35-0a49f4da5109 | control-1 | 75778a5e-5e65-48bc-9934-d4cb203fad86 | None        | active             | True        |
+| 12aa12d2-0023-48ac-89d2-4e138f6eef08 | control-2 | f74b2b00-0c01-44a5-917e-45fff058f2fa | None        | active             | True        |
+| 6a0533a2-d91f-4f45-acbb-5f5f231c8986 | compute-0 | None                                 | None        | available          | True        |
+| e8663954-4da8-4027-9226-f9f053f269d9 | compute-1 | 113afdbd-0afa-481c-a744-90276907b8e2 | None        | active             | True        |
+| 06679c73-97a2-4de0-b676-193a3e182fcf | compute-2 | None                                 | None        | available          | True        |
+| a6ef4bce-941c-407d-966e-85df2af3f6e1 | storage-0 | bbba571f-f2a9-46f3-a270-f154e045c5a8 | None        | active             | True        |
+| 6174dbb7-28e7-425e-b675-f1653f0b731c | storage-1 | d3afc0e8-70a0-43c4-b35a-693a7e4e5fa5 | None        | active             | True        |
+| 32e8122b-3a5f-45fb-8a5a-60dc4f82325f | storage-2 | 53ea0799-1bcd-4f55-8671-e6a7f7f46054 | None        | active             | True        |
++--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will show a list of nodes that are available in the environment. This information &lt;/p&gt;
+&lt;h2&gt;Login to the overcloud&lt;/h2&gt;
+&lt;p&gt;From the undercloud node you can source the stack resource file and use the
+&lt;em&gt;openstack clients&lt;/em&gt; as usual.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ . overcloudrc
+[stack@undercloud ~]$ cat overcloudrc
+[stack@undercloud ~]$ nova list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In the previous output you also see the &lt;code&gt;OS_AUTH_URL&lt;/code&gt; and the credentials
+needed to login from the Horizon dashboard.&lt;/p&gt;
+&lt;p&gt;Either using ssh portforwaring, or the dynamic proxy option, you can open the
+dashboard.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ssh -F ~/.quickstart/ssh.config.ansible undercloud -D 8080
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Either using Firefox (with the FoxyProxy extension) or Chrome/Vivaldi (with the
+SwitchySharp extension) you can set a SOCKS proxy at &lt;code&gt;127.0.0.1&lt;/code&gt; and port
+&lt;code&gt;8080&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Login to overcloud nodes&lt;/h2&gt;
+&lt;p&gt;If you need to inspect a node in the overcloud (workload), you can login to these nodes from the undercloud using the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ ssh [hostname/nodeip]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: you can find the hostnames and IP addresses on the &lt;em&gt;undercloud&lt;/em&gt; in the
+&lt;code&gt;/etc/hosts&lt;/code&gt; file. It will use 'heat-admin' as user to login.&lt;/p&gt;
+&lt;h2&gt;Scale out&lt;/h2&gt;
+&lt;p&gt;After deployment, you might have noticed that &lt;code&gt;ironic node-list&lt;/code&gt; returned a
+list of baremetal nodes that are in &lt;em&gt;Provisioning state&lt;/em&gt; 'available' and do not
+have an &lt;em&gt;Instance UUID&lt;/em&gt;. These nodes have not been deployed to, as
+&lt;code&gt;--compute-scale&lt;/code&gt; had not been set.&lt;/p&gt;
+&lt;p&gt;To scale out to these nodes, you first need to change the &lt;code&gt;Maintenance&lt;/code&gt; status
+to false. You can do this for all available at once with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;[stack@undercloud ~]&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt; for i in &lt;/span&gt;&lt;span class="p"&gt;$(&lt;/span&gt;&lt;span class="err"&gt;ironic&lt;/span&gt; &lt;span class="err"&gt;node-list&lt;/span&gt; &lt;span class="err"&gt;|&lt;/span&gt; &lt;span class="err"&gt;grep&lt;/span&gt; &lt;span class="err"&gt;available&lt;/span&gt; &lt;span class="err"&gt;|&lt;/span&gt; &lt;span class="err"&gt;grep&lt;/span&gt; &lt;span class="err"&gt;-v&lt;/span&gt; &lt;span class="err"&gt;UUID&lt;/span&gt; &lt;span class="err"&gt;|&lt;/span&gt; &lt;span class="err"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39; { print $2 } &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="x"&gt;; do&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt; ironic node-set-maintenance &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="x"&gt; false;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt; done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can verify the status with &lt;code&gt;ironic node-list&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;After this you can scale out using&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ openstack overcloud deploy --templates --libvirt-type qemu --control-flavor oooq_control --compute-flavor oooq_compute --ceph-storage-flavor oooq_ceph --timeout 60 --ntp-server pool.ntp.org --compute-scale 3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will change the current &lt;em&gt;overcloud&lt;/em&gt; heat deployment and provision the
+remaining nodes.&lt;/p&gt;
+&lt;p&gt;Eventually the command will return with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;...
+Stack overcloud UPDATE_COMPLETE
+Overcloud Endpoint: http://192.0.2.6:5000/v2.0
+Overcloud Deployed
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;after which the new nodes have been added to the &lt;em&gt;overcloud&lt;/em&gt;. To update the
+hosts entries in &lt;code&gt;/etc/hosts&lt;/code&gt; you can rerun:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[stack@undercloud ~]$ ./overcloud-deploy-post.sh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Diskimage building&lt;/h2&gt;
+&lt;p&gt;The &lt;em&gt;undercloud&lt;/em&gt; images can be created using &lt;a href="https://github.com/redhat-openstack/ansible-role-tripleo-image-build"&gt;ansible-role-tripleo-image-build&lt;/a&gt;.
+Using the following commands it will generate the images:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ git clone https://github.com/redhat-openstack/ansible-role-tripleo-image-build.git
+$ &lt;span class="nb"&gt;cd&lt;/span&gt; ansible-role-tripleo-image-build/tests/pip
+$ sudo ./build.sh -i
+$ ./build.sh &lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After the command finishes succesfully, the images can be found in
+&lt;code&gt;/var/lib/oooq-images&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Note: The content of &lt;code&gt;/var/lib/oooq-images&lt;/code&gt; will be cleaned on run. After this
+it will download a base image from
+&lt;code&gt;http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2&lt;/code&gt; of
+about 800M. You can download this image and specify the location in a
+configuration file to prevent it from having to be downloaded each time.&lt;/p&gt;
+&lt;p&gt;A create a file called: &lt;code&gt;override.yml&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;artib_minimal_base_image_url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="o"&gt;:///&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="sr"&gt;/lib/oooq-base-images/&lt;/span&gt;&lt;span class="n"&gt;CentOS&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;x86_64&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;GenericCloud&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;qcow2&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And pass this to the build command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ./build.sh -e override.yml &lt;span class="nv"&gt;$VIRTHOST&lt;/span&gt; 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Since the introduction of TripleO Quickstart, standing up a multi-node OpenStack
+environment is very easy. In my knowledge-base article I describe also how you
+can do a baremetal deployment using the Quickstart.&lt;/p&gt;
+&lt;p&gt;If you have any suggestion, please discuss below or send me an email.&lt;/p&gt;
+&lt;p&gt;Note: the original publication can be found at: &lt;a href="https://gitlab.com/gbraad/openstack-handsonlabs"&gt;OpenStack hands-on-labs&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Deployment &lt;a href="https://github.com/openstack/tripleo-quickstart/blob/master/docs/configuring.md"&gt;configuration options&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Knowledge-Base for &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/openstack/tripleo.md"&gt;development/architecture notes&lt;/a&gt; on TripleO  &lt;/li&gt;
+&lt;li&gt;Openstack deployment &lt;a href="https://remote-lab.net/rdo-manager-ha-openstack-deployment"&gt;using RDO-Manager&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="openstack"></category><category term="tripleo"></category><category term="rdo"></category></entry><entry><title>Building a multi-tier application using OpenStack (PackStack)</title><link href="http://gbraad.nl/blog/building-a-multi-tier-application-using-openstack-packstack.html" rel="alternate"></link><published>2016-09-10T00:00:00+08:00</published><author><name>Gerard Braad</name></author><id>tag:gbraad.nl,2016-03-05:blog/building-a-multi-tier-application-using-openstack-packstack.html</id><summary type="html">&lt;p&gt;This is a publication of an article/training class I gave related to setting up
+an environment using OpenStack, to host a multi-tier applicatiom.&lt;/p&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;In this hands-on-labs you will learn how to set-up an OpenStack environment to
+host a multi-tier application; front-end, back-end and the related network
+settings to prevent access to back-end servers, etc.&lt;/p&gt;
+&lt;p&gt;To setup the environment quickly, we will be using PackStack. PackStack is an
+installation utility to quickly deploy an OpenStack cloud. In our case we will
+use the all-in-one solutiion which allows a single node environment to
+test deploying our multi-tier application.&lt;/p&gt;
+&lt;h2&gt;Setup packstack environment&lt;/h2&gt;
+&lt;p&gt;Use a RHEL or CentOS 7 installation.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ systemctl disable NetworkManager
+$ systemctl &lt;span class="nb"&gt;enable&lt;/span&gt; network
+$ systemctl stop NetworkManager.service
+$ systemctl start network.service
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ yum install -y https://www.rdoproject.org/repos/rdo-release.rpm
+$ sudo yum update -y
+$ sudo yum install -y openstack-packstack
+$ packstack --allinone --os-neutron-lbaas-install&lt;span class="o"&gt;=&lt;/span&gt;y
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Check environment&lt;/h2&gt;
+&lt;p&gt;In order to start using &lt;em&gt;OpenStack&lt;/em&gt;, you’ll need to authenticate as a tenant. To
+do this, run the following command in order to put the demo user’s credentials
+in your environment.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;source&lt;/span&gt; ~/keystonerc_admin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The installation automatically creates two networks for you &lt;em&gt;‘private’&lt;/em&gt; and
+&lt;em&gt;‘public’&lt;/em&gt;. The &lt;em&gt;‘public’&lt;/em&gt; network we’ll use to allocate floating ips out of
+later. Running &lt;code&gt;openstack network list&lt;/code&gt; will show this.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack network list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+---------+--------------------------------------+
+| ID                                   | Name    | Subnets                              |
++--------------------------------------+---------+--------------------------------------+
+| 84aff6b0-2291-41b5-9871-d3d24906e358 | private | 92432fb8-8c29-4abe-98d8-de8bf161a18b |
+| 427becab-54af-4b43-a5d2-e292b13b6a86 | public  | 78eff45a-25f2-4904-bab8-a8795d9a7f9b |
++--------------------------------------+---------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Setup security groups&lt;/h2&gt;
+&lt;p&gt;First we’ll create the three security groups we’ll need to contain the members:
+web, database and ssh.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack security group create web
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+-------------+--------------------------------------+
+| Field       | Value                                |
++-------------+--------------------------------------+
+| description | web                                  |
+| id          | a98fcd2f-a828-4a88-92aa-36e3c1223a92 |
+| name        | web                                  |
+| rules       | []                                   |
+| tenant_id   | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack security group create database
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+-------------+--------------------------------------+
+| Field       | Value                                |
++-------------+--------------------------------------+
+| description | database                             |
+| id          | cf6c0380-e255-4ba8-9258-bb8e9c062fa7 |
+| name        | database                             |
+| rules       | []                                   |
+| tenant_id   | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack security group create ssh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+-------------+--------------------------------------+
+| Field       | Value                                |
++-------------+--------------------------------------+
+| description | ssh                                  |
+| id          | 141ed0d0-c004-457d-8efa-45e0fd2dc986 |
+| name        | ssh                                  |
+| rules       | []                                   |
+| tenant_id   | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack security group list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+----------+------------------------+
+| ID                                   | Name     | Description            |
++--------------------------------------+----------+------------------------+
+| cf6c0380-e255-4ba8-9258-bb8e9c062fa7 | database | database               |
+| 379b58b2-7ca3-431e-ae1f-cd6a627a9b30 | default  | Default security group |
+| 141ed0d0-c004-457d-8efa-45e0fd2dc986 | ssh      | ssh                    |
+| a98fcd2f-a828-4a88-92aa-36e3c1223a92 | web      | web                    |
++--------------------------------------+----------+------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we’ll add rules into these security groups for their desired functionality.&lt;/p&gt;
+&lt;p&gt;Allow all HTTP traffic on port 80 to the &lt;code&gt;web&lt;/code&gt; security group:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-rule-create --direction ingress --protocol TCP &lt;span class="se"&gt;\ &lt;/span&gt;
+&amp;gt; --port-range-min &lt;span class="m"&gt;80&lt;/span&gt; --port-range-max &lt;span class="m"&gt;80&lt;/span&gt; web
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new security_group_rule:
++-------------------+--------------------------------------+
+| Field             | Value                                |
++-------------------+--------------------------------------+
+| direction         | ingress                              |
+| ethertype         | IPv4                                 |
+| id                | b293d93a-30c2-4854-a890-5ce65639f870 |
+| port_range_max    | 80                                   |
+| port_range_min    | 80                                   |
+| protocol          | tcp                                  |
+| remote_group_id   |                                      |
+| remote_ip_prefix  |                                      |
+| security_group_id | a98fcd2f-a828-4a88-92aa-36e3c1223a92 |
+| tenant_id         | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Allow database servers to be accessed from the web servers:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-rule-create --direction ingress --protocol TCP &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --port-range-min &lt;span class="m"&gt;3306&lt;/span&gt; --port-range-max &lt;span class="m"&gt;3306&lt;/span&gt; --remote-group-id web database
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new security_group_rule:
++-------------------+--------------------------------------+
+| Field             | Value                                |
++-------------------+--------------------------------------+
+| direction         | ingress                              |
+| ethertype         | IPv4                                 |
+| id                | dfc77fb6-48a0-41ca-9230-50c2cda27c63 |
+| port_range_max    | 3306                                 |
+| port_range_min    | 3306                                 |
+| protocol          | tcp                                  |
+| remote_group_id   | a98fcd2f-a828-4a88-92aa-36e3c1223a92 |
+| remote_ip_prefix  |                                      |
+| security_group_id | cf6c0380-e255-4ba8-9258-bb8e9c062fa7 |
+| tenant_id         | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Allow the jump host to &lt;code&gt;ssh&lt;/code&gt; into both the database servers and webservers&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-rule-create --direction ingress --protocol TCP &lt;span class="se"&gt;\ &lt;/span&gt;
+&amp;gt; --port-range-min &lt;span class="m"&gt;22&lt;/span&gt; --port-range-max &lt;span class="m"&gt;22&lt;/span&gt; --remote-group-id ssh database
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new security_group_rule:
++-------------------+--------------------------------------+
+| Field             | Value                                |
++-------------------+--------------------------------------+
+| direction         | ingress                              |
+| ethertype         | IPv4                                 |
+| id                | 0c686a2c-304f-42be-9936-cdce46963d46 |
+| port_range_max    | 22                                   |
+| port_range_min    | 22                                   |
+| protocol          | tcp                                  |
+| remote_group_id   | 141ed0d0-c004-457d-8efa-45e0fd2dc986 |
+| remote_ip_prefix  |                                      |
+| security_group_id | cf6c0380-e255-4ba8-9258-bb8e9c062fa7 |
+| tenant_id         | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-rule-create --direction ingress --protocol TCP &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --port-range-min &lt;span class="m"&gt;22&lt;/span&gt; --port-range-max &lt;span class="m"&gt;22&lt;/span&gt; --remote-group-id ssh web
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new security_group_rule:
++-------------------+--------------------------------------+
+| Field             | Value                                |
++-------------------+--------------------------------------+
+| direction         | ingress                              |
+| ethertype         | IPv4                                 |
+| id                | 919a6ede-8dfd-4184-bf2a-f07c0527d5bf |
+| port_range_max    | 22                                   |
+| port_range_min    | 22                                   |
+| protocol          | tcp                                  |
+| remote_group_id   | 141ed0d0-c004-457d-8efa-45e0fd2dc986 |
+| remote_ip_prefix  |                                      |
+| security_group_id | a98fcd2f-a828-4a88-92aa-36e3c1223a92 |
+| tenant_id         | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Allow the outside world to be able to &lt;code&gt;ssh&lt;/code&gt; into the jump host on port 22:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-rule-create --direction ingress --protocol tcp &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --port-range-min &lt;span class="m"&gt;22&lt;/span&gt; --port-range-max &lt;span class="m"&gt;22&lt;/span&gt; ssh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new security_group_rule:
++-------------------+--------------------------------------+
+| Field             | Value                                |
++-------------------+--------------------------------------+
+| direction         | ingress                              |
+| ethertype         | IPv4                                 |
+| id                | fb8dcbe6-e553-4a92-aed4-aca7f086dca4 |
+| port_range_max    | 22                                   |
+| port_range_min    | 22                                   |
+| protocol          | tcp                                  |
+| remote_group_id   |                                      |
+| remote_ip_prefix  |                                      |
+| security_group_id | 141ed0d0-c004-457d-8efa-45e0fd2dc986 |
+| tenant_id         | 3d44af649a1c42fcaa102ed11e3f010f     |
++-------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Setup virtual machines&lt;/h2&gt;
+&lt;p&gt;Now we can boot some virtual machines that will make use of these security
+groups. Run &lt;code&gt;openstack net work list&lt;/code&gt; to obtain the private network &lt;code&gt;uuid&lt;/code&gt; that
+we are going to be using:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack network list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+---------+--------------------------------------+
+| ID                                   | Name    | Subnets                              |
++--------------------------------------+---------+--------------------------------------+
+| 427becab-54af-4b43-a5d2-e292b13b6a86 | public  | 78eff45a-25f2-4904-bab8-a8795d9a7f9b |
+| 84aff6b0-2291-41b5-9871-d3d24906e358 | private | 92432fb8-8c29-4abe-98d8-de8bf161a18b |
++--------------------------------------+---------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then, we’ll run &lt;code&gt;openstack image list&lt;/code&gt; to determine the images available to boot
+our instances with. Since we’re using &lt;em&gt;packstack&lt;/em&gt;, the script automatically
+uploaded an image to &lt;em&gt;glance&lt;/em&gt; for us to use.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack image list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+--------+
+| ID                                   | Name   |
++--------------------------------------+--------+
+| eea0e326-8e2e-41db-80a0-1138a4bdd5a6 | cirros |
++--------------------------------------+--------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Overview&lt;/h4&gt;
+&lt;p&gt;In the next steps we will boot four instances:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;2 web servers&lt;/li&gt;
+&lt;li&gt;1 database server&lt;/li&gt;
+&lt;li&gt;1 ssh jump host&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We will be creating instances using the smallest flavor available.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack flavor list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+----+-----------+-------+------+-----------+-------+-----------+
+| ID | Name      |   RAM | Disk | Ephemeral | VCPUs | Is Public |
++----+-----------+-------+------+-----------+-------+-----------+
+| 1  | m1.tiny   |   512 |    1 |         0 |     1 | True      |
+| 2  | m1.small  |  2048 |   20 |         0 |     1 | True      |
+| 3  | m1.medium |  4096 |   40 |         0 |     2 | True      |
+| 4  | m1.large  |  8192 |   80 |         0 |     4 | True      |
+| 5  | m1.xlarge | 16384 |  160 |         0 |     8 | True      |
++----+-----------+-------+------+-----------+-------+-----------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So we will be using flavor 1, which means instances are created with 512MB of
+memory and a disk of 1G.&lt;/p&gt;
+&lt;p&gt;Note:&lt;br /&gt;
+We also have to make sure that each instances has an IP address on the private
+network. For this we are including the &lt;code&gt;--nic net-id=&lt;/code&gt; option specifying the
+network ID of the private network.&lt;/p&gt;
+&lt;h3&gt;Setup web servers&lt;/h3&gt;
+&lt;p&gt;Boot two instances named &lt;code&gt;web_server1&lt;/code&gt; and &lt;code&gt;web_server2&lt;/code&gt; on the private network
+using the &lt;code&gt;cirros&lt;/code&gt; image and part of the web security group:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ nova boot --image cirros --nic net-id&lt;span class="o"&gt;=&lt;/span&gt;84aff6b0-2291-41b5-9871-d3d24906e358 &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --security_groups web --flavor &lt;span class="m"&gt;1&lt;/span&gt; web_server1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-SRV-ATTR:host                 | -                                             |
+| OS-EXT-SRV-ATTR:hypervisor_hostname  | -                                             |
+| OS-EXT-SRV-ATTR:instance_name        | instance-00000001                             |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | rijM8RvVKXhd                                  |
+| config_drive                         |                                               |
+| created                              | 2016-02-25T08:21:23Z                          |
+| flavor                               | m1.tiny (1)                                   |
+| hostId                               |                                               |
+| id                                   | be6ec624-07cd-45c1-8260-211f1f2fd786          |
+| image                                | cirros (eea0e326-8e2e-41db-80a0-1138a4bdd5a6) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | web_server1                                   |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | web                                           |
+| status                               | BUILD                                         |
+| tenant_id                            | 3d44af649a1c42fcaa102ed11e3f010f              |
+| updated                              | 2016-02-25T08:21:24Z                          |
+| user_id                              | a72ce317d35c47e8b8274995d0a2af92              |
++--------------------------------------+-----------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ nova boot --image cirros --nic net-id&lt;span class="o"&gt;=&lt;/span&gt;84aff6b0-2291-41b5-9871-d3d24906e358 &lt;span class="se"&gt;\ &lt;/span&gt;
+&amp;gt; --security_groups web --flavor &lt;span class="m"&gt;1&lt;/span&gt; web_server2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-SRV-ATTR:host                 | -                                             |
+| OS-EXT-SRV-ATTR:hypervisor_hostname  | -                                             |
+| OS-EXT-SRV-ATTR:instance_name        | instance-00000002                             |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | vyT4575gsqth                                  |
+| config_drive                         |                                               |
+| created                              | 2016-02-25T08:22:53Z                          |
+| flavor                               | m1.tiny (1)                                   |
+| hostId                               |                                               |
+| id                                   | 146056ad-e8dc-4ad3-8765-97b753f3d040          |
+| image                                | cirros (eea0e326-8e2e-41db-80a0-1138a4bdd5a6) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | web_server2                                   |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | web                                           |
+| status                               | BUILD                                         |
+| tenant_id                            | 3d44af649a1c42fcaa102ed11e3f010f              |
+| updated                              | 2016-02-25T08:22:53Z                          |
+| user_id                              | a72ce317d35c47e8b8274995d0a2af92              |
++--------------------------------------+-----------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Setup database server&lt;/h3&gt;
+&lt;p&gt;Boot database server&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ nova boot --image cirros --nic net-id&lt;span class="o"&gt;=&lt;/span&gt;84aff6b0-2291-41b5-9871-d3d24906e358 &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --security_groups database --flavor &lt;span class="m"&gt;1&lt;/span&gt; database_server
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-SRV-ATTR:host                 | -                                             |
+| OS-EXT-SRV-ATTR:hypervisor_hostname  | -                                             |
+| OS-EXT-SRV-ATTR:instance_name        | instance-00000003                             |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | 9GJgxdvz3eFQ                                  |
+| config_drive                         |                                               |
+| created                              | 2016-02-25T08:23:22Z                          |
+| flavor                               | m1.tiny (1)                                   |
+| hostId                               |                                               |
+| id                                   | d66ced0e-3aaf-4c14-8921-229ac6307ecd          |
+| image                                | cirros (eea0e326-8e2e-41db-80a0-1138a4bdd5a6) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | database_server                               |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | database                                      |
+| status                               | BUILD                                         |
+| tenant_id                            | 3d44af649a1c42fcaa102ed11e3f010f              |
+| updated                              | 2016-02-25T08:23:22Z                          |
+| user_id                              | a72ce317d35c47e8b8274995d0a2af92              |
++--------------------------------------+-----------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Setup jumphost server&lt;/h3&gt;
+&lt;p&gt;Boot ssh jump host&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ nova boot --image cirros --nic net-id&lt;span class="o"&gt;=&lt;/span&gt;84aff6b0-2291-41b5-9871-d3d24906e358 &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --security_groups ssh --flavor &lt;span class="m"&gt;1&lt;/span&gt; jumphost
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-SRV-ATTR:host                 | -                                             |
+| OS-EXT-SRV-ATTR:hypervisor_hostname  | -                                             |
+| OS-EXT-SRV-ATTR:instance_name        | instance-00000004                             |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | jwbUXkmfEK7Y                                  |
+| config_drive                         |                                               |
+| created                              | 2016-02-25T08:23:54Z                          |
+| flavor                               | m1.tiny (1)                                   |
+| hostId                               |                                               |
+| id                                   | e540896e-e148-414a-9588-3b83d3f2b059          |
+| image                                | cirros (eea0e326-8e2e-41db-80a0-1138a4bdd5a6) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | jumphost                                      |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | ssh                                           |
+| status                               | BUILD                                         |
+| tenant_id                            | 3d44af649a1c42fcaa102ed11e3f010f              |
+| updated                              | 2016-02-25T08:23:54Z                          |
+| user_id                              | a72ce317d35c47e8b8274995d0a2af92              |
++--------------------------------------+-----------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Client&lt;/h3&gt;
+&lt;p&gt;We will also create a client instance that we will use to access the web servers
+from.&lt;/p&gt;
+&lt;p&gt;Note: Since we did not specify a security group this instance will be part of a
+&lt;code&gt;default&lt;/code&gt; security group which allows the instance to make outgoing connections
+to anyone but only accept incoming connections from members of this same
+security group.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ nova boot --image cirros --nic net-id&lt;span class="o"&gt;=&lt;/span&gt;84aff6b0-2291-41b5-9871-d3d24906e358 &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --flavor &lt;span class="m"&gt;1&lt;/span&gt; client
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-SRV-ATTR:host                 | -                                             |
+| OS-EXT-SRV-ATTR:hypervisor_hostname  | -                                             |
+| OS-EXT-SRV-ATTR:instance_name        | instance-00000005                             |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | c63QG7iE3PrY                                  |
+| config_drive                         |                                               |
+| created                              | 2016-02-25T08:24:27Z                          |
+| flavor                               | m1.tiny (1)                                   |
+| hostId                               |                                               |
+| id                                   | 8e0179a3-6bf8-4c07-8035-f8916ca3183d          |
+| image                                | cirros (eea0e326-8e2e-41db-80a0-1138a4bdd5a6) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | client                                        |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | default                                       |
+| status                               | BUILD                                         |
+| tenant_id                            | 3d44af649a1c42fcaa102ed11e3f010f              |
+| updated                              | 2016-02-25T08:24:27Z                          |
+| user_id                              | a72ce317d35c47e8b8274995d0a2af92              |
++--------------------------------------+-----------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Check virtual machines&lt;/h3&gt;
+&lt;p&gt;Running &lt;code&gt;openstack server list&lt;/code&gt; will display the status of the instances. After
+a few seconds all of the instances should go to an ACTIVE status.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack server list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------------+--------+------------------+
+| ID                                   | Name            | Status | Networks         |
++--------------------------------------+-----------------+--------+------------------+
+| 8e0179a3-6bf8-4c07-8035-f8916ca3183d | client          | ACTIVE | private=10.0.0.7 |
+| e540896e-e148-414a-9588-3b83d3f2b059 | jumphost        | ACTIVE | private=10.0.0.6 |
+| d66ced0e-3aaf-4c14-8921-229ac6307ecd | database_server | ACTIVE | private=10.0.0.5 |
+| 146056ad-e8dc-4ad3-8765-97b753f3d040 | web_server2     | ACTIVE | private=10.0.0.4 |
+| be6ec624-07cd-45c1-8260-211f1f2fd786 | web_server1     | ACTIVE | private=10.0.0.3 |
++--------------------------------------+-----------------+--------+------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Setup public IP address for SSH&lt;/h3&gt;
+&lt;p&gt;To make the jumphost publicly accessible on the internet we’ll need to assign a
+floating IP to it. To do this first create a floating IP via:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron floatingip-create public
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new floatingip:
++---------------------+--------------------------------------+
+| Field               | Value                                |
++---------------------+--------------------------------------+
+| fixed_ip_address    |                                      |
+| floating_ip_address | 172.24.4.228                         |
+| floating_network_id | 427becab-54af-4b43-a5d2-e292b13b6a86 |
+| id                  | ce6efd31-97e9-428b-a3ac-b5a14e77a305 |
+| port_id             |                                      |
+| router_id           |                                      |
+| status              | DOWN                                 |
+| tenant_id           | 3d44af649a1c42fcaa102ed11e3f010f     |
++---------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Next, we need to determine the port id of the jumpbox:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron port-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+------+-------------------+-------------------------------------------------------------------------------------+
+| id                                   | name | mac_address       | fixed_ips                                                                           |
++--------------------------------------+------+-------------------+-------------------------------------------------------------------------------------+
+| 551cf7bc-802f-4b02-bd3e-c44473ffb1ff |      | fa:16:3e:48:a4:d1 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;78eff45a-25f2-4904-bab8-a8795d9a7f9b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;172.24.4.226&amp;quot;} |
+| 5d98aa79-8bc0-4512-a128-078281aae2bc |      | fa:16:3e:0d:4b:55 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.6&amp;quot;}     |
+| 6aab05f6-9176-48b4-9b0f-113593945593 |      | fa:16:3e:2d:b6:a4 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.1&amp;quot;}     |
+| 8941a204-08e7-4547-b720-f9840358929b |      | fa:16:3e:5b:a3:c7 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;78eff45a-25f2-4904-bab8-a8795d9a7f9b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;172.24.4.228&amp;quot;} |
+| 9bd695dc-4e6c-40c5-952d-44269711bd6c |      | fa:16:3e:9e:36:8f | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.3&amp;quot;}     |
+| afd18b4f-c19f-4c03-a049-fe8aeae7da49 |      | fa:16:3e:ac:94:5e | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.5&amp;quot;}     |
+| e63d8edb-f10c-4776-a10e-cba9ec3f3d56 |      | fa:16:3e:d4:9c:57 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.4&amp;quot;}     |
+| f0d35941-989c-4f2b-b187-872445b0b653 |      | fa:16:3e:0c:7f:d5 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.7&amp;quot;}     |
+| f9e097b4-4227-49ee-9442-643c4186e587 |      | fa:16:3e:a5:36:2c | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.2&amp;quot;}     |
++--------------------------------------+------+-------------------+-------------------------------------------------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and find the &lt;em&gt;id&lt;/em&gt; that matches the IP address of the jumphost (10.0.0.6) and
+associate it via:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;# neutron floatingip-associate [floating_ip id] [port-list id]&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;neutron&lt;/span&gt; &lt;span class="n"&gt;floatingip&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;associate&lt;/span&gt; &lt;span class="n"&gt;ce6efd31&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;97e9&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;428&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;a3ac&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;b5a14e77a305&lt;/span&gt; \
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="n"&gt;d98aa79&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="n"&gt;bc0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;4512&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;a128&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;07&lt;/span&gt;&lt;span class="mi"&gt;8281&lt;/span&gt;&lt;span class="n"&gt;aae2bc&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Associated floating IP ce6efd31-97e9-428b-a3ac-b5a14e77a305
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron floatingip-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+------------------+---------------------+--------------------------------------+
+| id                                   | fixed_ip_address | floating_ip_address | port_id                              |
++--------------------------------------+------------------+---------------------+--------------------------------------+
+| ce6efd31-97e9-428b-a3ac-b5a14e77a305 | 10.0.0.6         | 172.24.4.228        | 5d98aa79-8bc0-4512-a128-078281aae2bc |
++--------------------------------------+------------------+---------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Verify SSH connectivity&lt;/h3&gt;
+&lt;p&gt;Now you should be able to ssh to the jumbox via with password &lt;code&gt;cubswin:)&lt;/code&gt; :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="n"&gt;cirros&lt;/span&gt;&lt;span class="mf"&gt;@172.24.4.228&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="n"&gt;authenticity&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;host&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="mf"&gt;172.24.4.3&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;172.24.4.3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt; &lt;span class="n"&gt;be&lt;/span&gt; &lt;span class="n"&gt;established&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;RSA&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;fingerprint&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;90&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;ae&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="nl"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;eb&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;be&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;83&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;ae&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="nl"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;33&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;fe&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;84&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="nl"&gt;a&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;d1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;Are&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="n"&gt;sure&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="n"&gt;want&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="k"&gt;continue&lt;/span&gt; &lt;span class="n"&gt;connecting&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;yes&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;no&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="n"&gt;yes&lt;/span&gt;
+&lt;span class="nl"&gt;Warning&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Permanently&lt;/span&gt; &lt;span class="n"&gt;added&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="mf"&gt;172.24.4.3&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;RSA&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;list&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;known&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;cirros&lt;/span&gt;&lt;span class="mf"&gt;@172.24.4.3&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="nl"&gt;password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After logging into the jumpbox you’ll be able to ssh into your &lt;em&gt;webserver1&lt;/em&gt;,
+&lt;em&gt;webserver2&lt;/em&gt;, and &lt;em&gt;database server&lt;/em&gt; via:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ssh 10.0.0.3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="mf"&gt;10.0.0.3&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;trusted&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fingerprint&lt;/span&gt; &lt;span class="n"&gt;md5&lt;/span&gt; &lt;span class="nl"&gt;e7&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;c3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;d2&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;93&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;eb&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;65&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="nl"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;e6&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mo"&gt;01&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="nl"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;b3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;e6&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;72&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nl"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;c0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Do&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="n"&gt;want&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="k"&gt;continue&lt;/span&gt; &lt;span class="n"&gt;connecting&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;y&lt;/span&gt;
+&lt;span class="n"&gt;cirros&lt;/span&gt;&lt;span class="mf"&gt;@10.0.0.3&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="nl"&gt;password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;exit&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ssh 10.0.0.4
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;...
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ssh 10.0.0.5
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;...
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;None of those instances will be able to ssh to each other. The point of this
+instance is so that you do not need to have all of your other instances publicly
+addressable and directly accessible via the internet.&lt;/p&gt;
+&lt;h3&gt;Simulate web server&lt;/h3&gt;
+&lt;p&gt;Now let’s log in to &lt;code&gt;web_server1&lt;/code&gt; and &lt;code&gt;web_server2&lt;/code&gt; (via ssh or via horizon) and
+setup a simple web server to handle requests and reply with who they are:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# On web_server 1 (10.0.0.3)
+$ while true; do echo -e &amp;#39;HTTP/1.0 200 OK\r\n\r\n&amp;#39;`hostname` | sudo nc -l -p 80 ; done &amp;amp;
+$ exit
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# on web_server 2 (10.0.0.4)
+$ while true; do echo -e &amp;#39;HTTP/1.0 200 OK\r\n\r\n&amp;#39;`hostname` | sudo nc -l -p 80 ; done &amp;amp;
+$ exit
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Simulate HTTP request&lt;/h3&gt;
+&lt;p&gt;Now, log in to your &lt;em&gt;client&lt;/em&gt; virtual machine (from the web console). From there
+if you run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wget -O - http://10.0.0.3/
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 10.0.0.3 (10.0.0.3:80)
+web-server1
+               100% |************************************| 12 0:00:00 ETA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wget -O - http://10.0.0.4/
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 10.0.0.4 (10.0.0.4:80)
+web-server2
+               100% |************************************| 12 0:00:00 ETA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This demonstrates that our simple web server is working on our two web server
+instances.&lt;/p&gt;
+&lt;h3&gt;Optional check&lt;/h3&gt;
+&lt;p&gt;We can demonstrate that the web security group is working correctly by killing
+our simple web server and changing the port number. (Note: to kill the web
+server you may need to hold control + c for a second in order for it to break
+out of the while loop before another instance of nc is created.)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# On web_server 1 
+$ while true; do echo -e &amp;#39;HTTP/1.0 200 OK\r\n\r\n&amp;#39;`hostname` | sudo nc -l -p 81 ; done &amp;amp;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now on the client run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ wget -O - http://10.0.0.3:81
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 10.0.0.3 (10.0.0.3:81)
+wget: can&amp;#39;t connect to remote host (10.0.0.3): Connection timed out
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;As you can see the request is never answered as expected because our web
+security group does not allow port 81 ingress. Now let’s set the web server to
+run on port 80 again.&lt;/p&gt;
+&lt;h3&gt;Provision loadbalancer&lt;/h3&gt;
+&lt;p&gt;At this point were going to provision loadbalancer via neutron in order to load
+balance requests between our two web server instances.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron subnet-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+----------------+-----------------+--------------------------------------------------+
+| id                                   | name           | cidr            | allocation_pools                                 |
++--------------------------------------+----------------+-----------------+--------------------------------------------------+
+| 78eff45a-25f2-4904-bab8-a8795d9a7f9b | public_subnet  | 172.24.4.224/28 | {&amp;quot;start&amp;quot;: &amp;quot;172.24.4.226&amp;quot;, &amp;quot;end&amp;quot;: &amp;quot;172.24.4.238&amp;quot;} |
+| 92432fb8-8c29-4abe-98d8-de8bf161a18b | private_subnet | 10.0.0.0/24     | {&amp;quot;start&amp;quot;: &amp;quot;10.0.0.2&amp;quot;, &amp;quot;end&amp;quot;: &amp;quot;10.0.0.254&amp;quot;}       |
++--------------------------------------+----------------+-----------------+--------------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Create a loadbalancer pool:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-pool-create --name http-pool --lb-method ROUND_ROBIN &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --protocol HTTP --subnet-id 92432fb8-8c29-4abe-98d8-de8bf161a18b
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new pool:
++------------------------+--------------------------------------+
+| Field                  | Value                                |
++------------------------+--------------------------------------+
+| admin_state_up         | True                                 |
+| description            |                                      |
+| health_monitors        |                                      |
+| health_monitors_status |                                      |
+| id                     | 51ca1962-a24a-4f43-920f-162a03a45c51 |
+| lb_method              | ROUND_ROBIN                          |
+| members                |                                      |
+| name                   | http-pool                            |
+| protocol               | HTTP                                 |
+| provider               | haproxy                              |
+| status                 | PENDING_CREATE                       |
+| status_description     |                                      |
+| subnet_id              | 92432fb8-8c29-4abe-98d8-de8bf161a18b |
+| tenant_id              | 3d44af649a1c42fcaa102ed11e3f010f     |
+| vip_id                 |                                      |
++------------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can verify the creation of the &lt;em&gt;http-pool&lt;/em&gt; with the &lt;code&gt;neutron lb-pool-list&lt;/code&gt;
+and &lt;code&gt;neutron lb-pool-show http-pool&lt;/code&gt; command.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-pool-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+-----------+----------+-------------+----------+----------------+--------+
+| id                                   | name      | provider | lb_method   | protocol | admin_state_up | status |
++--------------------------------------+-----------+----------+-------------+----------+----------------+--------+
+| 51ca1962-a24a-4f43-920f-162a03a45c51 | http-pool | haproxy  | ROUND_ROBIN | HTTP     | True           | ACTIVE |
++--------------------------------------+-----------+----------+-------------+----------+----------------+--------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-pool-show http-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+------------------------+--------------------------------------+
+| Field                  | Value                                |
++------------------------+--------------------------------------+
+| admin_state_up         | True                                 |
+| description            |                                      |
+| health_monitors        |                                      |
+| health_monitors_status |                                      |
+| id                     | 51ca1962-a24a-4f43-920f-162a03a45c51 |
+| lb_method              | ROUND_ROBIN                          |
+| members                |                                      |
+| name                   | http-pool                            |
+| protocol               | HTTP                                 |
+| provider               | haproxy                              |
+| status                 | ACTIVE                               |
+| status_description     |                                      |
+| subnet_id              | 92432fb8-8c29-4abe-98d8-de8bf161a18b |
+| tenant_id              | 3d44af649a1c42fcaa102ed11e3f010f     |
+| vip_id                 |                                      |
++------------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now, let’s create a health monitor, which checks to make sure our instances are
+still running and associate that with the pool:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lbaas-healthmonitor-create --delay &lt;span class="m"&gt;3&lt;/span&gt; --type HTTP --max-retries &lt;span class="m"&gt;3&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --timeout &lt;span class="m"&gt;3&lt;/span&gt; --pool webserver-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Adding loadbalancer members&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-member-create --address 10.0.0.3 --protocol-port &lt;span class="m"&gt;80&lt;/span&gt; http-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new member:
++--------------------+--------------------------------------+
+| Field              | Value                                |
++--------------------+--------------------------------------+
+| address            | 10.0.0.3                             |
+| admin_state_up     | True                                 |
+| id                 | 36b01f84-a273-417f-9588-15cceea18868 |
+| pool_id            | 51ca1962-a24a-4f43-920f-162a03a45c51 |
+| protocol_port      | 80                                   |
+| status             | PENDING_CREATE                       |
+| status_description |                                      |
+| tenant_id          | 3d44af649a1c42fcaa102ed11e3f010f     |
+| weight             | 1                                    |
++--------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-member-create --address 10.0.0.4 --protocol-port &lt;span class="m"&gt;80&lt;/span&gt; http-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new member:
++--------------------+--------------------------------------+
+| Field              | Value                                |
++--------------------+--------------------------------------+
+| address            | 10.0.0.4                             |
+| admin_state_up     | True                                 |
+| id                 | 5d68b992-d09f-408b-8049-353e702cc990 |
+| pool_id            | 51ca1962-a24a-4f43-920f-162a03a45c51 |
+| protocol_port      | 80                                   |
+| status             | PENDING_CREATE                       |
+| status_description |                                      |
+| tenant_id          | 3d44af649a1c42fcaa102ed11e3f010f     |
+| weight             | 1                                    |
++--------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this you can verify the nodes have been added to the loadbalancer pool.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-member-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+----------+---------------+--------+----------------+--------+
+| id                                   | address  | protocol_port | weight | admin_state_up | status |
++--------------------------------------+----------+---------------+--------+----------------+--------+
+| 36b01f84-a273-417f-9588-15cceea18868 | 10.0.0.3 |            80 |      1 | True           | ACTIVE |
+| 5d68b992-d09f-408b-8049-353e702cc990 | 10.0.0.4 |            80 |      1 | True           | ACTIVE |
++--------------------------------------+----------+---------------+--------+----------------+--------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Add healthmonitor&lt;/h3&gt;
+&lt;p&gt;We need to create a health monitor, which will check our instances to make sure they are still running&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-healthmonitor-create --delay &lt;span class="m"&gt;3&lt;/span&gt; --type HTTP --max-retries &lt;span class="m"&gt;3&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --timeout 3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new health_monitor:
++----------------+--------------------------------------+
+| Field          | Value                                |
++----------------+--------------------------------------+
+| admin_state_up | True                                 |
+| delay          | 3                                    |
+| expected_codes | 200                                  |
+| http_method    | GET                                  |
+| id             | 05cbf7f9-d01b-483b-934e-8955b14a1653 |
+| max_retries    | 3                                    |
+| pools          |                                      |
+| tenant_id      | 3d44af649a1c42fcaa102ed11e3f010f     |
+| timeout        | 3                                    |
+| type           | HTTP                                 |
+| url_path       | /                                    |
++----------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we have to associate the health monitor to the previously created
+loadbalancer pool.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-healthmonitor-associate 05cbf7f9-d01b-483b-934e-8955b14a1653 http-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Associated health monitor 05cbf7f9-d01b-483b-934e-8955b14a1653
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To make the loadbalancer and associated health monitor available, we need to
+assign it a Virual IP. The address will be allocated from the private subnet.
+This address will redirect the request to either instance within the pool to
+handle the request.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron lb-vip-create --name webserver-vip --protocol-port &lt;span class="m"&gt;80&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; --protocol HTTP --subnet-id 92432fb8-8c29-4abe-98d8-de8bf161a18b http-pool
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new vip:
++---------------------+--------------------------------------+
+| Field               | Value                                |
++---------------------+--------------------------------------+
+| address             | 10.0.0.8                             |
+| admin_state_up      | True                                 |
+| connection_limit    | -1                                   |
+| description         |                                      |
+| id                  | b9ca33b0-b09c-4e7d-8ab7-77fe5207add6 |
+| name                | webserver-vip                        |
+| pool_id             | 51ca1962-a24a-4f43-920f-162a03a45c51 |
+| port_id             | ecbadc53-5266-4146-bbb3-d1b6d383be10 |
+| protocol            | HTTP                                 |
+| protocol_port       | 80                                   |
+| session_persistence |                                      |
+| status              | PENDING_CREATE                       |
+| status_description  |                                      |
+| subnet_id           | 92432fb8-8c29-4abe-98d8-de8bf161a18b |
+| tenant_id           | 3d44af649a1c42fcaa102ed11e3f010f     |
++---------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Verify loadbalancer&lt;/h3&gt;
+&lt;p&gt;Finally, let’s test out the loadbalancer. From the client instance we should be
+able to run wget at 10.0.0.8 and see that it loadbalancers our requests.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="k"&gt;for&lt;/span&gt; i in &lt;span class="k"&gt;$(&lt;/span&gt;seq &lt;span class="m"&gt;1&lt;/span&gt; 4&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; wget -O - http://10.0.0.8/ &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 10.0.0.8 (10.0.0.8:80)
+web-server1
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 10.0.0.8 (10.0.0.8:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 10.0.0.8 (10.0.0.8:80)
+web-server1
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 10.0.0.8 (10.0.0.8:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;From the output above you can see that the the requests are being handled by
+&lt;code&gt;web_server1&lt;/code&gt; then &lt;code&gt;web_server2&lt;/code&gt; in an alternating fashion according to the
+round robin method.&lt;/p&gt;
+&lt;h3&gt;Setup public IP address for web traffic&lt;/h3&gt;
+&lt;p&gt;Now to make our VIP publicly accessible via the internet we need to create
+another floating IP:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron floatingip-create public
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Created a new floatingip:
++---------------------+--------------------------------------+
+| Field               | Value                                |
++---------------------+--------------------------------------+
+| fixed_ip_address    |                                      |
+| floating_ip_address | 172.24.4.229                         |
+| floating_network_id | 427becab-54af-4b43-a5d2-e292b13b6a86 |
+| id                  | 3c15f8a4-bdc6-4154-8bfa-e8b0674079ca |
+| port_id             |                                      |
+| router_id           |                                      |
+| status              | DOWN                                 |
+| tenant_id           | 3d44af649a1c42fcaa102ed11e3f010f     |
++---------------------+--------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Determine the port_id for the Virtual IP we created earlier:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron port-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+------------------------------------------+-------------------+-------------------------------------------------------------------------------------+
+| id                                   | name                                     | mac_address       | fixed_ips                                                                           |
++--------------------------------------+------------------------------------------+-------------------+-------------------------------------------------------------------------------------+
+| 54b17392-dce7-4d6a-8cce-153fccb5d441 |                                          | fa:16:3e:f0:c7:cf | {&amp;quot;subnet_id&amp;quot;: &amp;quot;78eff45a-25f2-4904-bab8-a8795d9a7f9b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;172.24.4.229&amp;quot;} |
+| 551cf7bc-802f-4b02-bd3e-c44473ffb1ff |                                          | fa:16:3e:48:a4:d1 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;78eff45a-25f2-4904-bab8-a8795d9a7f9b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;172.24.4.226&amp;quot;} |
+| 5d98aa79-8bc0-4512-a128-078281aae2bc |                                          | fa:16:3e:0d:4b:55 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.6&amp;quot;}     |
+| 6aab05f6-9176-48b4-9b0f-113593945593 |                                          | fa:16:3e:2d:b6:a4 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.1&amp;quot;}     |
+| 8941a204-08e7-4547-b720-f9840358929b |                                          | fa:16:3e:5b:a3:c7 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;78eff45a-25f2-4904-bab8-a8795d9a7f9b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;172.24.4.228&amp;quot;} |
+| 9bd695dc-4e6c-40c5-952d-44269711bd6c |                                          | fa:16:3e:9e:36:8f | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.3&amp;quot;}     |
+| afd18b4f-c19f-4c03-a049-fe8aeae7da49 |                                          | fa:16:3e:ac:94:5e | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.5&amp;quot;}     |
+| e63d8edb-f10c-4776-a10e-cba9ec3f3d56 |                                          | fa:16:3e:d4:9c:57 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.4&amp;quot;}     |
+| ecbadc53-5266-4146-bbb3-d1b6d383be10 | vip-b9ca33b0-b09c-4e7d-8ab7-77fe5207add6 | fa:16:3e:41:1a:eb | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.8&amp;quot;}     |
+| f0d35941-989c-4f2b-b187-872445b0b653 |                                          | fa:16:3e:0c:7f:d5 | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.7&amp;quot;}     |
+| f9e097b4-4227-49ee-9442-643c4186e587 |                                          | fa:16:3e:a5:36:2c | {&amp;quot;subnet_id&amp;quot;: &amp;quot;92432fb8-8c29-4abe-98d8-de8bf161a18b&amp;quot;, &amp;quot;ip_address&amp;quot;: &amp;quot;10.0.0.2&amp;quot;}     |
++--------------------------------------+------------------------------------------+-------------------+-------------------------------------------------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Associate VIP port with floating IP:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron floatingip-associate 3c15f8a4-bdc6-4154-8bfa-e8b0674079ca &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; ecbadc53-5266-4146-bbb3-d1b6d383be10
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Associated floating IP 3c15f8a4-bdc6-4154-8bfa-e8b0674079ca
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point the Virtual IP is a member of the &lt;em&gt;default&lt;/em&gt; security group which
+does not allow ingress traffic unless you are also part of a security group
+which allows incoming traffic. We need to update the VIP to be a member of the
+&lt;em&gt;web&lt;/em&gt; security group so that requests from the internet are allowed to pass
+(not just from our client instance).&lt;/p&gt;
+&lt;p&gt;Get the web security group uuid:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron security-group-list
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;+--------------------------------------+----------+--------------------------------------------------------------------------------+
+| id                                   | name     | security_group_rules                                                           |
++--------------------------------------+----------+--------------------------------------------------------------------------------+
+| 141ed0d0-c004-457d-8efa-45e0fd2dc986 | ssh      | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, 22/tcp                                                          |
+| 379b58b2-7ca3-431e-ae1f-cd6a627a9b30 | default  | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, remote_group_id: 379b58b2-7ca3-431e-ae1f-cd6a627a9b30           |
+|                                      |          | ingress, IPv6, remote_group_id: 379b58b2-7ca3-431e-ae1f-cd6a627a9b30           |
+| 5e0d0d57-2df6-4fbc-ad18-5908aacdf799 | default  | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, remote_group_id: 5e0d0d57-2df6-4fbc-ad18-5908aacdf799           |
+|                                      |          | ingress, IPv6, remote_group_id: 5e0d0d57-2df6-4fbc-ad18-5908aacdf799           |
+| a98fcd2f-a828-4a88-92aa-36e3c1223a92 | web      | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, 22/tcp, remote_group_id: 141ed0d0-c004-457d-8efa-45e0fd2dc986   |
+|                                      |          | ingress, IPv4, 80/tcp                                                          |
+| b2c914cb-3bc1-4ee6-9f30-66c459af5f4c | default  | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, remote_group_id: b2c914cb-3bc1-4ee6-9f30-66c459af5f4c           |
+|                                      |          | ingress, IPv6, remote_group_id: b2c914cb-3bc1-4ee6-9f30-66c459af5f4c           |
+| cf6c0380-e255-4ba8-9258-bb8e9c062fa7 | database | egress, IPv4                                                                   |
+|                                      |          | egress, IPv6                                                                   |
+|                                      |          | ingress, IPv4, 22/tcp, remote_group_id: 141ed0d0-c004-457d-8efa-45e0fd2dc986   |
+|                                      |          | ingress, IPv4, 3306/tcp, remote_group_id: a98fcd2f-a828-4a88-92aa-36e3c1223a92 |
++--------------------------------------+----------+--------------------------------------------------------------------------------+
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Update VIP port to be a member of the &lt;em&gt;web&lt;/em&gt; security group:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ neutron port-update ecbadc53-5266-4146-bbb3-d1b6d383be10 --security_groups &lt;span class="se"&gt;\&lt;/span&gt;
+&amp;gt; &lt;span class="nv"&gt;list&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; a98fcd2f-a828-4a88-92aa-36e3c1223a92
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Updated port: ecbadc53-5266-4146-bbb3-d1b6d383be10
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Verify loadbalancer&lt;/h3&gt;
+&lt;p&gt;At this point your VIP is publicly addressable:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="k"&gt;for&lt;/span&gt; i in &lt;span class="k"&gt;$(&lt;/span&gt;seq &lt;span class="m"&gt;1&lt;/span&gt; 4&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; wget -O - http://172.24.4.229/ &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server1
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server1
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To demonstration high availability, we’ll go and delete our &lt;code&gt;web_server1&lt;/code&gt;
+instance to simulate a failure.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ openstack server delete web_server1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After the health monitor detects the host is not responding it will stop sending
+requests to &lt;code&gt;web_server1&lt;/code&gt;. Now &lt;code&gt;web_server2&lt;/code&gt; is handling all the requests.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="k"&gt;for&lt;/span&gt; i in &lt;span class="k"&gt;$(&lt;/span&gt;seq &lt;span class="m"&gt;1&lt;/span&gt; 4&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; wget -O - http://172.24.4.229/ &lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+Connecting to 172.24.4.229 (172.24.4.229:80)
+web-server2
+-                    100% |************************************| 12 0:00:00 ETA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note: the first request might take longer to handle. This is because of the
+timeout before it notices the host is not responding.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;As described in this article, it is easy to set up an environment with OpenStack
+in which you can securely host website, and deny access to your database servers.&lt;/p&gt;
+&lt;p&gt;In future articles I will talk about High Availability and automation of setting
+up an environment; for instance with HAProxy, GlusterFS and OpenStack Heat.&lt;/p&gt;
+&lt;p&gt;If you have any suggestion, please discuss below or send me an email.&lt;/p&gt;
+&lt;p&gt;Note: the original publication can be found at: &lt;a href="https://gitlab.com/gbraad/openstack-handsonlabs"&gt;OpenStack hands-on-labs&lt;/a&gt;&lt;/p&gt;</summary><category term="openstack"></category><category term="packstack"></category><category term="neutron"></category><category term="rdo"></category><category term="high availability"></category><category term="web"></category></entry></feed>

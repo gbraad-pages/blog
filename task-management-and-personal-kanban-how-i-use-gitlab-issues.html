@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Task management and Personal Kanban: how I use GitLab Issues - Gerard Braad's blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="http://gbraad.nl/blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html">
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="continuous improvement,management,knowledge,kanban,gitlab" />
+        <meta name="description" content="Working on personal and work-related tasks can be overwhelming, especially when you lose sight of what actually needs to be done. What makes it more difficult is that you are constantly interrupted. I have tried many different things, and apps, but nothing really worked. Do not try to make your ..." />
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Task management and Personal Kanban: how I use GitLab Issues"/>
+        <meta property="og:url" content="http://gbraad.nl/blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html"/>
+        <meta property="og:description" content="Working on personal and work-related tasks can be overwhelming, especially when you lose sight of what actually needs to be done. What makes it more difficult is that you are constantly interrupted. I have tried many different things, and apps, but nothing really worked. Do not try to make your ..."/>
+        <meta property="article:published_time" content="2016-10-09" />
+            <meta property="article:section" content="Misc" />
+            <meta property="article:tag" content="continuous improvement" />
+            <meta property="article:tag" content="management" />
+            <meta property="article:tag" content="knowledge" />
+            <meta property="article:tag" content="kanban" />
+            <meta property="article:tag" content="gitlab" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <!-- Bootstrap -->
+	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+
+        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="http://gbraad.nl/blog/feeds/misc.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Misc ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+Gerard Braad's blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://gbraad.nl/blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html"
+                       rel="bookmark"
+                       title="Permalink to Task management and Personal Kanban: how I use GitLab Issues">
+                        Task management and Personal Kanban: how I use GitLab Issues
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2016-10-09T00:00:00+08:00"> Sun 09 October 2016</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://gbraad.nl/blog/tag/continuous-improvement.html">continuous improvement</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/management.html">management</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/knowledge.html">knowledge</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/kanban.html">kanban</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/gitlab.html">gitlab</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>Working on personal and work-related tasks can be overwhelming, especially when
+you lose sight of what actually needs to be done. What makes it more difficult
+is that you are constantly interrupted. I have tried many different things, and
+apps, but nothing really worked. Do not try to make your process of working to
+fit the tool, but make sure you have a tool that fits the way you work.</p>
+<h2>Kanban</h2>
+<p>Kanban (or 看板) originated as a scheduling system to improving manufacturing
+efficiency. The word literally means signboard in Japanese, and in Chinese it
+can be read as 'Look board'. It emphasizes on visualization of tasks that need
+to be done, are being worked on, and have finished.</p>
+<p>In software development you often see people use Trello or other kanban-like
+boards to visualize work that is on their 'backlog', 'doing', 'done'. Although
+these tools work quite well, it did not fit my workflow or where I do most of
+my work.</p>
+<h2>GitLab issues</h2>
+<p>Quite recently, GitLab released a version of their sourcecode management tool
+that allows to visualize issues on a board. And I started to evaluate it, as
+GitLab is part of my workflow in general. I host many of my private
+repositories there for backup purposes, use it to publish my resume with the
+CI runners, etc. And I can tell you, that the issue boards was exactly what I
+was looking for.</p>
+<p>Below is a screenshot of what it looks like:
+<img alt="" src="//cdn.gbraad.nl/images/blog/kanban-gitlab.jpg" /></p>
+<p>Note: the image shown here is from an early iteration and still has too
+many items in 'doing'. This actually made me realize where my time was spent.</p>
+<h3>How to set-up</h3>
+<p>All you need to do is create a private repository. In my case, I created a
+'personal' project. All the issues you create, will only be visible to you.
+After you have done this, you can create a board from the Issues. Just start
+with the defaults first and customize it along the way... This made it
+work best for me.</p>
+<h3>Workflow</h3>
+<p>When you create an issue, just tag it accordingly. I use it to group
+tasks for different topics or things I work on. Now when you open the
+board, you will see your issue is on the 'backlog'. From there you can
+drag it to a swimlane. I have several that helps to organize tasks,
+such as 'blog' and 'urgent'. When you drag, it will assign the label
+to the issue according to the name of the swimlane.</p>
+<h3>Offline use?</h3>
+<p>There is, however, a small issue with the setup. It only allows me to work
+online. In the end I noticed this is actually not a big problem.</p>
+<h2>Single-tasking</h2>
+<p>Kanban helps you to visualize your tasks at hand, but it still requires 
+discipline to actually make it work. Therefore, you need to understand that
+'multi-tasking' does not exist! I recently read 'Singletasking: Get More
+Done-One Thing at a Time', and it help me a lot to realize that I was
+going the right direction with my personal kanban. However, I was still
+trying to do too many things at once. Mostly due to interruptions. This
+led me to appreciate the offline problem I have.</p>
+<p>If I have an interruption, or some other urgent matter, I would first
+record it on my phone in a file called 'reminder', which lives in the same
+personal repository. This file is synced using git, so it travels with me
+and it allows me to use it as a general reminder/todo record keeping,
+and decide later what to do with the entries.</p>
+<h2>Tools</h2>
+<p>On my desktop I only need to use a browser to keep track of tasks
+being worked on. Even the reminder file can be opened from here.</p>
+<p>On my phone I use the following apps:
+<img alt="" src="//cdn.gbraad.nl/images/blog/kanban-apps-on-phone.jpg" /></p>
+<p>Writeily Pro, SGit, and Labcoat. Using SGit I sync several important
+repositories to my phone, such as my 'personal', 'knowledge-base',
+and some private specific projects for training/teaching, etc.</p>
+<p>Writeily Pro opens the SGit repos folder as it's document folder:
+<code>/sdcard/Android/data/me.sheimi.sgit/files/repo</code> in my case. Writely's
+usage was not without problems for me. Especially when dealing with
+some 'larger' files.</p>
+<p>Using Labcoat I am able to create and change basic information of an
+issue, such as closing it and adding comments. But I usually do all
+interactions online now, and else use my offline reminder file. I
+only use Labcoat only in rare cases. Probably also because the tool
+misses some of the more wanted features as labelling and tagging
+issues.</p>
+<p>I haven't found a good way to use the command line yet. I did start
+with a small <a href="https://gitlab.com/gbraad/gitlab-client">client</a>, but so
+far it only reads and doesn't filter anything. Hope I can allocate more
+time to deal with this at some point. At the moment I do not really
+need it.</p>
+<h2>Conclusion</h2>
+<p>Task management is not something you learn by just reading a book or
+keeping a todo-list inside an application. It really is a discipline.
+And it depends on you, how you will deal with it. This article does not
+go into a lot of detail on my own process, as this is a personal quest.
+Just experiment and see what works best for you.</p>
+<p>I have read several books, and in the section 'More information' below,
+you can find these resources. It involves in keeping your tasks
+<em>visualized</em> and <em>limiting</em> the amount you work on at the same time. It
+is up to you how to balance private and work.</p>
+<p>I also learned that to keep things organized, I started to keep a public
+<a href="https://gitlab.com/gbraad/knowledge-base/">knowledge base</a>. This way I
+am better able to keep knowledge available and at hand. Before, I would
+keep it in an earlier version of a reminder file and this cluttered
+everything and actually not made me remember things. I am still working
+on writing things done in a more general way, written towards possible
+others who will read it. But this is a work-in-progress, as part of my
+personal continous improvement.</p>
+<p>I will certainly refine my process over time, and might even change it
+again completely. As long as it works for me. I'll keep you updated and
+might write related articles about time management and knowledge
+techniques I have used over the years. One I still love the most is
+mind-mapping... and I have applied it to organizing work before. It is
+a great way to organize thoughts.</p>
+<h2>More information</h2>
+<p>I suggest to read more about personal kanban.</p>
+<ul>
+<li><a href="http://www.personalkanban.com/pk/personal-kanban-101/">Personal Kanban 101</a></li>
+<li>Knowledge-base: <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/personal-kanban.md">Personal kanban</a></li>
+<li>Knowledge-base: <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/singletasking.md">Singletasking</a></li>
+<li><a href="https://hguemar.fedorapeople.org/personal-kanban/">Presentation</a> of a friend's experience with Personal Kanban</li>
+</ul>
+            </div>
+            <!-- /.entry-content -->
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Comments</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'task-management-and-personal-kanban-how-i-use-gitlab-issues';
+                var disqus_url = 'http://gbraad.nl/blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html';
+
+            var disqus_config = function () {
+                this.language = "en";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+
+
+
+
+
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

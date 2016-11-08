@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Object Design - Gerard Braad's blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="http://gbraad.nl/blog/object-design.html">
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="review,summary,books,recommended" />
+        <meta name="description" content="One of the books I got recommended early in my career was Object Design: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly ..." />
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Object Design"/>
+        <meta property="og:url" content="http://gbraad.nl/blog/object-design.html"/>
+        <meta property="og:description" content="One of the books I got recommended early in my career was Object Design: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly ..."/>
+        <meta property="article:published_time" content="2016-09-23" />
+            <meta property="article:section" content="Books" />
+            <meta property="article:tag" content="review" />
+            <meta property="article:tag" content="summary" />
+            <meta property="article:tag" content="books" />
+            <meta property="article:tag" content="recommended" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <!-- Bootstrap -->
+	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+
+        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="http://gbraad.nl/blog/feeds/books.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Books ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+Gerard Braad's blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://gbraad.nl/blog/object-design.html"
+                       rel="bookmark"
+                       title="Permalink to Object Design">
+                        Object Design
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2016-09-23T00:00:00+08:00"> Fri 23 September 2016</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://gbraad.nl/blog/tag/review.html">review</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/summary.html">summary</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/books.html">books</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/recommended.html">recommended</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>One of the books I got recommended early in my career was <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">Object Design</a>: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly up for this issue. This write-up is based on reading this book many years ago, so bear with me if things are not completely in line with the book. Although, the knowledge in this book certainly has contributed to this point-of-view. I currently own a copy of this book as reference in a digital format. </p>
+<p><img alt="Object Design" src="https://d2arxad8u2l0g7.cloudfront.net/books/1372040740l/179204.jpg" /></p>
+<p>The author, Rebecca Wirfs-Brock, is a software engineer and consultant in Object-Oriented Design, and as the title suggests the book details about the design of your object model and how it interacts with other objects. </p>
+<p>One of the things you will learn when creating software, is that design of the  interactions and relations between objects and classes probably is one of the most important and hardest things. Luckily, software design and development is an evolutionary process. You will not get it right he first time and you also shouldn't aim for this. What can be modeled today as a variable on an object today, might become a class itself in the future. If you would design this from day one, you probably over-design the software and implement functionality that might never be needed.</p>
+<p>What I learned from this book is how this interaction and collaboration between objects happen. Where do I keep the state? who can make a change? If the object can encapsulate it, this is probably where it should live. Ask yourself, why would another object need to know about the information, and whose responsibility is it? The book details as far as I remember CRC-cards (Class Reponsibility Rollaboration) and shows a method to get this clear. In my work I have never created the actual cards, but the concept behind it is very valuable. Get this book and browse through it, keep a copy as a reference. It is well worth it.</p>
+<p>More information about this book can be found in my Knowledge Base <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">entry</a>.</p>
+            </div>
+            <!-- /.entry-content -->
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Comments</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'object-design';
+                var disqus_url = 'http://gbraad.nl/blog/object-design.html';
+
+            var disqus_config = function () {
+                this.language = "en";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+
+
+
+
+
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

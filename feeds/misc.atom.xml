@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/misc.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-10-09T00:00:00+08:00</updated><entry><title>Task management and Personal Kanban: how I use GitLab Issues</title><link href="http://gbraad.nl/blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html" rel="alternate"></link><published>2016-10-09T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-10-09:blog/task-management-and-personal-kanban-how-i-use-gitlab-issues.html</id><summary type="html">&lt;p&gt;Working on personal and work-related tasks can be overwhelming, especially when
+you lose sight of what actually needs to be done. What makes it more difficult
+is that you are constantly interrupted. I have tried many different things, and
+apps, but nothing really worked. Do not try to make your process of working to
+fit the tool, but make sure you have a tool that fits the way you work.&lt;/p&gt;
+&lt;h2&gt;Kanban&lt;/h2&gt;
+&lt;p&gt;Kanban (or 看板) originated as a scheduling system to improving manufacturing
+efficiency. The word literally means signboard in Japanese, and in Chinese it
+can be read as 'Look board'. It emphasizes on visualization of tasks that need
+to be done, are being worked on, and have finished.&lt;/p&gt;
+&lt;p&gt;In software development you often see people use Trello or other kanban-like
+boards to visualize work that is on their 'backlog', 'doing', 'done'. Although
+these tools work quite well, it did not fit my workflow or where I do most of
+my work.&lt;/p&gt;
+&lt;h2&gt;GitLab issues&lt;/h2&gt;
+&lt;p&gt;Quite recently, GitLab released a version of their sourcecode management tool
+that allows to visualize issues on a board. And I started to evaluate it, as
+GitLab is part of my workflow in general. I host many of my private
+repositories there for backup purposes, use it to publish my resume with the
+CI runners, etc. And I can tell you, that the issue boards was exactly what I
+was looking for.&lt;/p&gt;
+&lt;p&gt;Below is a screenshot of what it looks like:
+&lt;img alt="" src="//cdn.gbraad.nl/images/blog/kanban-gitlab.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;Note: the image shown here is from an early iteration and still has too
+many items in 'doing'. This actually made me realize where my time was spent.&lt;/p&gt;
+&lt;h3&gt;How to set-up&lt;/h3&gt;
+&lt;p&gt;All you need to do is create a private repository. In my case, I created a
+'personal' project. All the issues you create, will only be visible to you.
+After you have done this, you can create a board from the Issues. Just start
+with the defaults first and customize it along the way... This made it
+work best for me.&lt;/p&gt;
+&lt;h3&gt;Workflow&lt;/h3&gt;
+&lt;p&gt;When you create an issue, just tag it accordingly. I use it to group
+tasks for different topics or things I work on. Now when you open the
+board, you will see your issue is on the 'backlog'. From there you can
+drag it to a swimlane. I have several that helps to organize tasks,
+such as 'blog' and 'urgent'. When you drag, it will assign the label
+to the issue according to the name of the swimlane.&lt;/p&gt;
+&lt;h3&gt;Offline use?&lt;/h3&gt;
+&lt;p&gt;There is, however, a small issue with the setup. It only allows me to work
+online. In the end I noticed this is actually not a big problem.&lt;/p&gt;
+&lt;h2&gt;Single-tasking&lt;/h2&gt;
+&lt;p&gt;Kanban helps you to visualize your tasks at hand, but it still requires 
+discipline to actually make it work. Therefore, you need to understand that
+'multi-tasking' does not exist! I recently read 'Singletasking: Get More
+Done-One Thing at a Time', and it help me a lot to realize that I was
+going the right direction with my personal kanban. However, I was still
+trying to do too many things at once. Mostly due to interruptions. This
+led me to appreciate the offline problem I have.&lt;/p&gt;
+&lt;p&gt;If I have an interruption, or some other urgent matter, I would first
+record it on my phone in a file called 'reminder', which lives in the same
+personal repository. This file is synced using git, so it travels with me
+and it allows me to use it as a general reminder/todo record keeping,
+and decide later what to do with the entries.&lt;/p&gt;
+&lt;h2&gt;Tools&lt;/h2&gt;
+&lt;p&gt;On my desktop I only need to use a browser to keep track of tasks
+being worked on. Even the reminder file can be opened from here.&lt;/p&gt;
+&lt;p&gt;On my phone I use the following apps:
+&lt;img alt="" src="//cdn.gbraad.nl/images/blog/kanban-apps-on-phone.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;Writeily Pro, SGit, and Labcoat. Using SGit I sync several important
+repositories to my phone, such as my 'personal', 'knowledge-base',
+and some private specific projects for training/teaching, etc.&lt;/p&gt;
+&lt;p&gt;Writeily Pro opens the SGit repos folder as it's document folder:
+&lt;code&gt;/sdcard/Android/data/me.sheimi.sgit/files/repo&lt;/code&gt; in my case. Writely's
+usage was not without problems for me. Especially when dealing with
+some 'larger' files.&lt;/p&gt;
+&lt;p&gt;Using Labcoat I am able to create and change basic information of an
+issue, such as closing it and adding comments. But I usually do all
+interactions online now, and else use my offline reminder file. I
+only use Labcoat only in rare cases. Probably also because the tool
+misses some of the more wanted features as labelling and tagging
+issues.&lt;/p&gt;
+&lt;p&gt;I haven't found a good way to use the command line yet. I did start
+with a small &lt;a href="https://gitlab.com/gbraad/gitlab-client"&gt;client&lt;/a&gt;, but so
+far it only reads and doesn't filter anything. Hope I can allocate more
+time to deal with this at some point. At the moment I do not really
+need it.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Task management is not something you learn by just reading a book or
+keeping a todo-list inside an application. It really is a discipline.
+And it depends on you, how you will deal with it. This article does not
+go into a lot of detail on my own process, as this is a personal quest.
+Just experiment and see what works best for you.&lt;/p&gt;
+&lt;p&gt;I have read several books, and in the section 'More information' below,
+you can find these resources. It involves in keeping your tasks
+&lt;em&gt;visualized&lt;/em&gt; and &lt;em&gt;limiting&lt;/em&gt; the amount you work on at the same time. It
+is up to you how to balance private and work.&lt;/p&gt;
+&lt;p&gt;I also learned that to keep things organized, I started to keep a public
+&lt;a href="https://gitlab.com/gbraad/knowledge-base/"&gt;knowledge base&lt;/a&gt;. This way I
+am better able to keep knowledge available and at hand. Before, I would
+keep it in an earlier version of a reminder file and this cluttered
+everything and actually not made me remember things. I am still working
+on writing things done in a more general way, written towards possible
+others who will read it. But this is a work-in-progress, as part of my
+personal continous improvement.&lt;/p&gt;
+&lt;p&gt;I will certainly refine my process over time, and might even change it
+again completely. As long as it works for me. I'll keep you updated and
+might write related articles about time management and knowledge
+techniques I have used over the years. One I still love the most is
+mind-mapping... and I have applied it to organizing work before. It is
+a great way to organize thoughts.&lt;/p&gt;
+&lt;h2&gt;More information&lt;/h2&gt;
+&lt;p&gt;I suggest to read more about personal kanban.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.personalkanban.com/pk/personal-kanban-101/"&gt;Personal Kanban 101&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Knowledge-base: &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/personal-kanban.md"&gt;Personal kanban&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Knowledge-base: &lt;a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/singletasking.md"&gt;Singletasking&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://hguemar.fedorapeople.org/personal-kanban/"&gt;Presentation&lt;/a&gt; of a friend's experience with Personal Kanban&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="continuous improvement"></category><category term="management"></category><category term="knowledge"></category><category term="kanban"></category><category term="gitlab"></category></entry><entry><title>Mentors and recommended books</title><link href="http://gbraad.nl/blog/mentors-and-recommended-books.html" rel="alternate"></link><published>2016-09-23T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-23:blog/mentors-and-recommended-books.html</id><summary type="html">&lt;p&gt;As a consultant, an engineer, or just any employee, you are responsible to provide solutions to challenges and issues you face on the workfloor. No no, let me say it this way, you are responsible to come up with ideas to improve a situation, make it more efficient. Or, in other words, you have to have a lot of knowledge and a certain way of thinking, being analytical. Simple. But knowledge is something you can develop. And one thing you always have to have on mind. You are responsible for your own personal development...&lt;/p&gt;
+&lt;p&gt;I have been employed by two companies that were very strong on this; &lt;a href="http://sogyo.nl"&gt;Sogyo&lt;/a&gt; and &lt;a href="http://thoughtworks.com"&gt;ThoughtWorks&lt;/a&gt;. Both are solution providers, mostly focussed on the software. They both used agile methodologies, development practices, like pair programming, cod reviews, etc. All to ensure the delivery of excellence. Especially this, the delivery of quality and outstanding results, expected that engineers keep themselves up-to-date. They reserved time for this and organized meetups, for personnel and the software development community. I have learned a lot from this, but one thing that both of them did was allowing you a mentor (or sponsor). &lt;/p&gt;
+&lt;p&gt;This is not a coach that helps you to find your way around the company in the first few weeks or months, but a person that helps you with career development. It is not that he or she defines targets, but sits down with you and discuss about issues you face, knowledge gaps you might have, etc. My mentor at Sogyo, &lt;a href="https://www.linkedin.com/in/edwinvandillen"&gt;Edwin van Dillen&lt;/a&gt;, has been very inspirational. It made me want to mentor other people... and this what I do now for new contributors to Open Source, and software communities in general. Always, when you can, look for a mentor. Someone who can help you along the way to improve yourself. But improvement is also something you can do yourself. Never stop learning. We call this Continuous Improvement.&lt;/p&gt;
+&lt;p&gt;So, one of the things I often get is the question of 'what should I read'? I generally do not promote books that much, as a lot of technology books are dated by the time they are printed. I'd rather refer to a good blog post or living content that gets updated regularly. However, there is always this list of books that are timeless. They have been inspirational or defining in the knowledgd they provide. And this is something I want to start adding to my blog, a review or discussion of a book that helped me in my career. Books that I even bought again either as ePub or PDF after I moved to the other side of the world. I started to compile a list on my &lt;a href="https://gitlab.com/gbraad/knowledge-base/tree/master/books"&gt;Knowledge Base&lt;/a&gt;&lt;a href="https://github.com/gbraad/knowledge-base/tree/master/books"&gt;*&lt;/a&gt; repository as a reference to others, but thought I would be a better idea to post them here with a short intro. So, look for the next post in the category 'Books'.&lt;/p&gt;</summary><category term="books"></category><category term="programmer"></category><category term="developer"></category><category term="career development"></category><category term="personal development"></category><category term="continuous improvement"></category><category term="mentor"></category></entry><entry><title>Highlighting of Code and Text</title><link href="http://gbraad.nl/blog/highlighting-of-code-and-text.html" rel="alternate"></link><published>2016-09-09T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-09:blog/highlighting-of-code-and-text.html</id><summary type="html">&lt;p&gt;Code is read more often than it is written. Nothing is truer than this statement. This means that when writing code it is important to have a good idea of what you are doing. Write clean code, which is simple or easy to reason about. Since if you can't explain it, how could others even understand it well. Syntax highlighting of code can help. With this, certain keywords or structure get emphasized by using a color. I do not think it is an ideal solution, but subconsciously it seems I focus more on the code. Likely, the colors themselves are pleasing to look at.&lt;/p&gt;
+&lt;h2&gt;Pleasant to the eyes&lt;/h2&gt;
+&lt;p&gt;Perhaps because of this last, I tend to always implement or set the &lt;a href="https://github.com/chriskempson/tomorrow-theme"&gt;Tomorrow Theme&lt;/a&gt; for my color scheme, and specifically the &lt;a href="https://github.com/chriskempson/tomorrow-theme#tomorrow-night-bright"&gt;Night Bright&lt;/a&gt; variant. Below you can find an example, as I also enabled it on my blog by implementing a Pygments style.&lt;/p&gt;
+&lt;h2&gt;Example&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;server.js&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;use strict&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="c1"&gt;// get port from environment settings for deployment on Heroku&lt;/span&gt;
+&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;EXPRESS_PORT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;process&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;OPENSHIFT_NODEJS_PORT&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="nx"&gt;process&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;PORT&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="mi"&gt;4000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;EXPRESS_IPADDR&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;process&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;OPENSHIFT_NODEJS_IP&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="nx"&gt;process&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;IPADDR&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;127.0.0.1&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;EXPRESS_ROOT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;__dirname&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;startExpress&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;root&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;port&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;ipaddr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;express&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;require&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;express&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;express&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="nx"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;use&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;express&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="kr"&gt;static&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;root&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+  &lt;span class="nx"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;listen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;port&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;ipaddr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;console&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Listening on %s:%d&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;ipaddr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;port&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="p"&gt;});&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nx"&gt;startExpress&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;EXPRESS_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;EXPRESS_PORT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;EXPRESS_IPADDR&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="" src="http://cdn.gbraad.nl/images/blog/javascript-syntax-highlighting.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;Implementations&lt;/h2&gt;
+&lt;p&gt;Chris Kempson now has a new color scheme called 'base16`and it has a '&lt;a href="https://chriskempson.github.io/base16/#tomorrow"&gt;Tomorrow&lt;/a&gt;' variant. It must be the name as I always install 'Tomorrow' first. Here are some of the Night Bright variants I have made over the years:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/gbraad/pygments-style-tomorrownightbright"&gt;Pygments&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/gbraad/chrome-devtools-tomorrow-night-bright-theme"&gt;Chrome DevTools&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/gbraad/brackets-themes-TomorrowNightBright"&gt;Brackets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/codemirror/CodeMirror/blob/master/theme/tomorrow-night-bright.css"&gt;CodeMirror&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;...&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;How about language&lt;/h2&gt;
+&lt;p&gt;Since my wife and I are very involved in teaching, I have also experimented with the idea of using word or word-class highlighting for English. The results are that it can actually help. Words that need to be stressed, or emphasized, can be highlighted in a different color. Think of words like 'very', 'never', etc. Some of this can be automated, as can be seen in the following examples:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://nlp-compromise.github.io/website/"&gt;NLP-compromise&lt;/a&gt;, Text Parsing&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://evanhahn.github.io/English-text-highlighting/"&gt;English-text-highlighting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://english.edward.io/"&gt;English syntax highlighter&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/loadfive/Knwl.js"&gt;Knwl.js&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These implementations range from simple hard-coded word matching, to actual Natural Language Processing.&lt;/p&gt;
+&lt;h2&gt;Example&lt;/h2&gt;
+&lt;p&gt;Take for instance the following example of &lt;code&gt;Alice In Wonderland - Down the Rabbit Hole&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;"&lt;/strong&gt;There was nothing so very remarkable in that; nor did Alice think it so very much out of the way to hear the Rabbit say to itself, &lt;em&gt;'Oh dear! Oh dear! I shall be late!'&lt;/em&gt; (when she thought it over afterwards, it occurred to her that she ought to have wondered at this, but at the time it all seemed quite natural); but when the Rabbit actually took a watch out of its waistcoat-pocket, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it, and burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.&lt;strong&gt;"&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;When &lt;code&gt;adverb&lt;/code&gt;, &lt;code&gt;verb&lt;/code&gt;, &lt;code&gt;conjunction&lt;/code&gt;, etc. are highlighted, the text will look as follows:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://cdn.gbraad.nl/images/blog/english-text-highlighting.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Note: this is taken from &lt;a href="https://english.edward.io/"&gt;English syntax highlighter&lt;/a&gt;. Try and see for yourself if it can help.&lt;/p&gt;
+&lt;h2&gt;Chinese&lt;/h2&gt;
+&lt;p&gt;Highlighting does not only work well for English. Chinese for instance is a tonal language. Which means that a pronounciation of a character can have a different tone for a different meaning. When not proprerly mastered, this can lead to a lot of confusion or embarrassment. For learner's of Chinese it is actually common to highlight the tones. An example of this is shown here:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;welcome
+
+v.t.
+欢迎 huānyíng;  迎接 yíngjiē
+
+Welcome home again!
+
+欢迎你又回家了!
+
+Huānyíng nǐ yòu huíjiā le!
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="" src="http://cdn.gbraad.nl/images/blog/chinese-tone-highlighting.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Highlighting can serve different purposes. I can not recall that highlighting actually helped me to write clean or correct code, or that it even prevented me from making a mistake or typo. However, it can certainly provide a plesant feeling, in which you can 'feel good' about your code in another way. For languages, such as English and Chinese, it can assist with the learning process.&lt;/p&gt;</summary><category term="highlighting"></category><category term="code"></category><category term="language"></category></entry><entry><title>Hello, Internet!</title><link href="http://gbraad.nl/blog/hello-internet.html" rel="alternate"></link><published>2016-08-08T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-08-08:blog/hello-internet.html</id><summary type="html">&lt;p&gt;Today I decided to pick up blogging again and asked the question; what to use? I had a simple requirement; 'it has to support Markdown-formatted documents'. The reasoning behind this is simple; I want to be able to use &lt;code&gt;Pandoc&lt;/code&gt; to generate other kinds of output if needed. Plus GitBook has an online editor which allows me to write the articles as if they are chapters in a book.&lt;/p&gt;
+&lt;p&gt;Chris Smart, who is the creator of the Korora project, suggested me to have a look at Pelican. So I did, and this resulted in the blog you are reading at the moment.&lt;/p&gt;
+&lt;p&gt;Publication is all automated using GitLab CI runners. The project for this is available at &lt;a href="https://gitlab.com/gbraad/blog"&gt;blog&lt;/a&gt;. For the moment it is still a test and I will try to theme it over the coming days. Anyways, progress can be tracked here...&lt;/p&gt;</summary><category term="blog"></category><category term="pelican"></category><category term="markdown"></category></entry><entry><title>Trigger PhoneGap Build from GitHub</title><link href="http://gbraad.nl/blog/trigger-phonegap-build-from-github.html" rel="alternate"></link><published>2014-11-04T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2014-11-04:blog/trigger-phonegap-build-from-github.html</id><summary type="html">&lt;p&gt;You can remotely trigger a build by using the &lt;a href="https://build.phonegap.com/docs/api"&gt;API&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;First you need to get your auth token:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl -u me@gbraad.nl-X POST -d &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt; https://build.phonegap.com/token
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Test it and retrieve your appid using the following command:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl https://build.phonegap.com/api/v1/me?auth_token&lt;span class="o"&gt;=[&lt;/span&gt;token&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this go to your Github repo, open the admin and go to 'Service hooks'. Add a new WebHook URL (first option) and add yours 
+&lt;code&gt;https://build.phonegap.com/apps/[appid]/build/?auth_token=[token]&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Save this and trigger it with 'Test hook'. When you would open: &lt;code&gt;https://build.phonegap.com/apps/[appid]/builds&lt;/code&gt; you will probably see a new build.&lt;/p&gt;</summary><category term="phonegap"></category></entry></feed>

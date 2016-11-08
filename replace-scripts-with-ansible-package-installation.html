@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Replace scripts with Ansible: package installation - Gerard Braad's blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="http://gbraad.nl/blog/replace-scripts-with-ansible-package-installation.html">
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="deployment,configuration,ansible,devops" />
+        <meta name="description" content="Installing and configuring software on one machine, for instance your own developer&#39;s environment, is an &#39;easy&#39; task. But how about your team? Or production? Everything is documented and you only probably install some of the components manually, or better, you automate this using a set of shell scripts. The ..." />
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Replace scripts with Ansible: package installation"/>
+        <meta property="og:url" content="http://gbraad.nl/blog/replace-scripts-with-ansible-package-installation.html"/>
+        <meta property="og:description" content="Installing and configuring software on one machine, for instance your own developer&#39;s environment, is an &#39;easy&#39; task. But how about your team? Or production? Everything is documented and you only probably install some of the components manually, or better, you automate this using a set of shell scripts. The ..."/>
+        <meta property="article:published_time" content="2016-10-03" />
+            <meta property="article:section" content="DevOps" />
+            <meta property="article:tag" content="deployment" />
+            <meta property="article:tag" content="configuration" />
+            <meta property="article:tag" content="ansible" />
+            <meta property="article:tag" content="devops" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <!-- Bootstrap -->
+	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+
+        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="http://gbraad.nl/blog/feeds/devops.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog DevOps ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+Gerard Braad's blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://gbraad.nl/blog/replace-scripts-with-ansible-package-installation.html"
+                       rel="bookmark"
+                       title="Permalink to Replace scripts with Ansible: package installation">
+                        Replace scripts with Ansible: package installation
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2016-10-03T00:00:00+08:00"> Mon 03 October 2016</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://gbraad.nl/blog/tag/deployment.html">deployment</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/configuration.html">configuration</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/ansible.html">ansible</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/devops.html">devops</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>Installing and configuring software on one machine, for instance your own
+developer's environment, is an 'easy' task. But how about your team? Or
+production? Everything is documented and you only probably install some of the
+components manually, or better, you automate this using a set of shell scripts.
+The environment is now reproducible. Everything is fine.</p>
+<p>Running a set of scripts is not a bad idea, but often what lacks is the
+maintenance on them or just the magic contained in them. I do not
+have to make the case for general configuration management,
+'configuration as code' or even #DevOps I hope? In this article I will show why
+I use Ansible for almost all my scripts. Even small one of.</p>
+<h2>Environment</h2>
+<p>Although I have a preference for the operating system and distribution I use, I
+have to deal with many different versions and variants. On my workstation I
+prefer to use Fedora, but at work we deploy on CentOS. Some of my colleagues
+tend to prefer Ubuntu (latest), and customers are stuck on LTS releases. A very
+common situation. In one week, I had to deal with: Alpine, CentOS, Fedora,
+Ubuntu, (Open)SUSE, Debian, Windows, etc. This is of course an extreme case.</p>
+<p>You would prefer to use a single environment for both development and
+production. When the production environment is fixed, the solution is easier.
+You will likely use a tool like Vagrant to stand up an environment, or some
+other virtualization soltuion. But what if you develop for an environment where
+both Ubuntu and CentOS are an option? In my case this happens a lot because of
+work for OpenStack, or just general Linux tool development.</p>
+<h2>Example</h2>
+<p>Below I will discuss a small example of dealing with package installation. Let's
+consider you have to use Ubuntu and Fedora. This means that you already have to
+deal with two different package managers, oh wait, three; <code>apt</code> on Ubuntu and
+<code>yum</code> or <code>dnf</code> on Fedora.</p>
+<h3>Bash script</h3>
+<p>As a crude solution, you could do the following:</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+<span class="nv">APTPKGS</span><span class="o">=</span><span class="s2">&quot;git tmux zsh mc stow python-psutil&quot;</span>
+<span class="nv">RPMPKGS</span><span class="o">=</span><span class="s2">&quot;git tmux zsh mc stow python-psutil&quot;</span>
+
+<span class="c1"># Crude multi-os installation option</span>
+<span class="k">if</span> <span class="o">[</span> -x <span class="s2">&quot;/usr/bin/apt-get&quot;</span> <span class="o">]</span>
+<span class="k">then</span>
+   sudo apt-get install -y <span class="nv">$APTPKGS</span>
+<span class="k">elif</span> <span class="o">[</span> -x <span class="s2">&quot;/usr/bin/dnf&quot;</span> <span class="o">]</span>
+<span class="k">then</span>
+   sudo dnf install -y <span class="nv">$RPMPKGS</span>
+<span class="k">elif</span> <span class="o">[</span> -x <span class="s2">&quot;/usr/bin/yum&quot;</span> <span class="o">]</span>
+<span class="k">then</span>
+   sudo yum install -y <span class="nv">$RPMPKGS</span>
+<span class="k">fi</span>
+</pre></div>
+
+
+<p>This basically checks if a certain executable is available, and will use that
+with a defined list of packages to install. If both <code>yum</code> and <code>dnf</code> is
+installed, it will in this case use <code>dnf</code> as it resolves first. This is likely
+what you want, but it is hidden logic. But what if you have installed <code>yum</code> on
+Ubuntu? Also, because of this case, <code>apt-get</code> will resolve first. But again,
+this is undocumented in this script. But this knowledge should not be needed.</p>
+<p>Note: in this case, the packages are the same for both platforms, but this is
+not a guarantee. Therefore I use a variable for this.</p>
+<h3>Ansible playbook</h3>
+<p>Ansible solves this problem by offering a general <code>package</code> module. You can use
+<code>yum</code> and <code>apt</code> specific options, but I prefer to use <code>package</code> instead. Below 
+is a playbook that has the same behaviour as the above mentioned script:</p>
+<div class="highlight"><pre><span></span>  <span class="l l-Scalar l-Scalar-Plain">tasks</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Install list of required packages</span>
+    <span class="l l-Scalar l-Scalar-Plain">package</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">name={{ item }} state=installed</span>
+    <span class="l l-Scalar l-Scalar-Plain">become</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+    <span class="l l-Scalar l-Scalar-Plain">become_method</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">sudo</span>
+    <span class="l l-Scalar l-Scalar-Plain">with_items</span><span class="p p-Indicator">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">git</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">tmux</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">zsh</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">stow</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">python-psutil</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mc</span>
+</pre></div>
+
+
+<p>Because of the task name, it becomes clear what the intention is of the commands
+that follow. In this case, this will use the package manager based on the OS
+Family that Ansible will find. This means we do not need to have the knowledge
+of what to pick first. There is however a problem. What if the packages have
+different names?</p>
+<h3>Conditionals</h3>
+<p>For this Ansible offers conditionals which you can use with <code>when</code>. Below is
+an example that will install the development tools on Ubuntu or Fedora, based
+on the <code>ansible_distribution</code>:</p>
+<div class="highlight"><pre><span></span><span class="c1">#!/usr/bin/env ansible-playbook</span>
+<span class="nn">---</span>
+<span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">hosts</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
+  <span class="c1">#remote_user: root</span>
+  <span class="l l-Scalar l-Scalar-Plain">become_method</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">sudo</span>
+
+  <span class="l l-Scalar l-Scalar-Plain">tasks</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Install Git</span>
+    <span class="l l-Scalar l-Scalar-Plain">package</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">name=git state=installed</span>
+    <span class="l l-Scalar l-Scalar-Plain">become</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">install the &#39;Development tools&#39; package group</span>
+    <span class="l l-Scalar l-Scalar-Plain">package</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">name=&quot;@Development tools&quot; state=present</span>
+    <span class="l l-Scalar l-Scalar-Plain">when</span><span class="p p-Indicator">:</span>  <span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;CentOS&#39; or</span>
+           <span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Red Hat Enterprise Linux&#39; or</span>
+           <span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Fedora&#39;</span>
+    <span class="l l-Scalar l-Scalar-Plain">become</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Install the &#39;build-essential&#39; meta package</span>
+    <span class="l l-Scalar l-Scalar-Plain">package</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">name=&quot;build-essential&quot; state=present</span>
+    <span class="l l-Scalar l-Scalar-Plain">when</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Debian&#39; or</span>
+          <span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Ubuntu&#39;</span>
+    <span class="l l-Scalar l-Scalar-Plain">become</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">yes</span>
+</pre></div>
+
+
+<p>You can also use <code>ansible_os_family == "RedHat"</code> to be less specific about the
+distribution you are on.</p>
+<h3>Include</h3>
+<p>You can combine conditionals with almost anything in Ansible, for instance to
+include or not another playbook. Below is a simple solution of this when you
+want to split the install instructions into separate files.</p>
+<div class="highlight"><pre><span></span>- include: install-centos.yml
+  when: ansible_distribution == &quot;CentOS&quot;
+
+- include: install-ubuntu.yml
+  when: ansible_distribution == &quot;Ubuntu&quot;
+</pre></div>
+
+
+<h3>Conclusion</h3>
+<p>With Ansible it is possible to create complex instructions that can be more
+maintainable than when using just scripts. Of course, just using Ansible will
+not act as a silver bullet. But because a playbook is more readable, the process
+of refactoring is easier.</p>
+<p>In future articles I will talk about other aspects where the move to Ansible
+helped me. However, the bootstrap process remains... I wish there was a way to
+<a href="https://github.com/gbraad/automate-everything">Automate everything</a> ;-)</p>
+<p>Hope this article has been helpful to you. If so, please consider tweeting about
+it. Or leave a comment if you have suggestions...</p>
+            </div>
+            <!-- /.entry-content -->
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Comments</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'replace-scripts-with-ansible-package-installation';
+                var disqus_url = 'http://gbraad.nl/blog/replace-scripts-with-ansible-package-installation.html';
+
+            var disqus_config = function () {
+                this.language = "en";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+
+
+
+
+
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

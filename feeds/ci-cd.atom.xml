@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/ci-cd.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-10-22T00:00:00+08:00</updated><entry><title>Flatpak; the road to CI/CD for desktop applications?</title><link href="http://gbraad.nl/blog/flatpak-the-road-to-cicd-for-desktop-applications.html" rel="alternate"></link><published>2016-10-22T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-10-22:blog/flatpak-the-road-to-cicd-for-desktop-applications.html</id><summary type="html">&lt;p&gt;In this presentation I will introduce Flatpak and how it changes the software
+distribution model for Linux. In short it will explain the negatives of using
+packages, how Flatpak solves this, and how to create your own applications and
+distribute them for use with Flatpak. This presentation was given at the &lt;a href="//www.bjgug.org/events/gnome-3-22-party/"&gt;GNOME
+3.22 release party&lt;/a&gt;, organized by the
+Beijing GNOME User Group.&lt;/p&gt;
+&lt;h2&gt;Presentation&lt;/h2&gt;
+&lt;p&gt;&lt;iframe src="//gbraad.gitlab.io/presentation-bjgug-flatpak/slides.html" width="1024" height="768"&gt;
+  &lt;p&gt;Your browser does not support iframes.&lt;/p&gt;
+&lt;/iframe&gt;&lt;/p&gt;
+&lt;h2&gt;Feedback&lt;/h2&gt;
+&lt;p&gt;If you have any suggestion, please discuss below or send me an email.&lt;/p&gt;
+&lt;p&gt;Note: the original presentation can be found at: &lt;a href="https://gitlab.com/gbraad/presentation-bjgug-flatpak"&gt;GitLab: BJGUG Flatpak&lt;/a&gt;.
+This is based on an earlier presentation about &lt;a href="/blog/software-distribution-for-a-new-era.html"&gt;Software Dsitribution for a new era&lt;/a&gt;&lt;/p&gt;</summary><category term="flatpak"></category><category term="ostree"></category><category term="gnome"></category></entry><entry><title>Document generation using Markdown and Pandoc</title><link href="http://gbraad.nl/blog/document-generation-using-markdown-and-pandoc.html" rel="alternate"></link><published>2016-09-13T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-13:blog/document-generation-using-markdown-and-pandoc.html</id><summary type="html">&lt;p&gt;Maintaining documentation can be an involved process,  especially when different versions and output formats are needed. One of the documents I, and probably you also, have to maintain is your work history or resume/CV. Some while back I changed this document from an OpenOffice document to plain text and ever since, this workflow has influenced how I deal with other documentation.&lt;/p&gt;
+&lt;h2&gt;Requirement and timeline&lt;/h2&gt;
+&lt;p&gt;If I remember correctly the original version of my resume was written in Microsoft Word. As you can imagine, this limits the usage to Windows as the platform. Small corrections became unnecessarily difficult and painful. Of course I could use CrossOver Office or Wine and install Office 2003. But, this is never a long-term solution. So, I moved to OpenOffice as the &lt;code&gt;.odt&lt;/code&gt; format looked promising. It was easy to use to generate the needed PDF output, but still... the workflow was far from ideal.&lt;/p&gt;
+&lt;p&gt;I wanted a workflow in which I can use just plaintext, which could be converted into the final format. Text is easy to index and to story under version management. This lead me to using XML directly and the use of FO (Formatting Objects), and Apache FOP. This was painful, but the results were decent to even very acceptable. It allowed me to describe elements with metadata, such as 'suffix', 'employment-type', etc. And all could be validated and transformed using XSLT. Although the conclusion was that the workflow was slow as there was no preview and transforming just took long. Also, describing elements was not useful as no-one would use the source material directly. Most recruiter use analysis tools that rely on extracting keywords and generate  a profile based on this information. This can lead to incorrect results, but since they analyse hundreds of resumes this seems one of the best methods, besides being introduced by a reference.&lt;/p&gt;
+&lt;p&gt;I moved to a simpler approach which allows me to change the document and have a partial, and acceptable  preview. By this time Markdown got more popular and I tried to convert my resume and it seemed like an acceptable approach. Using a standard parser the documents looked OK, but it missed the oomph. Then &lt;code&gt;pandoc&lt;/code&gt; arrived and it changed everything.&lt;/p&gt;
+&lt;h2&gt;Markdown&lt;/h2&gt;
+&lt;p&gt;Using Markdown I would be able to write the following&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;# _**Gerard Braad**_&lt;/span&gt;
+
+
+&lt;span class="cp"&gt;## Personal information&lt;/span&gt;
+
+  &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;Chinese&lt;/span&gt; &lt;span class="nl"&gt;name&lt;/span&gt;
+    &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;吉拉德&lt;/span&gt;
+  &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;Date&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="nl"&gt;Birth&lt;/span&gt;
+    &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;22&lt;/span&gt; &lt;span class="n"&gt;February&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1981&lt;/span&gt;
+  &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nl"&gt;Nationality&lt;/span&gt;
+    &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Dutch&lt;/span&gt;
+  &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nl"&gt;Email&lt;/span&gt;
+    &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;me&lt;/span&gt;&lt;span class="p"&gt;@&lt;/span&gt;&lt;span class="n"&gt;gbraad&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;nl&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;personal&lt;/span&gt; &lt;span class="n"&gt;email&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It will get rendered as follows:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="//cdn.gbraad.nl/images/blog/docugen-resume-basic.png" /&gt;&lt;/p&gt;
+&lt;p&gt;This source is humanly readable, and can be parsed by something like the Webinterface of GitHub into a &lt;a href="https://github.com/gbraad/resume/blob/master/resume.md"&gt;decent representation&lt;/a&gt;. And when using &lt;a href="https://github.com/revolunet/sublimetext-markdown-preview"&gt;Markdown Preview&lt;/a&gt; for Sublime Text, even editing this became a pleasure.&lt;/p&gt;
+&lt;h2&gt;Pandoc&lt;/h2&gt;
+&lt;p&gt;Now for introducing &lt;a href="http://pandoc.org/"&gt;Pandoc&lt;/a&gt;. This tool is like a Swiss knife for handling documents. It can convert between different formats and allows you to specify a template for specific formats, such as HTML. This tool allows me to use:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pandoc -o resume.html resume.md
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will generate a standard HTML output from &lt;code&gt;resume.md&lt;/code&gt; as input. Headings are converted to &lt;code&gt;h6&lt;/code&gt;, &lt;code&gt;h5&lt;/code&gt;, etc. and links become &lt;code&gt;a&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;h2&gt;Styling and layout&lt;/h2&gt;
+&lt;p&gt;But the beauty shows when a template is used:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pandoc --template resume-template.html -o resume.html resume.md
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This will generate a similar output, however the template refers to a stylesheet to style the look of the output. Using a template and stylesheet I am able to format the document to my liking. And since the output of markdown auto-generates names for elements in a consistent way, it is easy to style and format the document.&lt;/p&gt;
+&lt;p&gt;Take for instance the photo. Although I personally do not like photos on a resume, it is often requested. Placing it inline with the text does not look very nice.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="//cdn.gbraad.nl/images/blog/docugen-photo-inline.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Using CSS it is possible to convert the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;# _**Gerard Braad**_&lt;/span&gt;
+
+
+&lt;span class="cp"&gt;## Personal information&lt;/span&gt;
+
+&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Photo&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;personal&lt;/span&gt; &lt;span class="n"&gt;photo&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+  &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;Chinese&lt;/span&gt; &lt;span class="nl"&gt;name&lt;/span&gt;
+    &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;吉拉德&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;With the styling:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;figure&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nb"&gt;float&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;right&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nb"&gt;margin&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;5px&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nb"&gt;border&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;1px&lt;/span&gt; &lt;span class="nb"&gt;solid&lt;/span&gt; &lt;span class="m"&gt;#eee&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The output of this will look as follows:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="//cdn.gbraad.nl/images/blog/docugen-photo-float.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;Containerizing pandoc (software distribution)&lt;/h2&gt;
+&lt;p&gt;Pandoc itself is written in Haskell. Although a nice language, it has a different style of programming. This means that few people can contribute, and a distribution like Fedora or Ubuntu can not always provide the latest version. This can be due to possible dependency issues, but also the effort a packager has to put into it. The developer of this tool only provides a .deb package. Since I mostly work on Fedora and CentOS, I had to find an alternative solution to install this tool.&lt;/p&gt;
+&lt;p&gt;This is a great use-case for a container, as it consolidates the dependencies of the tool, and will allow me to use the tool as packaged by the developer, on a distribution that would else not be supported. Because I use the provided package I can also file issues against a known version, which can aid in reproducibility.&lt;/p&gt;
+&lt;p&gt;This lead to me creating a container called &lt;code&gt;docugen&lt;/code&gt;. It uses &lt;code&gt;pandoc&lt;/code&gt;, &lt;code&gt;jekyll&lt;/code&gt; and &lt;code&gt;pandoc-ruby&lt;/code&gt; to integrate &lt;a href="http://jekyllrb.com/"&gt;Jekyll&lt;/a&gt; with pandoc.&lt;/p&gt;
+&lt;p&gt;By setting an alias I can call &lt;code&gt;pandoc&lt;/code&gt; as it is a local command, which actually calls the container:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;alias&lt;/span&gt; &lt;span class="nv"&gt;pandoc&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;docker run -it --rm -v $PWD:/workspace gbraad/docugen pandoc&amp;#39;&lt;/span&gt;
+$ pandoc -o resume.html resume.md
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can find more information about it &lt;a href="https://hub.docker.com/r/gbraad/docugen/"&gt;here&lt;/a&gt;. &lt;/p&gt;
+&lt;h2&gt;Automated generation&lt;/h2&gt;
+&lt;p&gt;Since creating the containerized version of Pandoc, it was easy to setup an automated process for generation of the resume output. Because I use GitLab for almost all of my projects I only needed to add a CI runner definition to my repository. Below is a snippet of the generation, which publishes to GitLab pages.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;.gitlab-ci.yml&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;pages&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;gbraad&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;docugen&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;latest&lt;/span&gt;
+  &lt;span class="n"&gt;script&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;mkdir&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="kd"&gt;public&lt;/span&gt;
+    &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;pandoc&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt; &lt;span class="n"&gt;html5&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="kd"&gt;public&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;html&lt;/span&gt; &lt;span class="n"&gt;resume&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;md&lt;/span&gt;
+  &lt;span class="n"&gt;artifacts&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;paths&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="kd"&gt;public&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The result of my resume gets published on GitLab at &lt;a href="http://gbraad.gitlab.io/resume/"&gt;http://gbraad.gitlab.io/resume/&lt;/a&gt; and syncs to GitHub, which hosts it at &lt;a href="https://gbraad.nl/resume"&gt;https://gbraad.nl/resume&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;PDF generation using Pandoc -&amp;gt; LaTeX&lt;/h2&gt;
+&lt;p&gt;Pandoc can create nice looking PDF documents by using LaTeX. The handout of my &lt;a href="http://gbraad.gitlab.io/openstack-handsonlabs/"&gt;OpenStack Hands-on-Lab&lt;/a&gt; was produced with this.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pandoc -V geometry:margin&lt;span class="o"&gt;=&lt;/span&gt;1in -o deploying-OpenStack.pdf deploying-openstack.md
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Although the results look really good, I had several issues with it:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;increased the size of the docugen container by more than a gigabyte.&lt;/li&gt;
+&lt;li&gt;issues with properly rendering Chinese&lt;ul&gt;
+&lt;li&gt;needed additional installation of modules and fonts&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;would not respect width and margins for pre-formatted blocks&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Likely, all of them could be solved with some smart hacks, but I didn't have the time and interest to learn LaTeX. This felt to me like learning how to use XSLT to transform XML into something meaningful. I still have the packages installed in the container as some documents still use &lt;code&gt;xelatex&lt;/code&gt; for the PDF generation.&lt;/p&gt;
+&lt;h2&gt;PDF generation using PhantomJS&lt;/h2&gt;
+&lt;p&gt;To solve the issues mentioned above, I now use &lt;code&gt;phantomjs&lt;/code&gt;. &lt;a href="http://phantomjs.org/"&gt;PhantomJS&lt;/a&gt; is a headless browser based on the WebKit rendering engine, and is scriptable with JavaScript. By using this approach I am able to use a single stylesheet to produce the same output on screen as on paper.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;var&lt;/span&gt; &lt;span class="nt"&gt;page&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;require&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;webpage&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="nc"&gt;.create&lt;/span&gt;&lt;span class="o"&gt;(),&lt;/span&gt; &lt;span class="nt"&gt;system&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;require&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;system&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;),&lt;/span&gt;
+    &lt;span class="nt"&gt;address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;system&lt;/span&gt;&lt;span class="nc"&gt;.args&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;output&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;system&lt;/span&gt;&lt;span class="nc"&gt;.args&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;page&lt;/span&gt;&lt;span class="nc"&gt;.viewportSize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nb"&gt;width&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;600&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;height&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="m"&gt;600&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;page&lt;/span&gt;&lt;span class="nc"&gt;.paperSize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;A4&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;orientation&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;portrait&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;margin&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;1cm&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;if&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nt"&gt;system&lt;/span&gt;&lt;span class="nc"&gt;.args.length&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="nt"&gt;3&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nb"&gt;page&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;zoomFactor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="nt"&gt;page&lt;/span&gt;&lt;span class="nc"&gt;.open&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nt"&gt;address&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;function&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nt"&gt;status&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="nb"&gt;page&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;render&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;output&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+   &lt;span class="n"&gt;phantom&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To generate a PDF, I call:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ phantomjs topdf.js resume.html resume.pdf
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Page breaks&lt;/h2&gt;
+&lt;p&gt;To produce a nicer result, I have also added the following to my stylesheet:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;h1&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nb"&gt;page-break-before&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;always&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="nn"&gt;#gerard-braad&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="nb"&gt;text-align&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;center&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nb"&gt;page-break-before&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;avoid&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When printed this inserts a page break before the header starts. So when a new topic starts, but avoids it for the start of the document.&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Generating a document from plaintext using Markdown can be beneficial. The source will never suffer from issues with 'being unreadable' or 'deprecated software', and it can easily be indexed. Tracking changes and even publishing a change is not as easy as opening the file on my mobile phone, and commiting it using git. Automatically the result will be published.&lt;/p&gt;
+&lt;p&gt;I have moved all my documentation over to plaintext, from the handsonlabs, training and teaching material, schedules, etc. I am still tweaking some of the processes, but the convenience is that a single source material can be used for different outputs. For instance, I publish my articles of this &lt;a href="//gbraad.nl/blog/"&gt;blog&lt;/a&gt; in &lt;a href="https://gitlab.com/gbraad/blog-content/blob/master/SUMMARY.md"&gt;Markdown&lt;/a&gt;, as generated &lt;a href="http://gbraad.gitlab.io/blog-content/"&gt;documents&lt;/a&gt;, and as a &lt;a href="https://gbraad.gitbooks.io/blog-articles/content/"&gt;GitBook&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Do not settle for a solution forever. Over time requirements can change and new insights can be utilized to produce a better solution.&lt;/p&gt;
+&lt;h2&gt;Links&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Source of my resume: &lt;a href="https://gitlab.com/gbraad/resume/"&gt;GitLab&lt;/a&gt;, &lt;a href="https://github.com/gbraad/resume/"&gt;GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://gbraad.nl/resume/"&gt;Published&lt;/a&gt; version&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Endnotes&lt;/h2&gt;
+&lt;p&gt;I looked for some of the older formats and output, but was unable to track them down. I do remember my businesscard was used as a reference for '&lt;a href="http://microformats.org/wiki/selected-test-cases-from-the-web"&gt;microformats&lt;/a&gt;'. And someone tried to introduce an XML standard for resume, called xmlresume if I recall correctly. From experience I could conclude this would not work; no applicant will provide XML and converting it in a tool seems pointless.&lt;/p&gt;
+&lt;p&gt;At the moment I am still looking for a nice tool on Android to edit the documents. I use &lt;a href="https://github.com/sheimi/SGit"&gt;SGit&lt;/a&gt; with &lt;a href="http://writeily.me/"&gt;Writeily Pro&lt;/a&gt;, but I am a little disappointed in both tools. Opening a file for viewing in sgit will modify the file, and it does not deal well with resetting this. And Writeily Pro becomes slow over time when editing a file. Closing it and re-opening solves this, but it breaks the writing streak. Sometimes I rather use &lt;a href="http://www.droidedit.com/"&gt;DroidEdit&lt;/a&gt;, as it is just a text editor and does not suffer from this issue. Tools on the iPad, like &lt;a href="http://daedalusapp.com/"&gt;Daedalus Touch&lt;/a&gt; and &lt;a href="https://textasticapp.com/"&gt;Textastic&lt;/a&gt; feel more productive. Suggestions are welcome...&lt;/p&gt;</summary><category term="markdown"></category><category term="documentation"></category><category term="pandoc"></category><category term="docker"></category></entry></feed>

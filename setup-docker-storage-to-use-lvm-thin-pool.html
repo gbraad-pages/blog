@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <title>Setup Docker storage to use LVM thin pool - Gerard Braad's blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+<link rel="canonical" href="http://gbraad.nl/blog/setup-docker-storage-to-use-lvm-thin-pool.html">
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="docker,containers,atomic,storage" />
+        <meta name="description" content="If you install Docker on a new Fedora or CentOS system, it is very likely that you use devicemapper. Especially in the case of Fedora cloud images, no special configuration is done to the image. While Atomic images come pre-configured with a dedicated pool. Using devicemapper with loopback can lead ..." />
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Setup Docker storage to use LVM thin pool"/>
+        <meta property="og:url" content="http://gbraad.nl/blog/setup-docker-storage-to-use-lvm-thin-pool.html"/>
+        <meta property="og:description" content="If you install Docker on a new Fedora or CentOS system, it is very likely that you use devicemapper. Especially in the case of Fedora cloud images, no special configuration is done to the image. While Atomic images come pre-configured with a dedicated pool. Using devicemapper with loopback can lead ..."/>
+        <meta property="article:published_time" content="2016-09-28" />
+            <meta property="article:section" content="containers" />
+            <meta property="article:tag" content="docker" />
+            <meta property="article:tag" content="containers" />
+            <meta property="article:tag" content="atomic" />
+            <meta property="article:tag" content="storage" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <!-- Bootstrap -->
+	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
+	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+
+        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="http://gbraad.nl/blog/feeds/containers.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog containers ATOM Feed"/>
+
+</head>
+<body>
+
+<div class="navbar navbar-default" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+Gerard Braad's blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                        </li>
+                        <li class="active">
+                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                        </li>
+                        <li >
+                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                        </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://gbraad.nl/blog/setup-docker-storage-to-use-lvm-thin-pool.html"
+                       rel="bookmark"
+                       title="Permalink to Setup Docker storage to use LVM thin pool">
+                        Setup Docker storage to use LVM thin pool
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="label label-default">Date</span>
+    <span class="published">
+        <i class="fa fa-calendar"></i><time datetime="2016-09-28T00:00:00+08:00"> Wed 28 September 2016</time>
+    </span>
+
+
+
+
+
+<span class="label label-default">Tags</span>
+	<a href="http://gbraad.nl/blog/tag/docker.html">docker</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/containers.html">containers</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/atomic.html">atomic</a>
+        /
+	<a href="http://gbraad.nl/blog/tag/storage.html">storage</a>
+    
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>If you install Docker on a new Fedora or CentOS system, it is very likely that
+you use devicemapper. Especially in the case of Fedora cloud images, no special
+configuration is done to the image. While Atomic images come pre-configured with
+a dedicated pool. Using devicemapper with loopback can lead to unpredictable
+behaviour, and while OverlayFS is a nice replacement, you will not be able to
+use SELinux at the moment. In this short article I will show how to setup a pool
+for storing the Docker images.</p>
+<h2>Preparation</h2>
+<p>For this article I will be using a Fedora 24 installation on an OpenStack cloud
+provider<a href="http://citycloud.com">*</a>. It is a standard Cloud image, which means the
+root is configured as 'ext4'. I will be attaching a storage volume to the
+instance. Just like using Virtual Manager, the disk will be identified as
+<code>/dev/vdb</code>.</p>
+<p>First you need to stop the Docker process and remove the existing location. This
+means you will loose the images, but if they are important, you can either
+export or push them somewhere else.</p>
+<div class="highlight"><pre><span></span>$ systemctl stop docker
+$ rm -rf /var/lib/docker
+</pre></div>
+
+
+<p>After this we will create a basic LVM setup which will use the whole storage
+volume.</p>
+<div class="highlight"><pre><span></span>$ pvcreate /dev/vdb
+$ vgcreate docker_vol /dev/vdb
+</pre></div>
+
+
+<p>We know have a <code>volumegroup</code> named <code>docker_vol</code>.</p>
+<h2>Setup Docker storage</h2>
+<p>Fedora comes with a tool that makes it easy to setup the storage for Docker,
+called <code>docker-storage-setup</code>. The configuration is done with a file, and in
+our case it needs to contain the identification of the volume group to use:</p>
+<div class="highlight"><pre><span></span>$ vi /etc/sysconfig/docker-storage-setup 
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>VG=&quot;docker_vol&quot;
+</pre></div>
+
+
+<p>Now you can run:</p>
+<div class="highlight"><pre><span></span>$ docker-storage-setup
+</pre></div>
+
+
+<p>This will create the filesystem and configures Docker to use the storage pool.
+After this successfully finishes, it has configured the pool to use the xfs
+filesystem.</p>
+<h2>Verify</h2>
+<p>To verify these changes, we will start Docker and run a basic image.</p>
+<div class="highlight"><pre><span></span>$ systemctl start docker
+$ docker info
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>Storage Driver: devicemapper
+ Pool Name: docker_vol-docker--pool
+ Pool Blocksize: 524.3 kB
+ Base Device Size: 10.74 GB
+ Backing Filesystem: xfs
+ Data file: 
+ Metadata file: 
+ Data Space Used: 37.75 MB
+ Data Space Total: 21.45 GB
+ Data Space Available: 21.41 GB
+ Metadata Space Used: 53.25 kB
+ Metadata Space Total: 54.53 MB
+ Metadata Space Available: 54.47 MB
+ Udev Sync Supported: true
+ Deferred Removal Enabled: true
+ Deferred Deletion Enabled: true
+ Deferred Deleted Device Count: 0
+ Library Version: 1.02.122 (2016-04-09)
+</pre></div>
+
+
+<div class="highlight"><pre><span></span>$ docker pull busybox
+$ docker run -it --rm busybox
+/ <span class="c1"># </span>
+</pre></div>
+
+
+<h2>Conclusion</h2>
+<p>Configuration of storage has been really simplified and shouldn't be a reason
+not to do this. However, still to many people are not aware of the issues with
+devicemapper and loopback. Having to assign additional software to use Docker
+can also be a reason why people do not consider doing this, but even OverlayFS
+is not perfect. Using overlay with SELinux will be possible in the future, and
+hopefully soon these steps will also not be needed. In any case, the steps
+involved are simple and if you use Docker on Fedora, needed!</p>
+<h2>More information</h2>
+<ul>
+<li><a href="http://www.projectatomic.io/blog/2015/06/notes-on-fedora-centos-and-docker-storage-drivers/">Friends Don't Let Friends Run Docker on Loopback in Production</a></li>
+<li><a href="http://www.projectatomic.io/docs/docker-storage-recommendation/">Setting up storage</a> for Project Atomic</li>
+</ul>
+            </div>
+            <!-- /.entry-content -->
+    <hr/>
+    <section class="comments" id="comments">
+        <h2>Comments</h2>
+
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+                    var disqus_identifier = 'setup-docker-storage-to-use-lvm-thin-pool';
+                var disqus_url = 'http://gbraad.nl/blog/setup-docker-storage-to-use-lvm-thin-pool.html';
+
+            var disqus_config = function () {
+                this.language = "en";
+            };
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+
+<section class="well well-sm">
+    <ul class="list-group list-group-flush">
+
+
+
+
+
+    </ul>
+</section>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+
+    <!-- Disqus -->
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
+    </script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/javascript.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2014-11-04T00:00:00+08:00</updated><entry><title>JavaScript Loaders</title><link href="http://gbraad.nl/blog/javascript-loaders.html" rel="alternate"></link><published>2014-11-04T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2014-11-04:blog/javascript-loaders.html</id><summary type="html">&lt;p&gt;Overview of JavaScript loaders&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://requirejs.org/docs/commonjs.html#autoconversion"&gt;http://requirejs.org/docs/commonjs.html#autoconversion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://blog.millermedeiros.com/amd-is-better-for-the-web-than-commonjs-modules/"&gt;http://blog.millermedeiros.com/amd-is-better-for-the-web-than-commonjs-modules/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://addyosmani.com/writing-modular-js/"&gt;http://addyosmani.com/writing-modular-js/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://msdn.microsoft.com/en-us/magazine/hh227261.aspx"&gt;http://msdn.microsoft.com/en-us/magazine/hh227261.aspx&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</summary><category term="javascript"></category></entry></feed>
