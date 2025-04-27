@@ -1,6 +1,6 @@
 [submodule "content"]
 	path = content
-	url = https://gitlab.com/gbraad/blog-content.git
+	url = https://github.com/gbraad-pages/blog-content.git
 [submodule "themes/gbraad"]
 	path = themes/gbraad
-	url = https://gitlab.com/gbraad/blog-theme.git
+	url = https://github.com/gbraad-pages/blog-theme.git
