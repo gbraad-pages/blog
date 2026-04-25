@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="http://gbraad.nl/blog/" rel="alternate"></link><link href="http://gbraad.nl/blog/feeds/about-me.atom.xml" rel="self"></link><id>http://gbraad.nl/blog/</id><updated>2016-10-08T00:00:00+08:00</updated><entry><title>Dear recruiter</title><link href="http://gbraad.nl/blog/dear-recruiter.html" rel="alternate"></link><published>2016-10-08T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-10-08:blog/dear-recruiter.html</id><summary type="html">&lt;p&gt;As an engineer I love to work and talk about software and software development.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog - About me</title><link href="https://blog.gbraad.nl/" rel="alternate"/><link href="https://blog.gbraad.nl/feeds/about-me.atom.xml" rel="self"/><id>https://blog.gbraad.nl/</id><updated>2016-10-08T00:00:00+08:00</updated><entry><title>Dear recruiter</title><link href="https://blog.gbraad.nl/dear-recruiter.html" rel="alternate"/><published>2016-10-08T00:00:00+08:00</published><updated>2016-10-08T00:00:00+08:00</updated><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:blog.gbraad.nl,2016-10-08:/dear-recruiter.html</id><summary type="html">&lt;p&gt;As an engineer I love to work and talk about software and software development.
+Looking for a new opportunity is not an easy task. There is a story behind every
+choice people make, and in this article I will explain my vision and situation.
+This is certainly not an employer …&lt;/p&gt;</summary><content type="html">&lt;p&gt;As an engineer I love to work and talk about software and software development.
 Looking for a new opportunity is not an easy task. There is a story behind every
 choice people make, and in this article I will explain my vision and situation.
 This is certainly not an employer review, but rather a reflection on past and
@@ -82,7 +85,10 @@ have a great work environment. But you also need trust that people dare to
 admit when they are not experts at something yet, but you allow them to develop
 themselves.&lt;/p&gt;
 &lt;p&gt;Hope to hear from you. If you have a comment, please do not hesitate and leave
-one below.&lt;/p&gt;</summary><category term="recruitment"></category><category term="employment"></category><category term="about me"></category><category term="startups"></category><category term="projects"></category><category term="choices"></category></entry><entry><title>Giving to your favourite content creators</title><link href="http://gbraad.nl/blog/giving-to-your-favourite-content-creators.html" rel="alternate"></link><published>2016-09-29T00:00:00+08:00</published><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:gbraad.nl,2016-09-29:blog/giving-to-your-favourite-content-creators.html</id><summary type="html">&lt;p&gt;It is hard to remember the time I really sat down in front of the TV, waiting
+one below.&lt;/p&gt;</content><category term="About me"/><category term="recruitment"/><category term="employment"/><category term="about me"/><category term="startups"/><category term="projects"/><category term="choices"/></entry><entry><title>Giving to your favourite content creators</title><link href="https://blog.gbraad.nl/giving-to-your-favourite-content-creators.html" rel="alternate"/><published>2016-09-29T00:00:00+08:00</published><updated>2016-09-29T00:00:00+08:00</updated><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:blog.gbraad.nl,2016-09-29:/giving-to-your-favourite-content-creators.html</id><summary type="html">&lt;p&gt;It is hard to remember the time I really sat down in front of the TV, waiting
+for a programme to show up, and really enjoy it. Mostly it was accompanied with
+plenty of interruptions. It might have been Star Trek on the public channels
+that I enjoyed the most …&lt;/p&gt;</summary><content type="html">&lt;p&gt;It is hard to remember the time I really sat down in front of the TV, waiting
 for a programme to show up, and really enjoy it. Mostly it was accompanied with
 plenty of interruptions. It might have been Star Trek on the public channels
 that I enjoyed the most. But even Discovery Channel had many interruptions,
@@ -97,10 +103,9 @@ probably the best people can do as it gives a lot of satisfaction. I consider
 the teaching I do as a form of content creation. I produced a lot of documents,
 notes, etc, and people enjoy the way I explain stuff. Even writing code is a
 creative process:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;foreach step in I.take():
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;foreach step in I.take():
   step.move(DIRECTION_TOMORROW)
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;But remixing music, or posting artwork online, does not pay the bills. Unless
 of course you are Tiesto, etc. And asking for a donation has not been my thing,
@@ -116,5 +121,5 @@ it has been in a neglect, but I can't reserve enough time to do a rewrite...
 I ask you, consider to become a Patron of my work and hopefully I can
 improve by &lt;a href="https://www.patreon.com/posts/future-of-gauth-6738130"&gt;giving Gauth a new future&lt;/a&gt;,
 allow me to create more content on my blog... and maybe in the future even more.&lt;/p&gt;
-&lt;p&gt;&lt;a href="ps://www.patreon.com/gbraad"&gt;&lt;img alt="Support my work on Patreon" src="https://www.patreon.com/images/patreon_navigation_logo_mini_orange.png" /&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;And thank you to all who have donated in the past!&lt;/p&gt;</summary><category term="donation"></category><category term="patreon"></category><category term="contributing"></category><category term="content creation"></category></entry></feed>
+&lt;p&gt;&lt;a href="ps://www.patreon.com/gbraad"&gt;&lt;img alt="Support my work on Patreon" src="https://www.patreon.com/images/patreon_navigation_logo_mini_orange.png"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;And thank you to all who have donated in the past!&lt;/p&gt;</content><category term="About me"/><category term="donation"/><category term="patreon"/><category term="contributing"/><category term="content creation"/></entry></feed>

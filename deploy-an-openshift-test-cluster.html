@@ -9,17 +9,17 @@
 
 
 
-<link rel="canonical" href="http://gbraad.nl/blog/deploy-an-openshift-test-cluster.html">
+<link rel="canonical" href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html">
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="openshift,kubernetes,containers,docker" />
-        <meta name="description" content="In my previous article I described how I used an Ansible playbook and a few roles to stand-up a Kubernetes test environment. In that article I mentioned that to deploy a production-ready environment some work more was required. Luckily, it is now very easy to stand up a production and ..." />
+        <meta name="description" content="In my previous article I described how I used an Ansible playbook and a few roles to stand-up a Kubernetes test environment. In that article I mentioned that to deploy a production-ready environment some work more was required. Luckily, it is now very easy to stand up a production and …" />
 
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="article"/>
         <meta property="og:title" content="Deploy an OpenShift test cluster"/>
-        <meta property="og:url" content="http://gbraad.nl/blog/deploy-an-openshift-test-cluster.html"/>
-        <meta property="og:description" content="In my previous article I described how I used an Ansible playbook and a few roles to stand-up a Kubernetes test environment. In that article I mentioned that to deploy a production-ready environment some work more was required. Luckily, it is now very easy to stand up a production and ..."/>
+        <meta property="og:url" content="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html"/>
+        <meta property="og:description" content="In my previous article I described how I used an Ansible playbook and a few roles to stand-up a Kubernetes test environment. In that article I mentioned that to deploy a production-ready environment some work more was required. Luckily, it is now very easy to stand up a production and …"/>
         <meta property="article:published_time" content="2016-09-27" />
             <meta property="article:section" content="Containers" />
             <meta property="article:tag" content="openshift" />
@@ -37,12 +37,12 @@
 	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
 	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
 
-        <link href="http://gbraad.nl/blog/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
 
 
 
-        <link href="http://gbraad.nl/blog/feeds/containers.atom.xml" type="application/atom+xml" rel="alternate"
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog Containers ATOM Feed"/>
 
 </head>
@@ -57,37 +57,37 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a href="http://gbraad.nl/blog/" class="navbar-brand">
+            <a href="https://blog.gbraad.nl/" class="navbar-brand">
 Gerard Braad's blog            </a>
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
                         <li >
-                            <a href="http://gbraad.nl/blog/category/about-me.html">About me</a>
+                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/books.html">Books</a>
+                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/ci-cd.html">CI / CD</a>
+                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
                         </li>
                         <li class="active">
-                            <a href="http://gbraad.nl/blog/category/containers.html">Containers</a>
+                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/devops.html">DevOps</a>
+                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/high-availability.html">High Availability</a>
+                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/javascript.html">JavaScript</a>
+                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/misc.html">Misc</a>
+                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
                         </li>
                         <li >
-                            <a href="http://gbraad.nl/blog/category/openstack.html">OpenStack</a>
+                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
                         </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -105,7 +105,7 @@ Gerard Braad's blog            </a>
         <article>
             <header class="page-header">
                 <h1>
-                    <a href="http://gbraad.nl/blog/deploy-an-openshift-test-cluster.html"
+                    <a href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html"
                        rel="bookmark"
                        title="Permalink to Deploy an OpenShift test cluster">
                         Deploy an OpenShift test cluster
@@ -126,13 +126,13 @@ Gerard Braad's blog            </a>
 
 
 <span class="label label-default">Tags</span>
-	<a href="http://gbraad.nl/blog/tag/openshift.html">openshift</a>
+	<a href="https://blog.gbraad.nl/tag/openshift.html">openshift</a>
         /
-	<a href="http://gbraad.nl/blog/tag/kubernetes.html">kubernetes</a>
+	<a href="https://blog.gbraad.nl/tag/kubernetes.html">kubernetes</a>
         /
-	<a href="http://gbraad.nl/blog/tag/containers.html">containers</a>
+	<a href="https://blog.gbraad.nl/tag/containers.html">containers</a>
         /
-	<a href="http://gbraad.nl/blog/tag/docker.html">docker</a>
+	<a href="https://blog.gbraad.nl/tag/docker.html">docker</a>
     
 </footer><!-- /.post-info -->                    </div>
                 </div>
@@ -150,28 +150,25 @@ will give an introduction to setting up a test environment for a developer.</p>
 <p>I will setup the environment on a standard Fedora 24 installation. You can use a
 cloud image as all the needed packages will be specified. After installing the
 machine, you login as a standard user, which can do a password-less sudo.</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="n">ssh</span> <span class="n">fedora</span><span class="mf">@89.42.141.96</span>
-<span class="err">$</span> <span class="n">sudo</span> <span class="n">su</span> <span class="o">-</span>
+<div class="highlight"><pre><span></span><code><span class="n">$</span><span class="w"> </span><span class="n">ssh</span><span class="w"> </span><span class="n">fedora</span><span class="mf">@89.42.141.96</span>
+<span class="n">$</span><span class="w"> </span><span class="n">sudo</span><span class="w"> </span><span class="n">su</span><span class="w"> </span><span class="o">-</span>
 <span class="cp">#</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3>Install docker and client</h3>
 <p>From here all the commands will be run as root, unless otherwise specified.</p>
-<div class="highlight"><pre><span></span>$ dnf install -y docker curl
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>docker<span class="w"> </span>curl
+</code></pre></div>
 
 <p>This will install the basic packages we need to setup the test cluster. Now from
 a browser you open the following page: <a href="https://github.com/openshift/origin/releases/tag/v1.3.0">https://github.com/openshift/origin/releases/tag/v1.3.0</a>.
 This shows the current deliverables for the OpenShift Origin v1.3 release. You
 need to download the file called like <code>openshift-origin-client-tools-v1.3.0-[...]-linux-64bit.tar.gz</code></p>
-<div class="highlight"><pre><span></span>$ curl -sSL https://github.com/openshift/origin/releases/download/v1.3.0/openshift-origin-client-tools-v1.3.0-3ab7af3d097b57f933eccef684a714f2368804e7-linux-64bit.tar.gz -o oc-client.tar.gz
-$ tar -zxvf oc-client.tar.gz
-$ mkdir -p /opt/openshift/client
-$ cp ./openshift-origin-client-tools-v1.3.0-3ab7af3d097b57f933eccef684a714f2368804e7-linux-64bit/oc /opt/openshift/client/oc
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="o">$</span><span class="w"> </span><span class="n">curl</span><span class="w"> </span><span class="o">-</span><span class="n">sSL</span><span class="w"> </span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">/</span><span class="n">releases</span><span class="o">/</span><span class="n">download</span><span class="o">/</span><span class="n">v1</span><span class="o">.</span><span class="mf">3.0</span><span class="o">/</span><span class="n">openshift</span><span class="o">-</span><span class="n">origin</span><span class="o">-</span><span class="n">client</span><span class="o">-</span><span class="n">tools</span><span class="o">-</span><span class="n">v1</span><span class="o">.</span><span class="mf">3.0</span><span class="o">-</span><span class="mi">3</span><span class="n">ab7af3d097b57f933eccef684a714f2368804e7</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="mi">64</span><span class="n">bit</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">oc</span><span class="o">-</span><span class="n">client</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="o">$</span><span class="w"> </span><span class="n">tar</span><span class="w"> </span><span class="o">-</span><span class="n">zxvf</span><span class="w"> </span><span class="n">oc</span><span class="o">-</span><span class="n">client</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="o">$</span><span class="w"> </span><span class="n">mkdir</span><span class="w"> </span><span class="o">-</span><span class="n">p</span><span class="w"> </span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">openshift</span><span class="o">/</span><span class="n">client</span>
+<span class="o">$</span><span class="w"> </span><span class="n">cp</span><span class="w"> </span><span class="o">./</span><span class="n">openshift</span><span class="o">-</span><span class="n">origin</span><span class="o">-</span><span class="n">client</span><span class="o">-</span><span class="n">tools</span><span class="o">-</span><span class="n">v1</span><span class="o">.</span><span class="mf">3.0</span><span class="o">-</span><span class="mi">3</span><span class="n">ab7af3d097b57f933eccef684a714f2368804e7</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="mi">64</span><span class="n">bit</span><span class="o">/</span><span class="n">oc</span><span class="w"> </span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">openshift</span><span class="o">/</span><span class="n">client</span><span class="o">/</span><span class="n">oc</span>
+</code></pre></div>
 
 <p>Note: I do not install the binary in <code>/usr/bin</code> or <code>/usr/sbin</code> to prevent a
 conflict with a packaged version, but also because this makes it easier for me
@@ -183,32 +180,28 @@ step.</p>
 docker registry. But before docker would be able to use this, we need to
 specify an insecure registry in the configuration. For this you need to add
 <code>--insecure-registry 172.30.0.0/16</code> to <code>/etc/sysconfig/docker</code>.</p>
-<div class="highlight"><pre><span></span>$ vi /etc/sysconfig/docker
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>vi<span class="w"> </span>/etc/sysconfig/docker
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>OPTIONS=&#39;--selinux-enabled --log-driver=journald --insecure-registry 172.30.0.0/16&#39;
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="n">OPTIONS</span><span class="o">=</span><span class="p">&#39;</span><span class="o">--</span><span class="n">selinux</span><span class="o">-</span><span class="n">enabled</span><span class="w"> </span><span class="o">--</span><span class="n">log</span><span class="o">-</span><span class="n">driver</span><span class="o">=</span><span class="n">journald</span><span class="w"> </span><span class="o">--</span><span class="n">insecure</span><span class="o">-</span><span class="n">registry</span><span class="w"> </span><span class="mf">172.30.0.0</span><span class="o">/</span><span class="mh">16</span><span class="p">&#39;</span>
+</code></pre></div>
 
 <p>After this we will setup to allow the standard user to communicate with the
 docker daemon over the docker socket. This is not a necessary step, and does not
 make the system more secure. It does make it easier not having to move between
 user and using sudo all the time.</p>
-<div class="highlight"><pre><span></span>$ groupadd docker
-$ usermod -a -G docker fedora
-$ chgrp docker /var/run/docker.sock
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>groupadd<span class="w"> </span>docker
+$<span class="w"> </span>usermod<span class="w"> </span>-a<span class="w"> </span>-G<span class="w"> </span>docker<span class="w"> </span>fedora
+$<span class="w"> </span>chgrp<span class="w"> </span>docker<span class="w"> </span>/var/run/docker.sock
+</code></pre></div>
 
 <p>Edit: I recently created an <a href="https://github.com/gbraad/ansible-playbooks/blob/master/playbooks/enable-ansible-user-for-docker.yml">Ansible playbook</a>
 to perform these steps, as I had to do this on several Atomic hosts. I uses the
 current Ansible user and adds it to a group, and changes the socket permissions.</p>
 <p>After this you can start docker and move on the actual installation of OpenShift.</p>
-<div class="highlight"><pre><span></span>$ systemctl <span class="nb">enable</span> docker
-$ systemctl start docker
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>docker
+$<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>docker
+</code></pre></div>
 
 <p>Note: we will be running this environment with devicemapper as Storage Driver.
 This is not an ideal situation. If you do further tests, consider changing the
@@ -218,80 +211,74 @@ storage with <code>docker-storage-setup</code> to use a dedicated volume.</p>
 which stands up a very simple all-in-one cluster, with a configured registry,
 router, image streams, and default templates.</p>
 <p>As the fedora user, you can check if you can access docker</p>
-<div class="highlight"><pre><span></span>$ docker ps
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>docker<span class="w"> </span>ps
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>CONTAINER ID    IMAGE   COMMAND     CREATED     STATUS      PORTS   NAMES
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>CONTAINER ID    IMAGE   COMMAND     CREATED     STATUS      PORTS   NAMES
+</code></pre></div>
 
 <p>No containers should be returned. This mean you can communicate with the docker
 daemon. Now you are ready to start the test cluster. </p>
 <h3><code>cluster up</code></h3>
-<div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/opt/openshift/client/
-$ ./oc cluster up
--- Checking OpenShift client ... OK
--- Checking Docker client ... OK
--- Checking Docker version ... OK
--- Checking <span class="k">for</span> existing OpenShift container ... OK
--- Checking <span class="k">for</span> openshift/origin:v1.3.0 image ... OK
--- Checking Docker daemon configuration ... OK
--- Checking <span class="k">for</span> available ports ... OK
--- Checking <span class="nb">type</span> of volume mount ... 
-   Using nsenter mounter <span class="k">for</span> OpenShift volumes
--- Creating host directories ... OK
--- Finding server IP ... 
-   Using 10.5.0.27 as the server IP
--- Starting OpenShift container ... 
-   Creating initial OpenShift configuration
-   Starting OpenShift using container <span class="s1">&#39;origin&#39;</span>
-   Waiting <span class="k">for</span> API server to start listening
-   OpenShift server started
--- Installing registry ... OK
--- Installing router ... OK
--- Importing image streams ... OK
--- Importing templates ... OK
--- Login to server ... OK
--- Creating initial project <span class="s2">&quot;myproject&quot;</span> ... OK
--- Server Information ... 
-   OpenShift server started.
-   The server is accessible via web console at:
-       https://10.5.0.27:8443
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/opt/openshift/client/
+$<span class="w"> </span>./oc<span class="w"> </span>cluster<span class="w"> </span>up
+--<span class="w"> </span>Checking<span class="w"> </span>OpenShift<span class="w"> </span>client<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span>Docker<span class="w"> </span>client<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span>Docker<span class="w"> </span>version<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span><span class="k">for</span><span class="w"> </span>existing<span class="w"> </span>OpenShift<span class="w"> </span>container<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span><span class="k">for</span><span class="w"> </span>openshift/origin:v1.3.0<span class="w"> </span>image<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span>Docker<span class="w"> </span>daemon<span class="w"> </span>configuration<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span><span class="k">for</span><span class="w"> </span>available<span class="w"> </span>ports<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Checking<span class="w"> </span><span class="nb">type</span><span class="w"> </span>of<span class="w"> </span>volume<span class="w"> </span>mount<span class="w"> </span>...<span class="w"> </span>
+<span class="w">   </span>Using<span class="w"> </span>nsenter<span class="w"> </span>mounter<span class="w"> </span><span class="k">for</span><span class="w"> </span>OpenShift<span class="w"> </span>volumes
+--<span class="w"> </span>Creating<span class="w"> </span>host<span class="w"> </span>directories<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Finding<span class="w"> </span>server<span class="w"> </span>IP<span class="w"> </span>...<span class="w"> </span>
+<span class="w">   </span>Using<span class="w"> </span><span class="m">10</span>.5.0.27<span class="w"> </span>as<span class="w"> </span>the<span class="w"> </span>server<span class="w"> </span>IP
+--<span class="w"> </span>Starting<span class="w"> </span>OpenShift<span class="w"> </span>container<span class="w"> </span>...<span class="w"> </span>
+<span class="w">   </span>Creating<span class="w"> </span>initial<span class="w"> </span>OpenShift<span class="w"> </span>configuration
+<span class="w">   </span>Starting<span class="w"> </span>OpenShift<span class="w"> </span>using<span class="w"> </span>container<span class="w"> </span><span class="s1">&#39;origin&#39;</span>
+<span class="w">   </span>Waiting<span class="w"> </span><span class="k">for</span><span class="w"> </span>API<span class="w"> </span>server<span class="w"> </span>to<span class="w"> </span>start<span class="w"> </span>listening
+<span class="w">   </span>OpenShift<span class="w"> </span>server<span class="w"> </span>started
+--<span class="w"> </span>Installing<span class="w"> </span>registry<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Installing<span class="w"> </span>router<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Importing<span class="w"> </span>image<span class="w"> </span>streams<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Importing<span class="w"> </span>templates<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Login<span class="w"> </span>to<span class="w"> </span>server<span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Creating<span class="w"> </span>initial<span class="w"> </span>project<span class="w"> </span><span class="s2">&quot;myproject&quot;</span><span class="w"> </span>...<span class="w"> </span>OK
+--<span class="w"> </span>Server<span class="w"> </span>Information<span class="w"> </span>...<span class="w"> </span>
+<span class="w">   </span>OpenShift<span class="w"> </span>server<span class="w"> </span>started.
+<span class="w">   </span>The<span class="w"> </span>server<span class="w"> </span>is<span class="w"> </span>accessible<span class="w"> </span>via<span class="w"> </span>web<span class="w"> </span>console<span class="w"> </span>at:
+<span class="w">       </span>https://10.5.0.27:8443
 
-   You are logged in as:
-       User:     developer
-       Password: developer
+<span class="w">   </span>You<span class="w"> </span>are<span class="w"> </span>logged<span class="w"> </span><span class="k">in</span><span class="w"> </span>as:
+<span class="w">       </span>User:<span class="w">     </span>developer
+<span class="w">       </span>Password:<span class="w"> </span>developer
 
-   To login as administrator:
-       oc login -u system:admin
-</pre></div>
-
+<span class="w">   </span>To<span class="w"> </span>login<span class="w"> </span>as<span class="w"> </span>administrator:
+<span class="w">       </span>oc<span class="w"> </span>login<span class="w"> </span>-u<span class="w"> </span>system:admin
+</code></pre></div>
 
 <p>And that was it! Now you are running an OpenShift environment. You can check
 this as follows:</p>
-<div class="highlight"><pre><span></span>$ docker ps
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>docker<span class="w"> </span>ps
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS              PORTS               NAMES
-cebba70022a6        openshift/origin-haproxy-router:v1.3.0    &quot;/usr/bin/openshift-r&quot;   16 seconds ago      Up 15 seconds                           k8s_router.9426645a_router-1-o3454_default_ba2e0814-8483-11e6-924a-fa163e29da46_e9a13a8d
-32aa5e84a04d        openshift/origin-docker-registry:v1.3.0   &quot;/bin/sh -c &#39;DOCKER_R&quot;   17 seconds ago      Up 15 seconds                           k8s_registry.f0a205a4_docker-registry-1-v57os_default_b9fc0130-8483-11e6-924a-fa163e29da46_24863324
-03ee38d125cb        openshift/origin-pod:v1.3.0               &quot;/pod&quot;                   18 seconds ago      Up 16 seconds                           k8s_POD.4a82dc9f_router-1-o3454_default_ba2e0814-8483-11e6-924a-fa163e29da46_ea6d1d08
-44d6f8d2d9d6        openshift/origin-pod:v1.3.0               &quot;/pod&quot;                   18 seconds ago      Up 16 seconds                           k8s_POD.9fa2fe82_docker-registry-1-v57os_default_b9fc0130-8483-11e6-924a-fa163e29da46_76754271
-60e7cc5f4e5d        openshift/origin-deployer:v1.3.0          &quot;/usr/bin/openshift-d&quot;   21 seconds ago      Up 19 seconds                           k8s_deployment.59c7ba3f_router-1-deploy_default_b3660c7b-8483-11e6-924a-fa163e29da46_8e02f47a
-f1fe993ddcac        openshift/origin-pod:v1.3.0               &quot;/pod&quot;                   22 seconds ago      Up 20 seconds                           k8s_POD.4a82dc9f_router-1-deploy_default_b3660c7b-8483-11e6-924a-fa163e29da46_9a38fe5e
-72068a244ac8        openshift/origin:v1.3.0                   &quot;/usr/bin/openshift s&quot;   49 seconds ago      Up 48 seconds                           origin
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="n">CONTAINER</span><span class="w"> </span><span class="n">ID</span><span class="w">        </span><span class="n">IMAGE</span><span class="w">                                     </span><span class="n">COMMAND</span><span class="w">                  </span><span class="n">CREATED</span><span class="w">             </span><span class="n">STATUS</span><span class="w">              </span><span class="n">PORTS</span><span class="w">               </span><span class="n">NAMES</span>
+<span class="n">cebba70022a6</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="n">haproxy</span><span class="o">-</span><span class="nl">router:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">    </span><span class="s">&quot;/usr/bin/openshift-r&quot;</span><span class="w">   </span><span class="mh">16</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">15</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_router</span><span class="mf">.9426645</span><span class="n">a_router</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">o3454_default_ba2e0814</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_e9a13a8d</span>
+<span class="mh">32</span><span class="n">aa5e84a04d</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="n">docker</span><span class="o">-</span><span class="nl">registry:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">   </span><span class="s">&quot;/bin/sh -c &#39;DOCKER_R&quot;</span><span class="w">   </span><span class="mh">17</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">15</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_registry</span><span class="p">.</span><span class="n">f0a205a4_docker</span><span class="o">-</span><span class="n">registry</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">v57os_default_b9fc0130</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_24863324</span>
+<span class="mh">03</span><span class="n">ee38d125cb</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="nl">pod:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">               </span><span class="s">&quot;/pod&quot;</span><span class="w">                   </span><span class="mh">18</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">16</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_POD</span><span class="mf">.4</span><span class="n">a82dc9f_router</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">o3454_default_ba2e0814</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_ea6d1d08</span>
+<span class="mh">44</span><span class="n">d6f8d2d9d6</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="nl">pod:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">               </span><span class="s">&quot;/pod&quot;</span><span class="w">                   </span><span class="mh">18</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">16</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_POD</span><span class="mf">.9f</span><span class="n">a2fe82_docker</span><span class="o">-</span><span class="n">registry</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">v57os_default_b9fc0130</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_76754271</span>
+<span class="mf">60e7</span><span class="n">cc5f4e5d</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="nl">deployer:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">          </span><span class="s">&quot;/usr/bin/openshift-d&quot;</span><span class="w">   </span><span class="mh">21</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">19</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_deployment</span><span class="mf">.59</span><span class="n">c7ba3f_router</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">deploy_default_b3660c7b</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_8e02f47a</span>
+<span class="n">f1fe993ddcac</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="n">origin</span><span class="o">-</span><span class="nl">pod:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">               </span><span class="s">&quot;/pod&quot;</span><span class="w">                   </span><span class="mh">22</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">20</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">k8s_POD</span><span class="mf">.4</span><span class="n">a82dc9f_router</span><span class="o">-</span><span class="mh">1</span><span class="o">-</span><span class="n">deploy_default_b3660c7b</span><span class="o">-</span><span class="mh">8483</span><span class="o">-</span><span class="mf">11e6</span><span class="o">-</span><span class="mh">924</span><span class="n">a</span><span class="o">-</span><span class="n">fa163e29da46_9a38fe5e</span>
+<span class="mh">72068</span><span class="n">a244ac8</span><span class="w">        </span><span class="n">openshift</span><span class="o">/</span><span class="nl">origin:</span><span class="n">v1</span><span class="mf">.3.0</span><span class="w">                   </span><span class="s">&quot;/usr/bin/openshift s&quot;</span><span class="w">   </span><span class="mh">49</span><span class="w"> </span><span class="n">seconds</span><span class="w"> </span><span class="n">ago</span><span class="w">      </span><span class="n">Up</span><span class="w"> </span><span class="mh">48</span><span class="w"> </span><span class="n">seconds</span><span class="w">                           </span><span class="n">origin</span>
+</code></pre></div>
 
 <h3>Client connection</h3>
 <p>After running the command <code>oc cluster up</code> you will be automatically logged in.
 For this it writes the login configuration in <code>~/.kube/</code>. If you want to change
 you can login using:</p>
-<div class="highlight"><pre><span></span>$ oc login
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>login
+</code></pre></div>
 
 <p>The standard user provided is <code>developer</code>.</p>
 <h3>Verify</h3>
@@ -299,51 +286,42 @@ you can login using:</p>
 changes, OpenShift will not run containers with a root-user process. For example
 an nginx container would fail with a <code>permission denied</code> error.</p>
 <p>Instead, we will for now run a simple Hello container:</p>
-<div class="highlight"><pre><span></span>$ oc run hello-openshift --image<span class="o">=</span>docker.io/openshift/hello-openshift:latest --port<span class="o">=</span><span class="m">8080</span> --expose
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>run<span class="w"> </span>hello-openshift<span class="w"> </span>--image<span class="o">=</span>docker.io/openshift/hello-openshift:latest<span class="w"> </span>--port<span class="o">=</span><span class="m">8080</span><span class="w"> </span>--expose
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>service &quot;hello-openshift&quot; created
+<div class="highlight"><pre><span></span><code>service &quot;hello-openshift&quot; created
 deploymentconfig &quot;hello-openshift&quot; created
-</pre></div>
-
+</code></pre></div>
 
 <p>This would create the container and schedule it. You can check the progress with:</p>
-<div class="highlight"><pre><span></span>$ oc get pod
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>pod
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>NAME                        READY     STATUS    RESTARTS   AGE
+<div class="highlight"><pre><span></span><code>NAME                        READY     STATUS    RESTARTS   AGE
 hello-openshift-1-xi7f0     1/1       Running   0          9m
-</pre></div>
-
+</code></pre></div>
 
 <p>You will also see a <code>-deploy</code> container. This is not needed for our verification.</p>
 <p>To check the application, we need to get the IP address that has been assigned
 to the Pod. You can do this as follows:</p>
-<div class="highlight"><pre><span></span>$ oc get pod hello-openshift-1-xi7f0 -o yaml <span class="p">|</span> grep podIP
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>hello-openshift-1-xi7f0<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>podIP
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>  podIP: 172.17.0.7
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>  podIP: 172.17.0.7
+</code></pre></div>
 
 <p>All you have to do now is open the endpoint:</p>
-<div class="highlight"><pre><span></span>$ curl 172.17.0.7:8080
-</pre></div>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span><span class="m">172</span>.17.0.7:8080
+</code></pre></div>
 
-
-<div class="highlight"><pre><span></span>Hello OpenShift!
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>Hello OpenShift!
+</code></pre></div>
 
 <p>And that is it, you have a working OpenShift test cluster.</p>
 <h3>Teardown</h3>
 <p>If you are down with this, you simply do a:</p>
-<div class="highlight"><pre><span></span>$ oc cluster down
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>cluster<span class="w"> </span>down
+</code></pre></div>
 
 <p>and all the containers used in the deployment will be torn down.</p>
 <h2>Conclusion</h2>
@@ -364,36 +342,6 @@ information below.</p>
 </ul>
             </div>
             <!-- /.entry-content -->
-    <hr/>
-    <section class="comments" id="comments">
-        <h2>Comments</h2>
-
-        <div id="disqus_thread"></div>
-        <script type="text/javascript">
-            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-            var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
-
-                    var disqus_identifier = 'deploy-an-openshift-test-cluster';
-                var disqus_url = 'http://gbraad.nl/blog/deploy-an-openshift-test-cluster.html';
-
-            var disqus_config = function () {
-                this.language = "en";
-            };
-
-            /* * * DON'T EDIT BELOW THIS LINE * * */
-            (function () {
-                var dsq = document.createElement('script');
-                dsq.type = 'text/javascript';
-                dsq.async = true;
-                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-            })();
-        </script>
-        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
-            Disqus.</a></noscript>
-        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-
-    </section>
         </article>
     </section>
 
@@ -426,29 +374,14 @@ information below.</p>
       </div>
    </div>
 </footer>
-<script src="http://gbraad.nl/blog/theme/js/jquery.min.js"></script>
+<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
 
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="http://gbraad.nl/blog/theme/js/bootstrap.min.js"></script>
+<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
 
 <!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="http://gbraad.nl/blog/theme/js/respond.min.js"></script>
+<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
-    <!-- Disqus -->
-    <script type="text/javascript">
-        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-        var disqus_shortname = 'gbraad-blog'; // required: replace example with your forum shortname
-
-        /* * * DON'T EDIT BELOW THIS LINE * * */
-        (function () {
-            var s = document.createElement('script');
-            s.async = true;
-            s.type = 'text/javascript';
-            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
-            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-        }());
-    </script>
-    <!-- End Disqus Code -->
     <!-- Google Analytics -->
     <script type="text/javascript">
 
