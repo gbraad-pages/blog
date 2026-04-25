@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Flatpak; the road to CI/CD for desktop applications? - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-<link rel="canonical" href="https://blog.gbraad.nl/flatpak-the-road-to-cicd-for-desktop-applications.html">
+    <title>Flatpak; the road to CI/CD for desktop applications? - Gerard Braad's blog</title>
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="flatpak,ostree,gnome" />
         <meta name="description" content="In this presentation I will introduce Flatpak and how it changes the software distribution model for Linux. In short it will explain the negatives of using packages, how Flatpak solves this, and how to create your own applications and distribute them for use with Flatpak. This presentation was given at …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/flatpak-the-road-to-cicd-for-desktop-applications.html">
 
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="article"/>
@@ -28,13 +24,10 @@
             <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
@@ -43,97 +36,37 @@
 
         <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog CI / CD ATOM Feed"/>
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li class="active">
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-    <section id="content">
-        <article>
-            <header class="page-header">
-                <h1>
-                    <a href="https://blog.gbraad.nl/flatpak-the-road-to-cicd-for-desktop-applications.html"
-                       rel="bookmark"
-                       title="Permalink to Flatpak; the road to CI/CD for desktop applications?">
-                        Flatpak; the road to CI/CD for desktop applications?
-                    </a>
-                </h1>
-            </header>
-            <div class="entry-content">
-                <div class="panel">
-                    <div class="panel-body">
-<footer class="post-info">
-    <span class="label label-default">Date</span>
-    <span class="published">
-        <i class="fa fa-calendar"></i><time datetime="2016-10-22T00:00:00+08:00"> Sat 22 October 2016</time>
-    </span>
-
-
-
-
-
-<span class="label label-default">Tags</span>
-	<a href="https://blog.gbraad.nl/tag/flatpak.html">flatpak</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/ostree.html">ostree</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/gnome.html">gnome</a>
-    
-</footer><!-- /.post-info -->                    </div>
-                </div>
-                <p>In this presentation I will introduce Flatpak and how it changes the software
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Flatpak; the road to CI/CD for desktop applications?</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Sat 22 October 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/flatpak.html" class="tag">flatpak</a>
+                        <a href="https://blog.gbraad.nl/tag/ostree.html" class="tag">ostree</a>
+                        <a href="https://blog.gbraad.nl/tag/gnome.html" class="tag">gnome</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>In this presentation I will introduce Flatpak and how it changes the software
 distribution model for Linux. In short it will explain the negatives of using
 packages, how Flatpak solves this, and how to create your own applications and
 distribute them for use with Flatpak. This presentation was given at the <a href="//www.bjgug.org/events/gnome-3-22-party/">GNOME
@@ -148,47 +81,21 @@ Beijing GNOME User Group.</p>
 <p>If you have any suggestion, please discuss below or send me an email.</p>
 <p>Note: the original presentation can be found at: <a href="https://gitlab.com/gbraad/presentation-bjgug-flatpak">GitLab: BJGUG Flatpak</a>.
 This is based on an earlier presentation about <a href="/blog/software-distribution-for-a-new-era.html">Software Dsitribution for a new era</a></p>
-            </div>
-            <!-- /.entry-content -->
-        </article>
-    </section>
-
         </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
-
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
-    </div>
+    </article>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -207,6 +114,5 @@ This is based on an earlier presentation about <a href="/blog/software-distribut
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>

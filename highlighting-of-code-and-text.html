@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Highlighting of Code and Text - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-<link rel="canonical" href="https://blog.gbraad.nl/highlighting-of-code-and-text.html">
+    <title>Highlighting of Code and Text - Gerard Braad's blog</title>
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="highlighting,code,language" />
         <meta name="description" content="Code is read more often than it is written. Nothing is truer than this statement. This means that when writing code it is important to have a good idea of what you are doing. Write clean code, which is simple or easy to reason about. Since if you can&#39;t explain …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/highlighting-of-code-and-text.html">
 
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="article"/>
@@ -28,13 +24,10 @@
             <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
@@ -43,97 +36,37 @@
 
         <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog Misc ATOM Feed"/>
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li class="active">
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-    <section id="content">
-        <article>
-            <header class="page-header">
-                <h1>
-                    <a href="https://blog.gbraad.nl/highlighting-of-code-and-text.html"
-                       rel="bookmark"
-                       title="Permalink to Highlighting of Code and Text">
-                        Highlighting of Code and Text
-                    </a>
-                </h1>
-            </header>
-            <div class="entry-content">
-                <div class="panel">
-                    <div class="panel-body">
-<footer class="post-info">
-    <span class="label label-default">Date</span>
-    <span class="published">
-        <i class="fa fa-calendar"></i><time datetime="2016-09-09T00:00:00+08:00"> Fri 09 September 2016</time>
-    </span>
-
-
-
-
-
-<span class="label label-default">Tags</span>
-	<a href="https://blog.gbraad.nl/tag/highlighting.html">highlighting</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/code.html">code</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/language.html">language</a>
-    
-</footer><!-- /.post-info -->                    </div>
-                </div>
-                <p>Code is read more often than it is written. Nothing is truer than this statement. This means that when writing code it is important to have a good idea of what you are doing. Write clean code, which is simple or easy to reason about. Since if you can't explain it, how could others even understand it well. Syntax highlighting of code can help. With this, certain keywords or structure get emphasized by using a color. I do not think it is an ideal solution, but subconsciously it seems I focus more on the code. Likely, the colors themselves are pleasing to look at.</p>
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Highlighting of Code and Text</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Fri 09 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/highlighting.html" class="tag">highlighting</a>
+                        <a href="https://blog.gbraad.nl/tag/code.html" class="tag">code</a>
+                        <a href="https://blog.gbraad.nl/tag/language.html" class="tag">language</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>Code is read more often than it is written. Nothing is truer than this statement. This means that when writing code it is important to have a good idea of what you are doing. Write clean code, which is simple or easy to reason about. Since if you can't explain it, how could others even understand it well. Syntax highlighting of code can help. With this, certain keywords or structure get emphasized by using a color. I do not think it is an ideal solution, but subconsciously it seems I focus more on the code. Likely, the colors themselves are pleasing to look at.</p>
 <h2>Pleasant to the eyes</h2>
 <p>Perhaps because of this last, I tend to always implement or set the <a href="https://github.com/chriskempson/tomorrow-theme">Tomorrow Theme</a> for my color scheme, and specifically the <a href="https://github.com/chriskempson/tomorrow-theme#tomorrow-night-bright">Night Bright</a> variant. Below you can find an example, as I also enabled it on my blog by implementing a Pygments style.</p>
 <h2>Example</h2>
@@ -200,47 +133,21 @@ Huānyíng nǐ yòu huíjiā le!
 <p><img alt="" src="http://cdn.gbraad.nl/images/blog/chinese-tone-highlighting.png"></p>
 <h2>Conclusion</h2>
 <p>Highlighting can serve different purposes. I can not recall that highlighting actually helped me to write clean or correct code, or that it even prevented me from making a mistake or typo. However, it can certainly provide a plesant feeling, in which you can 'feel good' about your code in another way. For languages, such as English and Chinese, it can assist with the learning process.</p>
-            </div>
-            <!-- /.entry-content -->
-        </article>
-    </section>
-
         </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
-
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
-    </div>
+    </article>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -259,6 +166,5 @@ Huānyíng nǐ yòu huíjiā le!
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>

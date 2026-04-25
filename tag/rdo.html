@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>rdo - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
+    <title>rdo - Gerard Braad's blog</title>
 
     <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
     <meta name="keywords" content="rdo" />
 
-    <!-- Open Graph tags -->
+
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="website"/>
         <meta property="og:title" content="Gerard Braad's blog"/>
@@ -21,137 +16,91 @@
         <meta property="og:description" content="Gerard Braad's blog"/>
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
 
 
 
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-            <article>
-                <h2><a href="https://blog.gbraad.nl/deploying-openstack-using-tripleo.html">Deploying OpenStack using TripleO</a></h2>
-                <div class="summary"><p>In this article we will deploy an OpenStack environment using TripleO using
+    <div class="blog-list">
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/deploying-openstack-using-tripleo.html">Deploying OpenStack using TripleO</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Wed 18 May 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
+                    </div>
+                    <div class="blog-post-summary"><p>In this article we will deploy an OpenStack environment using TripleO using
 the <code>tripleo-quickstart</code> scripts. It will create a virtualized environment
 which consists of 1 Undercloud node and in total 9 nodes in the Overcloud;
 3 controller nodes (High Availability), 3 compute nodes and 3 Ceph storage
 nodes.</p>
-<h2>What is …</h2>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/deploying-openstack-using-tripleo.html">more ...</a>
+<h2>What is …</h2></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/openstack.html" class="tag">openstack</a>
+                                <a href="https://blog.gbraad.nl/tag/tripleo.html" class="tag">tripleo</a>
+                                <a href="https://blog.gbraad.nl/tag/rdo.html" class="tag">rdo</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://blog.gbraad.nl/building-a-multi-tier-application-using-openstack-packstack.html">Building a multi-tier application using OpenStack (PackStack)</a></h2>
-                <div class="summary"><p>This is a publication of an article/training class I gave related to setting up
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/building-a-multi-tier-application-using-openstack-packstack.html">Building a multi-tier application using OpenStack (PackStack)</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Sat 05 March 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
+                    </div>
+                    <div class="blog-post-summary"><p>This is a publication of an article/training class I gave related to setting up
 an environment using OpenStack, to host a multi-tier applicatiom.</p>
 <h2>Introduction</h2>
 <p>In this hands-on-labs you will learn how to set-up an OpenStack environment to
 host a multi-tier application; front-end, back-end and the related network
-settings to …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/building-a-multi-tier-application-using-openstack-packstack.html">more ...</a>
+settings to …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/openstack.html" class="tag">openstack</a>
+                                <a href="https://blog.gbraad.nl/tag/packstack.html" class="tag">packstack</a>
+                                <a href="https://blog.gbraad.nl/tag/neutron.html" class="tag">neutron</a>
+                                <a href="https://blog.gbraad.nl/tag/rdo.html" class="tag">rdo</a>
+                                <a href="https://blog.gbraad.nl/tag/high-availability.html" class="tag">high availability</a>
+                                <a href="https://blog.gbraad.nl/tag/web.html" class="tag">web</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-
-        </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
-
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
     </div>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -170,6 +119,5 @@ settings to …</p>
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>

@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Object Design - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-<link rel="canonical" href="https://blog.gbraad.nl/object-design.html">
+    <title>Object Design - Gerard Braad's blog</title>
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="review,summary,books,recommended" />
         <meta name="description" content="One of the books I got recommended early in my career was Object Design: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/object-design.html">
 
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="article"/>
@@ -29,13 +25,10 @@
             <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
@@ -44,145 +37,58 @@
 
         <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog Books ATOM Feed"/>
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li class="active">
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-    <section id="content">
-        <article>
-            <header class="page-header">
-                <h1>
-                    <a href="https://blog.gbraad.nl/object-design.html"
-                       rel="bookmark"
-                       title="Permalink to Object Design">
-                        Object Design
-                    </a>
-                </h1>
-            </header>
-            <div class="entry-content">
-                <div class="panel">
-                    <div class="panel-body">
-<footer class="post-info">
-    <span class="label label-default">Date</span>
-    <span class="published">
-        <i class="fa fa-calendar"></i><time datetime="2016-09-23T00:00:00+08:00"> Fri 23 September 2016</time>
-    </span>
-
-
-
-
-
-<span class="label label-default">Tags</span>
-	<a href="https://blog.gbraad.nl/tag/review.html">review</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/summary.html">summary</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/books.html">books</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/recommended.html">recommended</a>
-    
-</footer><!-- /.post-info -->                    </div>
-                </div>
-                <p>One of the books I got recommended early in my career was <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">Object Design</a>: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly up for this issue. This write-up is based on reading this book many years ago, so bear with me if things are not completely in line with the book. Although, the knowledge in this book certainly has contributed to this point-of-view. I currently own a copy of this book as reference in a digital format. </p>
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Object Design</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Fri 23 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/books.html">Books</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/review.html" class="tag">review</a>
+                        <a href="https://blog.gbraad.nl/tag/summary.html" class="tag">summary</a>
+                        <a href="https://blog.gbraad.nl/tag/books.html" class="tag">books</a>
+                        <a href="https://blog.gbraad.nl/tag/recommended.html" class="tag">recommended</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>One of the books I got recommended early in my career was <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">Object Design</a>: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly up for this issue. This write-up is based on reading this book many years ago, so bear with me if things are not completely in line with the book. Although, the knowledge in this book certainly has contributed to this point-of-view. I currently own a copy of this book as reference in a digital format. </p>
 <p><img alt="Object Design" src="https://d2arxad8u2l0g7.cloudfront.net/books/1372040740l/179204.jpg"></p>
 <p>The author, Rebecca Wirfs-Brock, is a software engineer and consultant in Object-Oriented Design, and as the title suggests the book details about the design of your object model and how it interacts with other objects. </p>
 <p>One of the things you will learn when creating software, is that design of the  interactions and relations between objects and classes probably is one of the most important and hardest things. Luckily, software design and development is an evolutionary process. You will not get it right he first time and you also shouldn't aim for this. What can be modeled today as a variable on an object today, might become a class itself in the future. If you would design this from day one, you probably over-design the software and implement functionality that might never be needed.</p>
 <p>What I learned from this book is how this interaction and collaboration between objects happen. Where do I keep the state? who can make a change? If the object can encapsulate it, this is probably where it should live. Ask yourself, why would another object need to know about the information, and whose responsibility is it? The book details as far as I remember CRC-cards (Class Reponsibility Rollaboration) and shows a method to get this clear. In my work I have never created the actual cards, but the concept behind it is very valuable. Get this book and browse through it, keep a copy as a reference. It is well worth it.</p>
 <p>More information about this book can be found in my Knowledge Base <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">entry</a>.</p>
-            </div>
-            <!-- /.entry-content -->
-        </article>
-    </section>
-
         </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
-
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
-    </div>
+    </article>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -201,6 +107,5 @@ Gerard Braad's blog            </a>
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>

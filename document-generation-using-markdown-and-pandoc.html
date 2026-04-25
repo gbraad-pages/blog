@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>Document generation using Markdown and Pandoc - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-<link rel="canonical" href="https://blog.gbraad.nl/document-generation-using-markdown-and-pandoc.html">
+    <title>Document generation using Markdown and Pandoc - Gerard Braad's blog</title>
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="markdown,documentation,pandoc,docker" />
         <meta name="description" content="Maintaining documentation can be an involved process, especially when different versions and output formats are needed. One of the documents I, and probably you also, have to maintain is your work history or resume/CV. Some while back I changed this document from an OpenOffice document to plain text and …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/document-generation-using-markdown-and-pandoc.html">
 
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="article"/>
@@ -29,13 +25,10 @@
             <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
@@ -44,99 +37,38 @@
 
         <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog CI / CD ATOM Feed"/>
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li class="active">
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-    <section id="content">
-        <article>
-            <header class="page-header">
-                <h1>
-                    <a href="https://blog.gbraad.nl/document-generation-using-markdown-and-pandoc.html"
-                       rel="bookmark"
-                       title="Permalink to Document generation using Markdown and Pandoc">
-                        Document generation using Markdown and Pandoc
-                    </a>
-                </h1>
-            </header>
-            <div class="entry-content">
-                <div class="panel">
-                    <div class="panel-body">
-<footer class="post-info">
-    <span class="label label-default">Date</span>
-    <span class="published">
-        <i class="fa fa-calendar"></i><time datetime="2016-09-13T00:00:00+08:00"> Tue 13 September 2016</time>
-    </span>
-
-
-
-
-
-<span class="label label-default">Tags</span>
-	<a href="https://blog.gbraad.nl/tag/markdown.html">markdown</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/documentation.html">documentation</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/pandoc.html">pandoc</a>
-        /
-	<a href="https://blog.gbraad.nl/tag/docker.html">docker</a>
-    
-</footer><!-- /.post-info -->                    </div>
-                </div>
-                <p>Maintaining documentation can be an involved process,  especially when different versions and output formats are needed. One of the documents I, and probably you also, have to maintain is your work history or resume/CV. Some while back I changed this document from an OpenOffice document to plain text and ever since, this workflow has influenced how I deal with other documentation.</p>
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Document generation using Markdown and Pandoc</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Tue 13 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/markdown.html" class="tag">markdown</a>
+                        <a href="https://blog.gbraad.nl/tag/documentation.html" class="tag">documentation</a>
+                        <a href="https://blog.gbraad.nl/tag/pandoc.html" class="tag">pandoc</a>
+                        <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>Maintaining documentation can be an involved process,  especially when different versions and output formats are needed. One of the documents I, and probably you also, have to maintain is your work history or resume/CV. Some while back I changed this document from an OpenOffice document to plain text and ever since, this workflow has influenced how I deal with other documentation.</p>
 <h2>Requirement and timeline</h2>
 <p>If I remember correctly the original version of my resume was written in Microsoft Word. As you can imagine, this limits the usage to Windows as the platform. Small corrections became unnecessarily difficult and painful. Of course I could use CrossOver Office or Wine and install Office 2003. But, this is never a long-term solution. So, I moved to OpenOffice as the <code>.odt</code> format looked promising. It was easy to use to generate the needed PDF output, but still... the workflow was far from ideal.</p>
 <p>I wanted a workflow in which I can use just plaintext, which could be converted into the final format. Text is easy to index and to story under version management. This lead me to using XML directly and the use of FO (Formatting Objects), and Apache FOP. This was painful, but the results were decent to even very acceptable. It allowed me to describe elements with metadata, such as 'suffix', 'employment-type', etc. And all could be validated and transformed using XSLT. Although the conclusion was that the workflow was slow as there was no preview and transforming just took long. Also, describing elements was not useful as no-one would use the source material directly. Most recruiter use analysis tools that rely on extracting keywords and generate  a profile based on this information. This can lead to incorrect results, but since they analyse hundreds of resumes this seems one of the best methods, besides being introduced by a reference.</p>
@@ -278,47 +210,21 @@ $<span class="w"> </span>pandoc<span class="w"> </span>-o<span class="w"> </span
 <h2>Endnotes</h2>
 <p>I looked for some of the older formats and output, but was unable to track them down. I do remember my businesscard was used as a reference for '<a href="http://microformats.org/wiki/selected-test-cases-from-the-web">microformats</a>'. And someone tried to introduce an XML standard for resume, called xmlresume if I recall correctly. From experience I could conclude this would not work; no applicant will provide XML and converting it in a tool seems pointless.</p>
 <p>At the moment I am still looking for a nice tool on Android to edit the documents. I use <a href="https://github.com/sheimi/SGit">SGit</a> with <a href="http://writeily.me/">Writeily Pro</a>, but I am a little disappointed in both tools. Opening a file for viewing in sgit will modify the file, and it does not deal well with resetting this. And Writeily Pro becomes slow over time when editing a file. Closing it and re-opening solves this, but it breaks the writing streak. Sometimes I rather use <a href="http://www.droidedit.com/">DroidEdit</a>, as it is just a text editor and does not suffer from this issue. Tools on the iPad, like <a href="http://daedalusapp.com/">Daedalus Touch</a> and <a href="https://textasticapp.com/">Textastic</a> feel more productive. Suggestions are welcome...</p>
-            </div>
-            <!-- /.entry-content -->
-        </article>
-    </section>
-
         </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
-
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
-    </div>
+    </article>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -337,6 +243,5 @@ $<span class="w"> </span>pandoc<span class="w"> </span>-o<span class="w"> </span
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>

@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-    <title>containers - Gerard Braad's blog</title>
-    <!-- Using the latest rendering mode for IE -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
+    <title>containers - Gerard Braad's blog</title>
 
     <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
     <meta name="keywords" content="containers" />
 
-    <!-- Open Graph tags -->
+
         <meta property="og:site_name" content="Gerard Braad's blog" />
         <meta property="og:type" content="website"/>
         <meta property="og:title" content="Gerard Braad's blog"/>
@@ -21,172 +16,153 @@
         <meta property="og:description" content="Gerard Braad's blog"/>
 
 
-    <!-- Bootstrap -->
-	<link href="//cdn.gbraad.nl/css/bootstrap.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/font-awesome.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/animations.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/style.css" rel="stylesheet">
-	<link href="//cdn.gbraad.nl/css/custom.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
 
         <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="Gerard Braad's blog ATOM Feed"/>
 
 
 
-
 </head>
 <body>
 
-<div class="navbar navbar-default" role="navigation">
-	<div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a href="https://blog.gbraad.nl/" class="navbar-brand">
-Gerard Braad's blog            </a>
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-            <ul class="nav navbar-nav">
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/about-me.html">About me</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/books.html">Books</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/ci-cd.html">CI / CD</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/javascript.html">JavaScript</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                        </li>
-                        <li >
-                            <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
-                        </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-            </ul>
-        </div>
-        <!-- /.navbar-collapse -->
     </div>
-</div> <!-- /.navbar -->
-<!-- Banner -->
-<!-- End Banner -->
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
 <div class="container">
-    <div class="row">
-        <div class="col-sm-9">
-            <article>
-                <h2><a href="https://blog.gbraad.nl/presentation-atomic-fudcon-phnom-penh.html">Presentation: Atomic, FUDCon Phnom Penh</a></h2>
-                <div class="summary"><p>This is the presentation as given at the FUDCon Phnom Penh. In short it explains
+    <div class="blog-list">
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/presentation-atomic-fudcon-phnom-penh.html">Presentation: Atomic, FUDCon Phnom Penh</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Tue 08 November 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    </div>
+                    <div class="blog-post-summary"><p>This is the presentation as given at the FUDCon Phnom Penh. In short it explains
 what Project Atomic is, how to use Atomic Host, and some advanced use-cases;
 deployment of a composed application, and customization of the Atomic images.
-The presentation relied heavily on showing usage in the form of …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/presentation-atomic-fudcon-phnom-penh.html">more ...</a>
+The presentation relied heavily on showing usage in the form of …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/atomic.html" class="tag">atomic</a>
+                                <a href="https://blog.gbraad.nl/tag/ostree.html" class="tag">ostree</a>
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://blog.gbraad.nl/setup-openstack-keystone-for-testing-purposes.html">Setup OpenStack Keystone for testing purposes</a></h2>
-                <div class="summary"><p>OpenStack can be seen as a set of projects which combined into a configuration
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/setup-openstack-keystone-for-testing-purposes.html">Setup OpenStack Keystone for testing purposes</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Thu 27 October 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
+                    </div>
+                    <div class="blog-post-summary"><p>OpenStack can be seen as a set of projects which combined into a configuration
 can deliver a management solution for different use-cases. However, several of
 these projects can also exist on their own to provide a certain functionality,
-such as Keystone, Ironic, etc. Some of these I will describe in …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/setup-openstack-keystone-for-testing-purposes.html">more ...</a>
+such as Keystone, Ironic, etc. Some of these I will describe in …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/openstack.html" class="tag">openstack</a>
+                                <a href="https://blog.gbraad.nl/tag/keystone.html" class="tag">keystone</a>
+                                <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                                <a href="https://blog.gbraad.nl/tag/authentication.html" class="tag">authentication</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://blog.gbraad.nl/run-an-example-application-on-openshift.html">Run an example application on OpenShift</a></h2>
-                <div class="summary"><p>In a <a href="./deploy-an-openshift-test-cluster.html" title="Deploy an OpenShift test cluster">previous article</a> I have written
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/run-an-example-application-on-openshift.html">Run an example application on OpenShift</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Thu 29 September 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    </div>
+                    <div class="blog-post-summary"><p>In a <a href="./deploy-an-openshift-test-cluster.html" title="Deploy an OpenShift test cluster">previous article</a> I have written
 on how easy it is to stand up a test environment of OpenShift. In this article
 I will describe an example application from the sourcecode to the created image
-and how this gets deployed. The steps are explained using manual steps, and how …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/run-an-example-application-on-openshift.html">more ...</a>
+and how this gets deployed. The steps are explained using manual steps, and how …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                                <a href="https://blog.gbraad.nl/tag/openshift.html" class="tag">openshift</a>
+                                <a href="https://blog.gbraad.nl/tag/example.html" class="tag">example</a>
+                                <a href="https://blog.gbraad.nl/tag/ruby.html" class="tag">ruby</a>
+                                <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                                <a href="https://blog.gbraad.nl/tag/devops.html" class="tag">devops</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://blog.gbraad.nl/setup-docker-storage-to-use-lvm-thin-pool.html">Setup Docker storage to use LVM thin pool</a></h2>
-                <div class="summary"><p>If you install Docker on a new Fedora or CentOS system, it is very likely that
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/setup-docker-storage-to-use-lvm-thin-pool.html">Setup Docker storage to use LVM thin pool</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Wed 28 September 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">containers</a>
+                    </div>
+                    <div class="blog-post-summary"><p>If you install Docker on a new Fedora or CentOS system, it is very likely that
 you use devicemapper. Especially in the case of Fedora cloud images, no special
 configuration is done to the image. While Atomic images come pre-configured with
-a dedicated pool. Using devicemapper with loopback can lead …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/setup-docker-storage-to-use-lvm-thin-pool.html">more ...</a>
+a dedicated pool. Using devicemapper with loopback can lead …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                                <a href="https://blog.gbraad.nl/tag/atomic.html" class="tag">atomic</a>
+                                <a href="https://blog.gbraad.nl/tag/storage.html" class="tag">storage</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
-            <article>
-                <h2><a href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html">Deploy an OpenShift test cluster</a></h2>
-                <div class="summary"><p>In my previous article I described how I used an Ansible playbook and a few roles
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html">Deploy an OpenShift test cluster</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Tue 27 September 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    </div>
+                    <div class="blog-post-summary"><p>In my previous article I described how I used an Ansible playbook and a few roles
 to stand-up a Kubernetes test environment. In that article I mentioned that to
 deploy a production-ready environment some work more was required. Luckily, it
-is now very easy to stand up a production and …</p>
-                    <a class="btn btn-default btn-xs" href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html">more ...</a>
+is now very easy to stand up a production and …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/openshift.html" class="tag">openshift</a>
+                                <a href="https://blog.gbraad.nl/tag/kubernetes.html" class="tag">kubernetes</a>
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                                <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                        </div>
                 </div>
-            </article>
-            <hr/>
+    </div>
+    <div class="pagination">
+            <span>&larr; Newer</span>
 
-        <ul class="pagination">
-                <li class="prev disabled"><a href="#">&laquo;</a></li>
-                    <li class="active"><a
-                            href="https://blog.gbraad.nl/tag/containers.html">1</a></li>
-                    <li class=""><a
-                            href="https://blog.gbraad.nl/tag/containers2.html">2</a></li>
-                <li class="next"><a
-                        href="https://blog.gbraad.nl/tag/containers2.html">&raquo;</a></li>
-        </ul>
-        </div>
-        <div class="col-sm-3" id="sidebar">
-            <aside>
+                <span class="current">1</span>
+                <a href="https://blog.gbraad.nl/tag/containers2.html">2</a>
 
-<section class="well well-sm">
-    <ul class="list-group list-group-flush">
-
-
-
-
-
-    </ul>
-</section>
-            </aside>
-        </div>
+            <a href="https://blog.gbraad.nl/tag/containers2.html">Older &rarr;</a>
     </div>
 </div>
+
 <footer>
-   <div class="container">
-      <hr>
-      <div class="row">
-         <div class="col-xs-10">&copy; 2016 Gerard Braad <me@gbraad.nl>
-            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
-            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
-            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
-         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
-      </div>
-   </div>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+    </div>
 </footer>
-<script src="https://blog.gbraad.nl/theme/js/jquery.min.js"></script>
-
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="https://blog.gbraad.nl/theme/js/bootstrap.min.js"></script>
-
-<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.gbraad.nl/theme/js/respond.min.js"></script>
 
     <!-- Google Analytics -->
     <script type="text/javascript">
@@ -205,6 +181,5 @@ is now very easy to stand up a production and …</p>
         })();
     </script>
     <!-- End Google Analytics Code -->
-
 </body>
 </html>
