@@ -6,7 +6,7 @@ AUTHOR = u'Gerard Braad <me@gbraad.nl>'
 SITENAME = u"Gerard Braad's blog"
 SITEURL = ''
 
-PATH = 'content'
+PATH = 'content/done'
 
 TIMEZONE = 'Asia/Shanghai'
 
