@@ -1,0 +1,14 @@
+{
+    "name": "Pelican blog environment",
+    "build": {
+        "dockerfile": "Containerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "bierner.markdown-mermaid"
+            ]
+        }
+    }
+}
