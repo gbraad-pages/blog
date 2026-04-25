@@ -23,7 +23,7 @@ rm -rf output/*
 
 # Generate the site
 echo "Generating site..."
-pelican content -s pelicanconf.py
+pelican content/done -s pelicanconf.py
 
 # Copy shared theme CSS to output
 echo "Copying shared theme..."

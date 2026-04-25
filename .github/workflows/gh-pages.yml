@@ -16,9 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: use content as checkout
+      - name: use checkout for build
         run: |
           rm -f content
+          rm -f themes/gbraad
 
       - uses: actions/checkout@v6
         with:
