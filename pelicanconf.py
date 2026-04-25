@@ -30,14 +30,15 @@ DEFAULT_PAGINATION = 5
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
 
-THEME = u'gbraad'
+THEME = u'themes/gbraad'
 
 PLUGIN_PATHS = ['plugins']
-PLUGINS = [u"disqus_static"]
+PLUGINS = []
+#PLUGINS = [u"disqus_static"]
 
 # Disqus
-DISQUS_SITENAME = u'gbraad-blog'
-DISQUS_PUBLIC_KEY = os.environ['DISQUS_PUBLIC_KEY']
-DISQUS_SECRET_KEY = os.environ['DISQUS_SECRET_KEY']
+#DISQUS_SITENAME = u'gbraad-blog'
+#DISQUS_PUBLIC_KEY = os.environ['DISQUS_PUBLIC_KEY']
+#DISQUS_SECRET_KEY = os.environ['DISQUS_SECRET_KEY']
 
 PYGMENTS_STYLE = u'tomorrownightbright'
