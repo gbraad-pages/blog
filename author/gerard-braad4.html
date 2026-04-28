@@ -15,7 +15,9 @@
         <meta property="og:description" content="Gerard Braad's blog"/>
 
 
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
     <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
@@ -43,6 +45,25 @@
 
 <div class="container">
     <div class="blog-list">
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/highly-available-storage-using-glusterfs.html">Highly Available storage using GlusterFS</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Mon 12 September 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
+                    </div>
+                    <div class="blog-post-summary"><p>In this article I will describe how you can setup a webserver environment with
+Highly Available (HA) storage, provided by GlusterFS. We will be setting up a
+simple environment in which storage between two webservers needs to be replicated.</p>
+<p>GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/gluster.html" class="tag">gluster</a>
+                                <a href="https://blog.gbraad.nl/tag/high-availability.html" class="tag">high availability</a>
+                                <a href="https://blog.gbraad.nl/tag/web.html" class="tag">web</a>
+                                <a href="https://blog.gbraad.nl/tag/storage.html" class="tag">storage</a>
+                        </div>
+                </div>
                 <div class="blog-post-card">
                     <div class="blog-post-title">
                         <a href="https://blog.gbraad.nl/highlighting-of-code-and-text.html">Highlighting of Code and Text</a>
@@ -105,21 +126,6 @@
                                 <a href="https://blog.gbraad.nl/tag/fedora.html" class="tag">fedora</a>
                         </div>
                 </div>
-                <div class="blog-post-card">
-                    <div class="blog-post-title">
-                        <a href="https://blog.gbraad.nl/hello-internet.html">Hello, Internet!</a>
-                    </div>
-                    <div class="blog-post-meta">
-                        <i class="fa fa-calendar"></i> Mon 08 August 2016
-                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/misc.html">Misc</a>
-                    </div>
-                    <div class="blog-post-summary"><p>Today I decided to pick up blogging again and asked the question; what to use? I had a simple requirement; 'it has to support Markdown-formatted documents'. The reasoning behind this is simple; I want to be able to use <code>Pandoc</code> to generate other kinds of output if needed. Plus GitBook …</p></div>
-                        <div class="tag-list" style="margin-top: 15px;">
-                                <a href="https://blog.gbraad.nl/tag/blog.html" class="tag">blog</a>
-                                <a href="https://blog.gbraad.nl/tag/pelican.html" class="tag">pelican</a>
-                                <a href="https://blog.gbraad.nl/tag/markdown.html" class="tag">markdown</a>
-                        </div>
-                </div>
     </div>
     <div class="pagination">
             <a href="https://blog.gbraad.nl/author/gerard-braad3.html">&larr; Newer</a>
@@ -129,6 +135,7 @@
                 <a href="https://blog.gbraad.nl/author/gerard-braad3.html">3</a>
                 <span class="current">4</span>
                 <a href="https://blog.gbraad.nl/author/gerard-braad5.html">5</a>
+                <a href="https://blog.gbraad.nl/author/gerard-braad6.html">6</a>
 
             <a href="https://blog.gbraad.nl/author/gerard-braad5.html">Older &rarr;</a>
     </div>
@@ -142,7 +149,7 @@
             <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
             <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
         </ul>
-        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
     </div>
 </footer>
 

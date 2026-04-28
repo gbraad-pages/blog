@@ -15,7 +15,9 @@
         <meta property="og:description" content="Gerard Braad's blog"/>
 
 
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
     <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
@@ -43,6 +45,25 @@
 
 <div class="container">
     <div class="blog-list">
+                <div class="blog-post-card">
+                    <div class="blog-post-title">
+                        <a href="https://blog.gbraad.nl/deploy-an-openshift-test-cluster.html">Deploy an OpenShift test cluster</a>
+                    </div>
+                    <div class="blog-post-meta">
+                        <i class="fa fa-calendar"></i> Tue 27 September 2016
+                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    </div>
+                    <div class="blog-post-summary"><p>In my previous article I described how I used an Ansible playbook and a few roles
+to stand-up a Kubernetes test environment. In that article I mentioned that to
+deploy a production-ready environment some work more was required. Luckily, it
+is now very easy to stand up a production and …</p></div>
+                        <div class="tag-list" style="margin-top: 15px;">
+                                <a href="https://blog.gbraad.nl/tag/openshift.html" class="tag">openshift</a>
+                                <a href="https://blog.gbraad.nl/tag/kubernetes.html" class="tag">kubernetes</a>
+                                <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                                <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                        </div>
+                </div>
                 <div class="blog-post-card">
                     <div class="blog-post-title">
                         <a href="https://blog.gbraad.nl/deploying-kubernetes-using-ansible.html">Deploying Kubernetes using Ansible</a>
@@ -112,25 +133,6 @@
                                 <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
                         </div>
                 </div>
-                <div class="blog-post-card">
-                    <div class="blog-post-title">
-                        <a href="https://blog.gbraad.nl/highly-available-storage-using-glusterfs.html">Highly Available storage using GlusterFS</a>
-                    </div>
-                    <div class="blog-post-meta">
-                        <i class="fa fa-calendar"></i> Mon 12 September 2016
-                            &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
-                    </div>
-                    <div class="blog-post-summary"><p>In this article I will describe how you can setup a webserver environment with
-Highly Available (HA) storage, provided by GlusterFS. We will be setting up a
-simple environment in which storage between two webservers needs to be replicated.</p>
-<p>GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It …</p></div>
-                        <div class="tag-list" style="margin-top: 15px;">
-                                <a href="https://blog.gbraad.nl/tag/gluster.html" class="tag">gluster</a>
-                                <a href="https://blog.gbraad.nl/tag/high-availability.html" class="tag">high availability</a>
-                                <a href="https://blog.gbraad.nl/tag/web.html" class="tag">web</a>
-                                <a href="https://blog.gbraad.nl/tag/storage.html" class="tag">storage</a>
-                        </div>
-                </div>
     </div>
     <div class="pagination">
             <a href="https://blog.gbraad.nl/author/gerard-braad2.html">&larr; Newer</a>
@@ -140,6 +142,7 @@ simple environment in which storage between two webservers needs to be replicate
                 <span class="current">3</span>
                 <a href="https://blog.gbraad.nl/author/gerard-braad4.html">4</a>
                 <a href="https://blog.gbraad.nl/author/gerard-braad5.html">5</a>
+                <a href="https://blog.gbraad.nl/author/gerard-braad6.html">6</a>
 
             <a href="https://blog.gbraad.nl/author/gerard-braad4.html">Older &rarr;</a>
     </div>
@@ -153,7 +156,7 @@ simple environment in which storage between two webservers needs to be replicate
             <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
             <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
         </ul>
-        <p class="copyright">&copy; 2016 Gerard Braad <me@gbraad.nl></p>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
     </div>
 </footer>
 
