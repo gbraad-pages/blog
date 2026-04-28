@@ -1,4 +1,1 @@
-FROM ghcr.io/$GITHUB_REPOSITORY_OWNER/pelican:latest
-
-RUN apt-get update && apt-get install -y \
-    && rm -rf /var/lib/apt/lists/*
+FROM ghcr.io/gbraad-pages/pelican:latest
