@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run an example application on OpenShift - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="containers,openshift,example,ruby,docker,devops" />
+        <meta name="description" content="In a previous article I have written on how easy it is to stand up a test environment of OpenShift. In this article I will describe an example application from the sourcecode to the created image and how this gets deployed. The steps are explained using manual steps, and how …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/run-an-example-application-on-openshift.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Run an example application on OpenShift"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/run-an-example-application-on-openshift.html"/>
+        <meta property="og:description" content="In a previous article I have written on how easy it is to stand up a test environment of OpenShift. In this article I will describe an example application from the sourcecode to the created image and how this gets deployed. The steps are explained using manual steps, and how …"/>
+        <meta property="article:published_time" content="2016-09-29" />
+            <meta property="article:section" content="Containers" />
+            <meta property="article:tag" content="containers" />
+            <meta property="article:tag" content="openshift" />
+            <meta property="article:tag" content="example" />
+            <meta property="article:tag" content="ruby" />
+            <meta property="article:tag" content="docker" />
+            <meta property="article:tag" content="devops" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Containers ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Run an example application on OpenShift</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Thu 29 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                        <a href="https://blog.gbraad.nl/tag/openshift.html" class="tag">openshift</a>
+                        <a href="https://blog.gbraad.nl/tag/example.html" class="tag">example</a>
+                        <a href="https://blog.gbraad.nl/tag/ruby.html" class="tag">ruby</a>
+                        <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                        <a href="https://blog.gbraad.nl/tag/devops.html" class="tag">devops</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>In a <a href="./deploy-an-openshift-test-cluster.html" title="Deploy an OpenShift test cluster">previous article</a> I have written
+on how easy it is to stand up a test environment of OpenShift. In this article
+I will describe an example application from the sourcecode to the created image
+and how this gets deployed. The steps are explained using manual steps, and how
+OpenShift does it all automated. You will notice, at no point do you have to
+write a <code>Dockerfile</code>.</p>
+<h2>Preparation</h2>
+<p>For this article it is not necessary to have a working test environment, however
+it does make things clearer. I would suggest you to use OpenShift Origin v1.3 on
+CentOS 7. Although my previous article showed how to get it up and running on
+Fedora 24, I experienced an issue with deployment not succeeding<a href="https://lists.openshift.redhat.com/openshift-archives/users/2016-September/msg00198.html" title="Deployment of ruby-ex times out">*</a>.
+The steps in the deployment article can be performed by replacing <code>dnf</code> with
+<code>yum</code>. </p>
+<h2>Description of the example</h2>
+<p>The OpenShift project publishes several test applications on GitHub, of which
+one is a very simple Ruby applica8080. Please, have a look at: <a href="https://github.com/openshift/ruby-ex" title="Ruby example">http://github.com/openshift/ruby-ex</a></p>
+<p>You will see it consists of four files:</p>
+<ul>
+<li><code>Gemfile</code></li>
+<li><code>Gemfile.local</code></li>
+<li><code>config.ru</code></li>
+<li><code>README.md</code></li>
+</ul>
+<p>The application itself is only described in <code>config.ru</code> and the needed dependencies
+are in <code>Gemfile</code>.</p>
+<h3>Dependencies</h3>
+<p>To make the application work, we first need:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gem<span class="w"> </span>install<span class="w"> </span>bundler
+</code></pre></div>
+
+<p>This will install <code>bundler</code> that can install dependencies as described in the
+<code>Gemfile</code>. This file describes:</p>
+<div class="highlight"><pre><span></span><code>source &#39;https://rubygems.org&#39;
+gem &#39;rack&#39;
+gem &#39;puma&#39;
+</code></pre></div>
+
+<p>The first line says <code>source</code> which points to a gem repository, and each line
+starting wih <code>gem</code> are bundled packages containing libraries for use in your
+project. To install all of the required gems (dependencies) from the specified
+sources:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>bundle<span class="w"> </span>install
+</code></pre></div>
+
+<p>The file <code>Gemfile.lock</code> is a snapshot of the Gemfile and is used internally.</p>
+<h3>config.ru</h3>
+<p>The application is specified in the file called <code>config.ru</code>. If you open the
+file you will see it contains route mappings, lines starting  with <code>map</code>, for
+three urls:</p>
+<ul>
+<li><code>/health</code></li>
+<li><code>/lobster</code></li>
+<li><code>/</code></li>
+</ul>
+<h4><code>/health</code></h4>
+<p>This is a commonly used to provide a simple health-check for applications that
+are automatically deployed. It allows to quickly test if the application got
+deployed. In projects I worked on, we also did quick dependency checks, such as
+a configuration file exists, or another needed endpoint is available. In this
+application it will respond with a HTTP status code 200 and returns <code>1</code> as
+value.</p>
+<h4><code>/lobster</code></h4>
+<p>This is a test provided by rack. It shows an ASCII-art lobster. By adding a
+variable to the URL querystring <code>?flip=left</code> the direction can be changed.</p>
+<h4><code>/</code></h4>
+<p>This is the mapping to a bare route. It shows a greeting message on how to use
+the application using OpenShift to trigger automated builds.</p>
+<h3>Rackup</h3>
+<p>Rack is an interface for using Ruby and Ruby frameworks with webservers. It
+provides an application called <code>rackup</code> to start the application:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rackup<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span><span class="w"> </span>config.ru
+</code></pre></div>
+
+<p>Using this command the webserver will bind to port 8080, according to the
+description in the <code>config.ru</code> file. To see what the mappings do, open:</p>
+<ul>
+<li><a href="http://localhost:8080/health" title="Example health-check">http://localhost:8080/health</a></li>
+<li><a href="http://localhost:8080/lobster" title="Example lobster">http://localhost:8080/lobster</a></li>
+<li><a href="http://localhost:8080/" title="Example bare">http://localhost:8080/</a></li>
+</ul>
+<h2>Use the example with OpenShift</h2>
+<p>Deploying an application on OpenShift from source is very simple. A single
+command can do this. First have a look</p>
+<div class="highlight"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">oc</span><span class="w"> </span><span class="k">new</span><span class="o">-</span><span class="n">app</span><span class="w"> </span><span class="n">openshift</span><span class="o">/</span><span class="n">ruby</span><span class="o">-</span><span class="mi">20</span><span class="o">-</span><span class="n">centos7</span><span class="o">~</span><span class="nl">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/[</span><span class="n">username</span><span class="o">]/</span><span class="n">ruby</span><span class="o">-</span><span class="n">ex</span>
+</code></pre></div>
+
+<p>But before we do, I will explain what this command does. Oversimplified
+OpenShift does two things:</p>
+<ol>
+<li>Build</li>
+<li>Deploy</li>
+</ol>
+<p>Note: If you want to perform the command, go ahead. Please fork the repository
+and change the <code>[username]</code> in this command.</p>
+<h3>Build: source to image</h3>
+<p>OpenShift runs container images which are in the Docker format. It will run
+the <code>CMD</code> instruction for this. So, how does OpenShift know what to run?
+Convention. Most frameworks have a standard way of doing things, and this is
+as you noticed also the case with the Ruby example. The creation of the image
+happens with a tool called source-to-image (S2I).</p>
+<p><a href="https://github.com/openshift/source-to-image/" title="Source-to-image">Source-to-Image (S2I)</a> is a toolkit and workflow for building
+reproducible Docker images from source code. It uses a base image, and will
+layer the application on top, configures the runn command, which then results in
+a containter image for use.</p>
+<div class="highlight"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">s2i</span><span class="w"> </span><span class="n">build</span><span class="w"> </span><span class="nl">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/[</span><span class="n">username</span><span class="o">]/</span><span class="n">ruby</span><span class="o">-</span><span class="n">ex</span><span class="w"> </span><span class="n">openshift</span><span class="o">/</span><span class="n">ruby</span><span class="o">-</span><span class="mi">20</span><span class="o">-</span><span class="n">centos7</span><span class="w"> </span><span class="n">ruby</span><span class="o">-</span><span class="n">ex</span>
+</code></pre></div>
+
+<h4>base image</h4>
+<p>The base image here is <a href="https://hub.docker.com/r/openshift/ruby-20-centos7" title="Ruby base image">openshift/ruby-20-centos7</a>. The source
+of this image can be found at the following GitHub repository: <a href="https://github.com/sclorg/s2i-ruby-container/" title="Ruby base image source">s2i-ruby-container</a></p>
+<p>If you look at the <code>Dockerfile</code> <a href="https://github.com/sclorg/s2i-ruby-container/blob/master/2.0/Dockerfile" title="Ruby base Dockerfile">source</a>, you will see
+<a href="https://www.softwarecollections.org/en/" title="Software Collections">Software Collections</a> is used to install a specific Ruby version.
+In this case version 2.0. Software collections solves one of the biggest
+complaints of using CentOS (or RHEL) as a basis as part of your delivery. It
+allows you to use multiple versions of software on the same system, without
+affecting system-wide installed packages.</p>
+<p>The image also describes a label <code>io.openshift.expose-services="8080:http"</code>
+which inidcate that the application on port 8080 will be exposed as HTTP
+traffic. This also means the container does not need root privileges as the port
+assignment is above 1024. The application itself will be installed into the
+folder: <code>/opt/app-root/src</code>.</p>
+<p>Running this container can be done with:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span>ruby-ex
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>[1] Puma starting in cluster mode...
+[1] <span class="gs">* Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl</span>
+<span class="gs">[1] *</span> Min threads: 0, max threads: 16
+[1] <span class="gs">* Environment: production</span>
+<span class="gs">[1] *</span> Process workers: 1
+[1] <span class="gs">* Phased restart available</span>
+<span class="gs">[1] *</span> Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+</code></pre></div>
+
+<p>Open the links as previously stated will yield the same results.</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span>http://localhost:8080/health
+</code></pre></div>
+
+<p>The build process can be as simple as a copy for static content, to compiling
+Java or C/C++ code.  For the purpose of this article I will not explain more
+about the S2I process, but this will certainly be explained in future articles.</p>
+<h2>New application</h2>
+<p>If we now look at the previous command again:</p>
+<div class="highlight"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">oc</span><span class="w"> </span><span class="k">new</span><span class="o">-</span><span class="n">app</span><span class="w"> </span><span class="n">openshift</span><span class="o">/</span><span class="n">ruby</span><span class="o">-</span><span class="mi">20</span><span class="o">-</span><span class="n">centos7</span><span class="o">~</span><span class="nl">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/[</span><span class="n">username</span><span class="o">]/</span><span class="n">ruby</span><span class="o">-</span><span class="n">ex</span>
+</code></pre></div>
+
+<p>you can clear see the structure. The first element <code>openshift/ruby-20-centos7</code>
+describes the S2I container image for Ruby as hosted at the Docker hub. The
+second part is the source code path pointing to a git repository.</p>
+<p>Please try the command now... OpenShift will create containers for each of the
+stages used: <code>build</code>, <code>deploy</code> and the final running container. You can check
+the containers using the command:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>pod
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>NAME               READY     STATUS         RESTARTS   AGE
+ruby-ex-1-build    0/1       Completed      0          1m
+</code></pre></div>
+
+<h3>Build stage</h3>
+<p>If you create this new application, a new container named <code>ruby-ex-1-build</code>.
+What happened is that the Source-to-image container got pulled which uses the 
+base image and layers the source code on top.</p>
+<p>To see what happened, as with the previous command, you can see the build
+configuration:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>logs<span class="w"> </span>bc/ruby-ex
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="n">Cloning</span><span class="w"> </span><span class="ss">&quot;https://github.com/gbraad/ruby-ex&quot;</span><span class="w"> </span><span class="p">...</span>
+<span class="w">        </span><span class="k">Commit</span><span class="err">:</span><span class="w"> </span><span class="n">f63d076b602441ebd65fd0749c5c58ea4bafaf90</span><span class="w"> </span><span class="p">(</span><span class="k">Merge</span><span class="w"> </span><span class="n">pull</span><span class="w"> </span><span class="n">request</span><span class="w"> </span><span class="n">#2</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">mfojtik</span><span class="o">/</span><span class="k">add</span><span class="o">-</span><span class="n">puma</span><span class="p">)</span>
+<span class="w">        </span><span class="nl">Author</span><span class="p">:</span><span class="w"> </span><span class="n">Michal</span><span class="w"> </span><span class="n">Fojtik</span><span class="w"> </span><span class="o">&lt;</span><span class="n">mi</span><span class="nv">@mifo</span><span class="p">.</span><span class="n">sk</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="nc">Date</span><span class="err">:</span><span class="w">   </span><span class="n">Thu</span><span class="w"> </span><span class="n">Jun</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="mi">10</span><span class="err">:</span><span class="mi">47</span><span class="err">:</span><span class="mi">53</span><span class="w"> </span><span class="mi">2016</span><span class="w"> </span><span class="o">+</span><span class="mi">0200</span>
+<span class="c1">---&gt; Installing application source ...</span>
+<span class="c1">---&gt; Building your Ruby application from source ...</span>
+<span class="c1">---&gt; Running &#39;bundle install --deployment&#39; ...</span>
+<span class="n">Fetching</span><span class="w"> </span><span class="n">gem</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="nl">https</span><span class="p">:</span><span class="o">//</span><span class="n">rubygems</span><span class="p">.</span><span class="n">org</span><span class="o">/</span><span class="p">...............</span>
+<span class="n">Installing</span><span class="w"> </span><span class="n">puma</span><span class="w"> </span><span class="p">(</span><span class="mf">3.4.0</span><span class="p">)</span>
+<span class="n">Installing</span><span class="w"> </span><span class="n">rack</span><span class="w"> </span><span class="p">(</span><span class="mf">1.6.4</span><span class="p">)</span>
+<span class="k">Using</span><span class="w"> </span><span class="n">bundler</span><span class="w"> </span><span class="p">(</span><span class="mf">1.3.5</span><span class="p">)</span>
+<span class="n">Cannot</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">changed</span><span class="w"> </span><span class="n">lockfile</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="n">frozen</span><span class="p">.</span>
+<span class="n">Your</span><span class="w"> </span><span class="n">bundle</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="n">complete</span><span class="err">!</span>
+<span class="n">It</span><span class="w"> </span><span class="n">was</span><span class="w"> </span><span class="n">installed</span><span class="w"> </span><span class="k">into</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">bundle</span>
+<span class="c1">---&gt; Cleaning up unused ruby gems ...</span>
+<span class="n">Pushing</span><span class="w"> </span><span class="nc">image</span><span class="w"> </span><span class="mf">172.30.108.129</span><span class="err">:</span><span class="mi">5000</span><span class="o">/</span><span class="n">myproject</span><span class="o">/</span><span class="n">ruby</span><span class="o">-</span><span class="nl">ex</span><span class="p">:</span><span class="n">latest</span><span class="w"> </span><span class="p">...</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">0</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">1</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">34</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">2</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">49</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">3</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">4</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">5</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">50</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">6</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">61</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">7</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">71</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">8</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">88</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">9</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">99</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Pushed</span><span class="w"> </span><span class="mi">10</span><span class="o">/</span><span class="mi">10</span><span class="w"> </span><span class="n">layers</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="o">%</span><span class="w"> </span><span class="n">complete</span>
+<span class="n">Push</span><span class="w"> </span><span class="n">successful</span>
+</code></pre></div>
+
+<p>The difference is that the resulting image will be placed in the <code>myproject</code>
+namespace, and pushed to the local repository.</p>
+<h3>Deployment stage</h3>
+<p>After the image has been composed, OpenShift will run the container image on the
+scheduled node. What happens here can be checked with:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>pod<span class="w">                                                                                                                                                          </span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>NAME              READY     STATUS      RESTARTS   AGE
+ruby-ex-1-an801   1/1       Running     0          26s
+ruby-ex-1-build   0/1       Completed   0          1m
+</code></pre></div>
+
+<p>This means that the build succeeded, the image got deployed and now runs in the
+a container identified with <code>ruby-ex-1-an801</code>. Note: The container
+<code>ruby-ex-1-deploy</code> is not shown here as only the logs are of importance.</p>
+<p>The deployment configuration logs can be shown with:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>logs<span class="w"> </span>dc/ruby-ex
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>[1] Puma starting in cluster mode...
+[1] <span class="gs">* Version 3.4.0 (ruby 2.0.0-p645), codename: Owl Bowl Brawl</span>
+<span class="gs">[1] *</span> Min threads: 0, max threads: 16
+[1] <span class="gs">* Environment: production</span>
+<span class="gs">[1] *</span> Process workers: 2
+[1] <span class="gs">* Phased restart available</span>
+<span class="gs">[1] *</span> Listening on tcp://0.0.0.0:8080
+[1] Use Ctrl-C to stop
+[1] - Worker 0 (pid: 32) booted, phase: 0
+[1] - Worker 1 (pid: 35) booted, phase: 0
+</code></pre></div>
+
+<h3>Events</h3>
+<p>To see the flow of execution, you can have a look at:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>events
+</code></pre></div>
+
+<p>This can be helpful if an error occured.</p>
+<h3>Verify</h3>
+<p>Now that the application has been deployed on OpenShift, we need to look up the 
+IP address that has been assigned. For this we use:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>oc<span class="w"> </span>get<span class="w"> </span>svc
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>NAME      CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+ruby-ex   172.30.91.160   &lt;none&gt;        8080/TCP   21h
+</code></pre></div>
+
+<p>Now we can open the application as <code>http://172.30.91.160:8080/</code></p>
+<h2>Conclusion</h2>
+<p>OpenShift allows you to run prebuilt images or applications based on source.
+The Source-to-image tooling makes it possible to create reproducible images for
+deployment of applications based on source. This tool itself is very helpful
+and is certainly something I will be using, even outside the use of OpenShift.
+There is no need to create or modify a <code>Dockerfile</code>, which means that the
+developer can focus on the development process.</p>
+<p>If you want to know more about the automated builds, please have a look at the
+README of the <a href="https://github.com/openshift/ruby-ex" title="Ruby example">Ruby example</a>. In future articles more 
+detailed descriptions about these topics will certainly be given. I hope this
+has been helpful. Please consider leaving feedback or tweet this article.</p>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>

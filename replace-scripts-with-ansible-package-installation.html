@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"Replace scripts with Ansible: package installation" - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="deployment,configuration,ansible,devops" />
+        <meta name="description" content="Installing and configuring software on one machine, for instance your own developer&#39;s environment, is an &#39;easy&#39; task. But how about your team? Or production? Everything is documented and you only probably install some of the components manually, or better, you automate this using a set of shell scripts. The environment …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/replace-scripts-with-ansible-package-installation.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="&#34;Replace scripts with Ansible: package installation&#34;"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/replace-scripts-with-ansible-package-installation.html"/>
+        <meta property="og:description" content="Installing and configuring software on one machine, for instance your own developer&#39;s environment, is an &#39;easy&#39; task. But how about your team? Or production? Everything is documented and you only probably install some of the components manually, or better, you automate this using a set of shell scripts. The environment …"/>
+        <meta property="article:published_time" content="2016-10-03" />
+            <meta property="article:section" content="DevOps" />
+            <meta property="article:tag" content="deployment" />
+            <meta property="article:tag" content="configuration" />
+            <meta property="article:tag" content="ansible" />
+            <meta property="article:tag" content="devops" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog DevOps ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">"Replace scripts with Ansible: package installation"</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Mon 03 October 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/devops.html">DevOps</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/deployment.html" class="tag">deployment</a>
+                        <a href="https://blog.gbraad.nl/tag/configuration.html" class="tag">configuration</a>
+                        <a href="https://blog.gbraad.nl/tag/ansible.html" class="tag">ansible</a>
+                        <a href="https://blog.gbraad.nl/tag/devops.html" class="tag">devops</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>Installing and configuring software on one machine, for instance your own
+developer's environment, is an 'easy' task. But how about your team? Or
+production? Everything is documented and you only probably install some of the
+components manually, or better, you automate this using a set of shell scripts.
+The environment is now reproducible. Everything is fine.</p>
+<p>Running a set of scripts is not a bad idea, but often what lacks is the
+maintenance on them or just the magic contained in them. I do not
+have to make the case for general configuration management,
+'configuration as code' or even #DevOps I hope? In this article I will show why
+I use Ansible for almost all my scripts. Even small one of.</p>
+<h2>Environment</h2>
+<p>Although I have a preference for the operating system and distribution I use, I
+have to deal with many different versions and variants. On my workstation I
+prefer to use Fedora, but at work we deploy on CentOS. Some of my colleagues
+tend to prefer Ubuntu (latest), and customers are stuck on LTS releases. A very
+common situation. In one week, I had to deal with: Alpine, CentOS, Fedora,
+Ubuntu, (Open)SUSE, Debian, Windows, etc. This is of course an extreme case.</p>
+<p>You would prefer to use a single environment for both development and
+production. When the production environment is fixed, the solution is easier.
+You will likely use a tool like Vagrant to stand up an environment, or some
+other virtualization soltuion. But what if you develop for an environment where
+both Ubuntu and CentOS are an option? In my case this happens a lot because of
+work for OpenStack, or just general Linux tool development.</p>
+<h2>Example</h2>
+<p>Below I will discuss a small example of dealing with package installation. Let's
+consider you have to use Ubuntu and Fedora. This means that you already have to
+deal with two different package managers, oh wait, three; <code>apt</code> on Ubuntu and
+<code>yum</code> or <code>dnf</code> on Fedora.</p>
+<h3>Bash script</h3>
+<p>As a crude solution, you could do the following:</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/sh</span>
+<span class="nv">APTPKGS</span><span class="o">=</span><span class="s2">&quot;git tmux zsh mc stow python-psutil&quot;</span>
+<span class="nv">RPMPKGS</span><span class="o">=</span><span class="s2">&quot;git tmux zsh mc stow python-psutil&quot;</span>
+
+<span class="c1"># Crude multi-os installation option</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;/usr/bin/apt-get&quot;</span><span class="w"> </span><span class="o">]</span>
+<span class="k">then</span>
+<span class="w">   </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">$APTPKGS</span>
+<span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;/usr/bin/dnf&quot;</span><span class="w"> </span><span class="o">]</span>
+<span class="k">then</span>
+<span class="w">   </span>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">$RPMPKGS</span>
+<span class="k">elif</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-x<span class="w"> </span><span class="s2">&quot;/usr/bin/yum&quot;</span><span class="w"> </span><span class="o">]</span>
+<span class="k">then</span>
+<span class="w">   </span>sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="nv">$RPMPKGS</span>
+<span class="k">fi</span>
+</code></pre></div>
+
+<p>This basically checks if a certain executable is available, and will use that
+with a defined list of packages to install. If both <code>yum</code> and <code>dnf</code> is
+installed, it will in this case use <code>dnf</code> as it resolves first. This is likely
+what you want, but it is hidden logic. But what if you have installed <code>yum</code> on
+Ubuntu? Also, because of this case, <code>apt-get</code> will resolve first. But again,
+this is undocumented in this script. But this knowledge should not be needed.</p>
+<p>Note: in this case, the packages are the same for both platforms, but this is
+not a guarantee. Therefore I use a variable for this.</p>
+<h3>Ansible playbook</h3>
+<p>Ansible solves this problem by offering a general <code>package</code> module. You can use
+<code>yum</code> and <code>apt</code> specific options, but I prefer to use <code>package</code> instead. Below 
+is a playbook that has the same behaviour as the above mentioned script:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install list of required packages</span>
+<span class="w">    </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name={{ item }} state=installed</span>
+<span class="w">    </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="w">    </span><span class="nt">become_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sudo</span>
+<span class="w">    </span><span class="nt">with_items</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tmux</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">zsh</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stow</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python-psutil</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mc</span>
+</code></pre></div>
+
+<p>Because of the task name, it becomes clear what the intention is of the commands
+that follow. In this case, this will use the package manager based on the OS
+Family that Ansible will find. This means we do not need to have the knowledge
+of what to pick first. There is however a problem. What if the packages have
+different names?</p>
+<h3>Conditionals</h3>
+<p>For this Ansible offers conditionals which you can use with <code>when</code>. Below is
+an example that will install the development tools on Ubuntu or Fedora, based
+on the <code>ansible_distribution</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">#!/usr/bin/env ansible-playbook</span>
+<span class="nn">---</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+<span class="w">  </span><span class="c1">#remote_user: root</span>
+<span class="w">  </span><span class="nt">become_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sudo</span>
+
+<span class="w">  </span><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install Git</span>
+<span class="w">    </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name=git state=installed</span>
+<span class="w">    </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install the &#39;Development tools&#39; package group</span>
+<span class="w">    </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name=&quot;@Development tools&quot; state=present</span>
+<span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;CentOS&#39; or</span>
+<span class="w">           </span><span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Red Hat Enterprise Linux&#39; or</span>
+<span class="w">           </span><span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Fedora&#39;</span>
+<span class="w">    </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install the &#39;build-essential&#39; meta package</span>
+<span class="w">    </span><span class="nt">package</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">name=&quot;build-essential&quot; state=present</span>
+<span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Debian&#39; or</span>
+<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">ansible_distribution == &#39;Ubuntu&#39;</span>
+<span class="w">    </span><span class="nt">become</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+</code></pre></div>
+
+<p>You can also use <code>ansible_os_family == "RedHat"</code> to be less specific about the
+distribution you are on.</p>
+<h3>Include</h3>
+<p>You can combine conditionals with almost anything in Ansible, for instance to
+include or not another playbook. Below is a simple solution of this when you
+want to split the install instructions into separate files.</p>
+<div class="highlight"><pre><span></span><code><span class="k">-</span> include: install-centos.yml
+  when: ansible_distribution == &quot;CentOS&quot;
+
+<span class="k">-</span> include: install-ubuntu.yml
+  when: ansible_distribution == &quot;Ubuntu&quot;
+</code></pre></div>
+
+<h3>Conclusion</h3>
+<p>With Ansible it is possible to create complex instructions that can be more
+maintainable than when using just scripts. Of course, just using Ansible will
+not act as a silver bullet. But because a playbook is more readable, the process
+of refactoring is easier.</p>
+<p>In future articles I will talk about other aspects where the move to Ansible
+helped me. However, the bootstrap process remains... I wish there was a way to
+<a href="https://github.com/gbraad/automate-everything">Automate everything</a> ;-)</p>
+<p>Hope this article has been helpful to you. If so, please consider tweeting about
+it. Or leave a comment if you have suggestions...</p>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>

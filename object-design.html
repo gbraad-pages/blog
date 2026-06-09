@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Design - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="review,summary,books,recommended" />
+        <meta name="description" content="One of the books I got recommended early in my career was Object Design: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/object-design.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Object Design"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/object-design.html"/>
+        <meta property="og:description" content="One of the books I got recommended early in my career was Object Design: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly …"/>
+        <meta property="article:published_time" content="2016-09-23" />
+            <meta property="article:section" content="Books" />
+            <meta property="article:tag" content="review" />
+            <meta property="article:tag" content="summary" />
+            <meta property="article:tag" content="books" />
+            <meta property="article:tag" content="recommended" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Books ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Object Design</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Fri 23 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/books.html">Books</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/review.html" class="tag">review</a>
+                        <a href="https://blog.gbraad.nl/tag/summary.html" class="tag">summary</a>
+                        <a href="https://blog.gbraad.nl/tag/books.html" class="tag">books</a>
+                        <a href="https://blog.gbraad.nl/tag/recommended.html" class="tag">recommended</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>One of the books I got recommended early in my career was <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">Object Design</a>: Roles, Responsibilities, and Collaborations by Rebecca Wirfs-Brock and Alan McKean. The topic of this book is OOD (Object-Oriented Design). It is a wordy book, which could certainly could have been shorter, but the content makes certainly up for this issue. This write-up is based on reading this book many years ago, so bear with me if things are not completely in line with the book. Although, the knowledge in this book certainly has contributed to this point-of-view. I currently own a copy of this book as reference in a digital format. </p>
+<p><img alt="Object Design" src="https://d2arxad8u2l0g7.cloudfront.net/books/1372040740l/179204.jpg"></p>
+<p>The author, Rebecca Wirfs-Brock, is a software engineer and consultant in Object-Oriented Design, and as the title suggests the book details about the design of your object model and how it interacts with other objects. </p>
+<p>One of the things you will learn when creating software, is that design of the  interactions and relations between objects and classes probably is one of the most important and hardest things. Luckily, software design and development is an evolutionary process. You will not get it right he first time and you also shouldn't aim for this. What can be modeled today as a variable on an object today, might become a class itself in the future. If you would design this from day one, you probably over-design the software and implement functionality that might never be needed.</p>
+<p>What I learned from this book is how this interaction and collaboration between objects happen. Where do I keep the state? who can make a change? If the object can encapsulate it, this is probably where it should live. Ask yourself, why would another object need to know about the information, and whose responsibility is it? The book details as far as I remember CRC-cards (Class Reponsibility Rollaboration) and shows a method to get this clear. In my work I have never created the actual cards, but the concept behind it is very valuable. Get this book and browse through it, keep a copy as a reference. It is well worth it.</p>
+<p>More information about this book can be found in my Knowledge Base <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/books/object-design.md" title="Object Design">entry</a>.</p>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>

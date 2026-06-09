@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploying OpenStack using TripleO - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="openstack,tripleo,rdo" />
+        <meta name="description" content="In this article we will deploy an OpenStack environment using TripleO using the tripleo-quickstart scripts. It will create a virtualized environment which consists of 1 Undercloud node and in total 9 nodes in the Overcloud; 3 controller nodes (High Availability), 3 compute nodes and 3 Ceph storage nodes. What is …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/deploying-openstack-using-tripleo.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Deploying OpenStack using TripleO"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/deploying-openstack-using-tripleo.html"/>
+        <meta property="og:description" content="In this article we will deploy an OpenStack environment using TripleO using the tripleo-quickstart scripts. It will create a virtualized environment which consists of 1 Undercloud node and in total 9 nodes in the Overcloud; 3 controller nodes (High Availability), 3 compute nodes and 3 Ceph storage nodes. What is …"/>
+        <meta property="article:published_time" content="2016-05-18" />
+            <meta property="article:section" content="OpenStack" />
+            <meta property="article:tag" content="openstack" />
+            <meta property="article:tag" content="tripleo" />
+            <meta property="article:tag" content="rdo" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog OpenStack ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Deploying OpenStack using TripleO</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Wed 18 May 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/openstack.html">OpenStack</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/openstack.html" class="tag">openstack</a>
+                        <a href="https://blog.gbraad.nl/tag/tripleo.html" class="tag">tripleo</a>
+                        <a href="https://blog.gbraad.nl/tag/rdo.html" class="tag">rdo</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>In this article we will deploy an OpenStack environment using TripleO using
+the <code>tripleo-quickstart</code> scripts. It will create a virtualized environment
+which consists of 1 Undercloud node and in total 9 nodes in the Overcloud;
+3 controller nodes (High Availability), 3 compute nodes and 3 Ceph storage
+nodes.</p>
+<h2>What is TripleO, <em>undercloud</em> and <em>overcloud</em>?</h2>
+<p><a href="https://wiki.openstack.org/wiki/TripleO">TripleO</a> is a deployment method in
+which a dedicated OpenStack management environment is used to deploy another
+OpenStack environment which is used for the workload. The management environment
+is contained in a single machine, called the <em>undercloud</em>. This OpenStack
+environment takes care of the monitoring and management of what is known as the
+<em>overcloud</em>. The <em>overcloud</em> is the actual OpenStack environment that will run
+the workload.</p>
+<h2>Prerequisites</h2>
+<p>It is preferred to use a dedicated server for the following instructions.
+Consider using 32G of memory and have enough diskspace available in <code>/home</code>.
+This target node has to be using CentOS 7 (or RHEL7).</p>
+<h2>Prepare for deployment</h2>
+<p>The deployment can be done from a workstation targeting a server, or from the
+server itself. Whatever your preferred method is, you will need the 
+<a href="https://github.com/openstack/tripleo-quickstart">tripleo-quickstart</a> scripts.</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/openstack/tripleo-quickstart/master/quickstart.sh
+$<span class="w"> </span>chmod<span class="w"> </span>u+x<span class="w"> </span>quickstart.sh
+$<span class="w"> </span>./quickstart.sh<span class="w"> </span>--install-deps
+</code></pre></div>
+
+<p>This will install the dependencies used by the <code>quickstart.sh</code> script. Now you
+need to prepare the target node. Make sure you can login to this server without
+a password.</p>
+<div class="highlight"><pre><span></span><code><span class="err">$</span><span class="w"> </span><span class="n">export</span><span class="w"> </span><span class="n">VIRTHOST</span><span class="o">=[</span><span class="n">target</span><span class="o">]</span>
+<span class="err">$</span><span class="w"> </span><span class="n">ssh</span><span class="o">-</span><span class="n">copy</span><span class="o">-</span><span class="n">id</span><span class="w"> </span><span class="n">root</span><span class="err">@$</span><span class="n">VIRTHOST</span>
+<span class="err">$</span><span class="w"> </span><span class="n">ssh</span><span class="w"> </span><span class="n">root</span><span class="err">@$</span><span class="n">VIRTHOST</span><span class="w"> </span><span class="n">uname</span><span class="w"> </span><span class="o">-</span><span class="n">a</span>
+</code></pre></div>
+
+<p>This article witll not describe the setup of passwordless or key-based
+authentication with SSH. If issues occur, please verify you have a generated
+keyset. If not, generate one with <code>ssh-keygen</code>. For further information please
+consult the <code>man</code> page or verify online.</p>
+<h2>Cache deployment images locally</h2>
+<p>Although this step is not necessary, you can pre-download the images and cache
+them locally. This can be helpful if you want to perform the deployment using
+different images and/or suffer from bad connectivity.</p>
+<p>The location if the images is currently at <code>http://artifacts.ci.centos.org/rdo/images/{{release}}/delorean/stable/undercloud.qcow2</code>.</p>
+<p>To download the <em>mitaka</em> image, you can do this with</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>mkdir<span class="w"> </span>/var/lib/oooq-images
+$<span class="w"> </span>curl<span class="w"> </span>http://artifacts.ci.centos.org/rdo/images/mitaka/delorean/stable/undercloud.qcow2<span class="w"> </span>-o<span class="w"> </span>/var/lib/oooq-images/undercloud-mitaka.qcow2
+</code></pre></div>
+
+<h2>Deployment configuration file</h2>
+<p>We will create a virtual environment for out TripleO deployment. This will
+provide you with the knowledge you need to perform a bare-metal installation.</p>
+<p>You can define the node deployment inside a configuration file, eg. called 
+<code>deploy-config.yml</code>. This will contain the following:</p>
+<div class="highlight"><pre><span></span><code>overcloud_nodes:
+  <span class="k">-</span> name: control_0
+    flavor: control
+  <span class="k">-</span> name: control_1
+    flavor: control
+  <span class="k">-</span> name: control_2
+    flavor: control
+
+  <span class="k">-</span> name: compute_0
+    flavor: compute
+  <span class="k">-</span> name: compute_1
+    flavor: compute
+  <span class="k">-</span> name: compute_2
+    flavor: compute
+
+  <span class="k">-</span> name: storage_0
+    flavor: ceph
+  <span class="k">-</span> name: storage_1
+    flavor: ceph
+  <span class="k">-</span> name: storage_2
+    flavor: ceph
+
+extra_args: &quot;--control-scale 3 --ceph-storage-scale 3 -e /usr/share/openstack-tripleo-heat-templates/environments/puppet-pacemaker.yaml --ntp-server pool.ntp.org&quot;
+</code></pre></div>
+
+<p>Nodes can be assigned a role by setting the flavor:</p>
+<ul>
+<li><code>control</code> sets up a controller node, which also handles the network.</li>
+<li><code>compute</code> sets up a Nova compute node.</li>
+<li><code>ceph</code> sets up a node for Ceph storage.</li>
+</ul>
+<p>The extra arguments allow you to modify the deployment that is performed.</p>
+<ul>
+<li><code>--control-scale 3</code> instructs the deployment to assign 3 nodes with the
+      controller role.</li>
+<li><code>--ceph-storage-scale 3</code> instructs the deployment to assign 3 nodes to
+      be used for the Ceph storage backend.</li>
+<li><code>-e puppet-pacemaker.yaml</code> will setup pacemaker HA for the controller
+      nodes</li>
+<li><code>--ntp-server pool.ntp.org</code> will sync time on the nodes using NTP.</li>
+</ul>
+<p>Note: if you want to use all compute nodes at once, include <code>--compute-scale 3</code>. But in this article I am using these additional nodes for scale out.</p>
+<h2>Perform deployment</h2>
+<p>Now you can perform the <em>undercloud</em> deployment using:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./quickstart.sh<span class="w"> </span>--config<span class="w"> </span>deploy-config.yml<span class="w"> </span>--undercloud-image-url<span class="w"> </span>file:///var/lib/oooq-images/undercloud-mitaka.qcow2<span class="w"> </span><span class="nv">$VIRTHOST</span>
+</code></pre></div>
+
+<p>But before you do, please continue reading about the <code>Deployment scripts</code>.</p>
+<p>The previous command will target the node as specified with the <code>$VIRTHOST</code> 
+environment variable, and according to the <code>deploy-config.yml</code> which we defined
+earlier.</p>
+<p>It will login to this node and create a <code>stack</code> user which will be running the
+virtual machines. Later we will inspect this. After creating the virtual
+machines it will prepare the <code>undercloud</code> machine. After this, you still need to
+start the actual deployment. </p>
+<h2>Deployment scripts</h2>
+<p>To login to the undercloud:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ssh<span class="w"> </span>-F<span class="w"> </span><span class="nv">$OPT_WORKDIR</span>/ssh.config.ansible<span class="w"> </span>undercloud
+</code></pre></div>
+
+<p>The undercloud is not fully prepared, you would have to do so with the following
+scripts.</p>
+<p>Undercloud (management)</p>
+<ul>
+<li><code>undercloud-install.sh</code> will run the undercloud install and execute
+    diskimage elements.</li>
+<li><code>undercloud-post-install.sh</code> will perform all pre-deploy steps, such as
+    uploading the images to <em>glance</em></li>
+</ul>
+<p>Overcloud (workload)</p>
+<ul>
+<li><code>overcloud-deploy.sh</code> will deploy the overcloud, creating a <em>heat</em> stack
+    and will use the nodes as defined in <code>instack-env.json</code> and the extra
+    arguments given in the deployment configuration.</li>
+<li><code>overcloud-deploy-post.sh</code> will do any post-deploy configuration
+    such as writing a local <code>/etc/hosts</code> file.</li>
+<li><code>overcloud-validate.sh</code> will run post-deploy validation, like a
+    <em>pingtest</em> and possible <em>tempest</em></li>
+</ul>
+<p>You can run these scripts one by one... or install the whole <em>undercloud</em> and
+<em>overcloud</em> using the command:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./quickstart.sh<span class="w"> </span>--tags<span class="w"> </span>all<span class="w"> </span>--config<span class="w"> </span>deploy-config.yml<span class="w"> </span>--undercloud-image-url<span class="w"> </span>file:///var/lib/oooq-images/undercloud-mitaka.qcow2<span class="w"> </span><span class="nv">$VIRTHOST</span>
+</code></pre></div>
+
+<p>Using <code>--tags all</code> will instruct ansible to perform all the steps and scripts
+as previously described. I suggest you to run the steps first each one by one
+and look into the scripts itself to understand how they interact with
+<code>python-tripleoclient</code> (eg. <code>openstack undercloud</code> and <code>openstack overcloud</code>).</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">undercloud</span><span class="o">-</span><span class="n">install</span><span class="p">.</span><span class="n">sh</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">undercloud</span><span class="o">-</span><span class="n">post</span><span class="o">-</span><span class="n">install</span><span class="p">.</span><span class="n">sh</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">overcloud</span><span class="o">-</span><span class="n">deploy</span><span class="p">.</span><span class="n">sh</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">overcloud</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">post</span><span class="p">.</span><span class="n">sh</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">overcloud</span><span class="o">-</span><span class="n">validate</span><span class="p">.</span><span class="n">sh</span>
+</code></pre></div>
+
+<h2>Undercloud node</h2>
+<p>After running these commands, you will have a fully deployed environment.
+You can verify this from the <em>undercloud</em> node.</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="w"> </span><span class="n">stackrc</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="n">ironic</span><span class="w"> </span><span class="n">node</span><span class="o">-</span><span class="n">list</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="nb">+--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+</span>
+<span class="c">| UUID                                 | Name      | Instance UUID                        | Power State | Provisioning State | Maintenance |</span>
+<span class="nb">+--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+</span>
+<span class="c">| 5c4f1ad5</span><span class="nb">-</span><span class="c">3cea</span><span class="nb">-</span><span class="c">41c2</span><span class="nb">-</span><span class="c">8fa8</span><span class="nb">-</span><span class="c">f3468e660447 | control</span><span class="nb">-</span><span class="c">0 | aea0add0</span><span class="nb">-</span><span class="c">f638</span><span class="nb">-</span><span class="c">4a41</span><span class="nb">-</span><span class="c">97ca</span><span class="nb">-</span><span class="c">a2a64ac083a5 | None        | active             | True        |</span>
+<span class="c">| 0a0bf5e8</span><span class="nb">-</span><span class="c">e903</span><span class="nb">-</span><span class="c">4f77</span><span class="nb">-</span><span class="c">be35</span><span class="nb">-</span><span class="c">0a49f4da5109 | control</span><span class="nb">-</span><span class="c">1 | 75778a5e</span><span class="nb">-</span><span class="c">5e65</span><span class="nb">-</span><span class="c">48bc</span><span class="nb">-</span><span class="c">9934</span><span class="nb">-</span><span class="c">d4cb203fad86 | None        | active             | True        |</span>
+<span class="c">| 12aa12d2</span><span class="nb">-</span><span class="c">0023</span><span class="nb">-</span><span class="c">48ac</span><span class="nb">-</span><span class="c">89d2</span><span class="nb">-</span><span class="c">4e138f6eef08 | control</span><span class="nb">-</span><span class="c">2 | f74b2b00</span><span class="nb">-</span><span class="c">0c01</span><span class="nb">-</span><span class="c">44a5</span><span class="nb">-</span><span class="c">917e</span><span class="nb">-</span><span class="c">45fff058f2fa | None        | active             | True        |</span>
+<span class="c">| 6a0533a2</span><span class="nb">-</span><span class="c">d91f</span><span class="nb">-</span><span class="c">4f45</span><span class="nb">-</span><span class="c">acbb</span><span class="nb">-</span><span class="c">5f5f231c8986 | compute</span><span class="nb">-</span><span class="c">0 | None                                 | None        | available          | True        |</span>
+<span class="c">| e8663954</span><span class="nb">-</span><span class="c">4da8</span><span class="nb">-</span><span class="c">4027</span><span class="nb">-</span><span class="c">9226</span><span class="nb">-</span><span class="c">f9f053f269d9 | compute</span><span class="nb">-</span><span class="c">1 | 113afdbd</span><span class="nb">-</span><span class="c">0afa</span><span class="nb">-</span><span class="c">481c</span><span class="nb">-</span><span class="c">a744</span><span class="nb">-</span><span class="c">90276907b8e2 | None        | active             | True        |</span>
+<span class="c">| 06679c73</span><span class="nb">-</span><span class="c">97a2</span><span class="nb">-</span><span class="c">4de0</span><span class="nb">-</span><span class="c">b676</span><span class="nb">-</span><span class="c">193a3e182fcf | compute</span><span class="nb">-</span><span class="c">2 | None                                 | None        | available          | True        |</span>
+<span class="c">| a6ef4bce</span><span class="nb">-</span><span class="c">941c</span><span class="nb">-</span><span class="c">407d</span><span class="nb">-</span><span class="c">966e</span><span class="nb">-</span><span class="c">85df2af3f6e1 | storage</span><span class="nb">-</span><span class="c">0 | bbba571f</span><span class="nb">-</span><span class="c">f2a9</span><span class="nb">-</span><span class="c">46f3</span><span class="nb">-</span><span class="c">a270</span><span class="nb">-</span><span class="c">f154e045c5a8 | None        | active             | True        |</span>
+<span class="c">| 6174dbb7</span><span class="nb">-</span><span class="c">28e7</span><span class="nb">-</span><span class="c">425e</span><span class="nb">-</span><span class="c">b675</span><span class="nb">-</span><span class="c">f1653f0b731c | storage</span><span class="nb">-</span><span class="c">1 | d3afc0e8</span><span class="nb">-</span><span class="c">70a0</span><span class="nb">-</span><span class="c">43c4</span><span class="nb">-</span><span class="c">b35a</span><span class="nb">-</span><span class="c">693a7e4e5fa5 | None        | active             | True        |</span>
+<span class="c">| 32e8122b</span><span class="nb">-</span><span class="c">3a5f</span><span class="nb">-</span><span class="c">45fb</span><span class="nb">-</span><span class="c">8a5a</span><span class="nb">-</span><span class="c">60dc4f82325f | storage</span><span class="nb">-</span><span class="c">2 | 53ea0799</span><span class="nb">-</span><span class="c">1bcd</span><span class="nb">-</span><span class="c">4f55</span><span class="nb">-</span><span class="c">8671</span><span class="nb">-</span><span class="c">e6a7f7f46054 | None        | active             | True        |</span>
+<span class="nb">+--------------------------------------+-----------+--------------------------------------+-------------+--------------------+-------------+</span>
+</code></pre></div>
+
+<p>This will show a list of nodes that are available in the environment. This information </p>
+<h2>Login to the overcloud</h2>
+<p>From the undercloud node you can source the stack resource file and use the
+<em>openstack clients</em> as usual.</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="w"> </span><span class="n">overcloudrc</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="n">cat</span><span class="w"> </span><span class="n">overcloudrc</span>
+<span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="n">nova</span><span class="w"> </span><span class="n">list</span>
+</code></pre></div>
+
+<p>In the previous output you also see the <code>OS_AUTH_URL</code> and the credentials
+needed to login from the Horizon dashboard.</p>
+<p>Either using ssh portforwaring, or the dynamic proxy option, you can open the
+dashboard.</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ssh<span class="w"> </span>-F<span class="w"> </span>~/.quickstart/ssh.config.ansible<span class="w"> </span>undercloud<span class="w"> </span>-D<span class="w"> </span><span class="m">8080</span>
+</code></pre></div>
+
+<p>Either using Firefox (with the FoxyProxy extension) or Chrome/Vivaldi (with the
+SwitchySharp extension) you can set a SOCKS proxy at <code>127.0.0.1</code> and port
+<code>8080</code>.</p>
+<h2>Login to overcloud nodes</h2>
+<p>If you need to inspect a node in the overcloud (workload), you can login to these nodes from the undercloud using the following command:</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="n">ssh</span><span class="w"> </span><span class="o">[</span><span class="n">hostname/nodeip</span><span class="o">]</span>
+</code></pre></div>
+
+<p>Note: you can find the hostnames and IP addresses on the <em>undercloud</em> in the
+<code>/etc/hosts</code> file. It will use 'heat-admin' as user to login.</p>
+<h2>Scale out</h2>
+<p>After deployment, you might have noticed that <code>ironic node-list</code> returned a
+list of baremetal nodes that are in <em>Provisioning state</em> 'available' and do not
+have an <em>Instance UUID</em>. These nodes have not been deployed to, as
+<code>--compute-scale</code> had not been set.</p>
+<p>To scale out to these nodes, you first need to change the <code>Maintenance</code> status
+to false. You can do this for all available at once with:</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="err">$</span><span class="p">(</span><span class="n">ironic</span><span class="w"> </span><span class="n">node</span><span class="o">-</span><span class="n">list</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">grep</span><span class="w"> </span><span class="n">available</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">grep</span><span class="w"> </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="n">UUID</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">awk</span><span class="w"> </span><span class="s1">&#39; { print $2 } &#39;</span><span class="p">);</span><span class="w"> </span><span class="n">do</span>
+<span class="o">&gt;</span><span class="w"> </span><span class="n">ironic</span><span class="w"> </span><span class="n">node</span><span class="o">-</span><span class="k">set</span><span class="o">-</span><span class="n">maintenance</span><span class="w"> </span><span class="err">$</span><span class="n">i</span><span class="w"> </span><span class="k">false</span><span class="p">;</span>
+<span class="o">&gt;</span><span class="w"> </span><span class="n">done</span>
+</code></pre></div>
+
+<p>You can verify the status with <code>ironic node-list</code>.</p>
+<p>After this you can scale out using</p>
+<div class="highlight"><pre><span></span><code><span class="p">[</span><span class="nx">stack</span><span class="err">@</span><span class="nx">undercloud</span><span class="w"> </span><span class="o">~</span><span class="p">]</span><span class="err">$</span><span class="w"> </span><span class="nx">openstack</span><span class="w"> </span><span class="nx">overcloud</span><span class="w"> </span><span class="nx">deploy</span><span class="w"> </span><span class="o">--</span><span class="nx">templates</span><span class="w"> </span><span class="o">--</span><span class="nx">libvirt</span><span class="o">-</span><span class="k">type</span><span class="w"> </span><span class="nx">qemu</span><span class="w"> </span><span class="o">--</span><span class="nx">control</span><span class="o">-</span><span class="nx">flavor</span><span class="w"> </span><span class="nx">oooq_control</span><span class="w"> </span><span class="o">--</span><span class="nx">compute</span><span class="o">-</span><span class="nx">flavor</span><span class="w"> </span><span class="nx">oooq_compute</span><span class="w"> </span><span class="o">--</span><span class="nx">ceph</span><span class="o">-</span><span class="nx">storage</span><span class="o">-</span><span class="nx">flavor</span><span class="w"> </span><span class="nx">oooq_ceph</span><span class="w"> </span><span class="o">--</span><span class="nx">timeout</span><span class="w"> </span><span class="mi">60</span><span class="w"> </span><span class="o">--</span><span class="nx">ntp</span><span class="o">-</span><span class="nx">server</span><span class="w"> </span><span class="nx">pool</span><span class="p">.</span><span class="nx">ntp</span><span class="p">.</span><span class="nx">org</span><span class="w"> </span><span class="o">--</span><span class="nx">compute</span><span class="o">-</span><span class="nx">scale</span><span class="w"> </span><span class="mi">3</span>
+</code></pre></div>
+
+<p>This will change the current <em>overcloud</em> heat deployment and provision the
+remaining nodes.</p>
+<p>Eventually the command will return with:</p>
+<div class="highlight"><pre><span></span><code>...
+Stack overcloud UPDATE_COMPLETE
+Overcloud Endpoint: http://192.0.2.6:5000/v2.0
+Overcloud Deployed
+</code></pre></div>
+
+<p>after which the new nodes have been added to the <em>overcloud</em>. To update the
+hosts entries in <code>/etc/hosts</code> you can rerun:</p>
+<div class="highlight"><pre><span></span><code><span class="o">[</span><span class="n">stack@undercloud ~</span><span class="o">]</span><span class="err">$</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="n">overcloud</span><span class="o">-</span><span class="n">deploy</span><span class="o">-</span><span class="n">post</span><span class="p">.</span><span class="n">sh</span>
+</code></pre></div>
+
+<h2>Diskimage building</h2>
+<p>The <em>undercloud</em> images can be created using <a href="https://github.com/redhat-openstack/ansible-role-tripleo-image-build">ansible-role-tripleo-image-build</a>.
+Using the following commands it will generate the images:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/redhat-openstack/ansible-role-tripleo-image-build.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>ansible-role-tripleo-image-build/tests/pip
+$<span class="w"> </span>sudo<span class="w"> </span>./build.sh<span class="w"> </span>-i
+$<span class="w"> </span>./build.sh<span class="w"> </span><span class="nv">$VIRTHOST</span>
+</code></pre></div>
+
+<p>After the command finishes succesfully, the images can be found in
+<code>/var/lib/oooq-images</code>.</p>
+<p>Note: The content of <code>/var/lib/oooq-images</code> will be cleaned on run. After this
+it will download a base image from
+<code>http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2</code> of
+about 800M. You can download this image and specify the location in a
+configuration file to prevent it from having to be downloaded each time.</p>
+<p>A create a file called: <code>override.yml</code></p>
+<div class="highlight"><pre><span></span><code><span class="n">artib_minimal_base_image_url</span><span class="o">:</span><span class="w"> </span><span class="n">file</span><span class="o">:///</span><span class="n">var</span><span class="sr">/lib/oooq-base-images/</span><span class="n">CentOS</span><span class="o">-</span><span class="mi">7</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="n">GenericCloud</span><span class="o">.</span><span class="na">qcow2</span>
+</code></pre></div>
+
+<p>And pass this to the build command:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./build.sh<span class="w"> </span>-e<span class="w"> </span>override.yml<span class="w"> </span><span class="nv">$VIRTHOST</span><span class="w"> </span>
+</code></pre></div>
+
+<h2>Conclusion</h2>
+<p>Since the introduction of TripleO Quickstart, standing up a multi-node OpenStack
+environment is very easy. In my knowledge-base article I describe also how you
+can do a baremetal deployment using the Quickstart.</p>
+<p>If you have any suggestion, please discuss below or send me an email.</p>
+<p>Note: the original publication can be found at: <a href="https://gitlab.com/gbraad/openstack-handsonlabs">OpenStack hands-on-labs</a></p>
+<h2>More information</h2>
+<ul>
+<li>Deployment <a href="https://github.com/openstack/tripleo-quickstart/blob/master/docs/configuring.md">configuration options</a></li>
+<li>Knowledge-Base for <a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/openstack/tripleo.md">development/architecture notes</a> on TripleO  </li>
+<li>Openstack deployment <a href="https://remote-lab.net/rdo-manager-ha-openstack-deployment">using RDO-Manager</a></li>
+</ul>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>

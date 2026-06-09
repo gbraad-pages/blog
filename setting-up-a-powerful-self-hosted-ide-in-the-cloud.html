@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting up a powerful self-hosted IDE in the cloud - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="docker,c9ide,fedora" />
+        <meta name="description" content="Setting up infrastructure should be as simple as playing with LEGO. With the advent of Docker, IT has underwent a dramatic change. For instance, it became easy to setup throw-away development environments. These could then be used to create clean environments to perform builds in. And eventually, containers are starting …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/setting-up-a-powerful-self-hosted-ide-in-the-cloud.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Setting up a powerful self-hosted IDE in the cloud"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/setting-up-a-powerful-self-hosted-ide-in-the-cloud.html"/>
+        <meta property="og:description" content="Setting up infrastructure should be as simple as playing with LEGO. With the advent of Docker, IT has underwent a dramatic change. For instance, it became easy to setup throw-away development environments. These could then be used to create clean environments to perform builds in. And eventually, containers are starting …"/>
+        <meta property="article:published_time" content="2016-09-06" />
+            <meta property="article:section" content="Containers" />
+            <meta property="article:tag" content="docker" />
+            <meta property="article:tag" content="c9ide" />
+            <meta property="article:tag" content="fedora" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Containers ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Setting up a powerful self-hosted IDE in the cloud</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Tue 06 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/containers.html">Containers</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/docker.html" class="tag">docker</a>
+                        <a href="https://blog.gbraad.nl/tag/c9ide.html" class="tag">c9ide</a>
+                        <a href="https://blog.gbraad.nl/tag/fedora.html" class="tag">fedora</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>Setting up infrastructure should be as simple as playing with LEGO. With the advent of Docker, IT has underwent a dramatic change. For instance, it became easy to setup throw-away development environments. These could then be used to create clean environments to perform builds in. And eventually, containers are starting to move into the general infrastructure . This is a transaction that is currently still happening, helped by tools as Docker Swarm and Kubernetes. In this short article I will show how these ideas can help in setting up a composable infrastructure, providing you with a powerful IDE in the cloud, full with Let's Encrypt certificate generation.</p>
+<h2>Cloud9</h2>
+<p>We will be deploying C9, or Cloud9 IDE, is a full IDE which can be accessed from your browser. For convenience of use, I created a containerized version of this some while back and have ever since been using it. Although,, C9 also has a hosted environment, I grew worried after Amazon acquired the company. Support has since been slower to respond and this made me look into other ways to provide an alternative approach. After some testing with Docker Cloud it seemed like a good idea to deploy a self-hosted alternative.</p>
+<p>But first about one of the main components. The <a href="https://hub.docker.com/r/gbraad/c9ide/">container</a> I created exposes port 8181, which is an unsecured endpoint. It allows you to simply setup a local instance with:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="nv">c9ide</span><span class="o">=</span><span class="s1">&#39;docker run -it --rm -v $PWD:/workspace gbraad/c9ide:u1604&#39;</span>
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/Projects/gauth
+$<span class="w"> </span>c9ide
+</code></pre></div>
+
+<p>This would however work for a local environment and does not provide a secure solution. More was needed... such as secure solution and preferably automated. For this Nginx and Let's Encrypt is used.  More information about Cloud9 can be found in my Knowledge Base <a href="https://github.com/gbraad/knowledge-base/blob/master/technology/c9ide.md">article</a><a href="https://gitlab.com/gbraad/knowledge-base/blob/master/technology/c9ide.md">*</a>.</p>
+<h2>Preparation</h2>
+<p>To deploy the environment I used <a href="http://fedoraproject.org">Fedora</a> 24. Most cloud providers provide this as an image. In my case, <a href="https://www.citycloud.com">CityCloud</a> provided the latest version after placing a simple request. You can consider any size, but the more storage and memory, the better the performance will be. I set up a 4G and 2 cores instance, with 50G of storage. After logging in, perform the following commands</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>sudo<span class="w"> </span>su<span class="w"> </span>-
+$<span class="w"> </span>dnf<span class="w"> </span>update<span class="w"> </span>-y
+$<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>docker
+$<span class="w"> </span>setenforce<span class="w"> </span><span class="m">0</span>
+$<span class="w"> </span>sed<span class="w"> </span><span class="s1">&#39;s/SELINUX=targeted/SELINUX=permisssive/g&#39;</span><span class="w"> </span>/etc/selinux/config
+$<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>docker
+$<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>docker
+</code></pre></div>
+
+<p>Note: SELinux is disabled because we will have a volume attached to the IDE container where the workspace will be located. We can however fix this, but this is something for a future blog post.</p>
+<h3>Setup DNS</h3>
+<p>After this, you host machine should be ready to host containers to will make up our environment. before we continue, we need to be sure we have DNS configured that can point to the running containers that host the C9 IDE. I used <a href="https://www.cloudflare.com">CloudFlare</a> and setup the following wildcard for my environment. </p>
+<p><img alt="" src="https://cdn.gbraad.nl/images/blog/c9ide-dns.png"></p>
+<p>With this each hostname, such as <code>ubuntu.c9ide.spotsnel.net</code> would point to the same machine that hosts our development containers.</p>
+<h3>Deploy Nginx</h3>
+<p>To allow a hostname to be resolved to a 'local' end-point a reverse proxy is needed. Jason Wilder created a container for this purpose called <code>nginx-proxy</code>. It needs access to the <code>docker.sock</code> to be notified of changes and it will accordingly create an endpoint in the hosted Nginx. For more information about this, please read <a href="https://hub.docker.com/r/jwilder/nginx-proxy/">nginx-proxy</a>'s description on Docker hub.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># docker run -d -p 80:80 -p 443:443 \</span>
+<span class="w">   </span><span class="o">--</span><span class="n">name</span><span class="w"> </span><span class="n">nginx</span><span class="o">-</span><span class="n">proxy</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">certs</span><span class="p">:</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">certs</span><span class="p">:</span><span class="n">ro</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">vhost</span><span class="o">.</span><span class="n">d</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">html</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">docker</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">docker</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span><span class="n">ro</span><span class="w"> </span>\
+<span class="w">   </span><span class="n">jwilder</span><span class="o">/</span><span class="n">nginx</span><span class="o">-</span><span class="n">proxy</span>
+</code></pre></div>
+
+<p>Opening any address pointing to this host would know result in a 503 error. This means that Nginx is listening and can not forward the request. We will deal with this later.</p>
+<h2>Deploy Let's Encrypt companion</h2>
+<p>Setting up a secure connection involves certificates which can be quite a hassle to obtain, and if trust of security is concerned, even very expensive. Luckily, initiatives exist that believe security should be available to all and <a href="https://letsencrypt.org">Let's Encrypt</a> provides a fully automated solution. Using the <code>letsencrypt-nginx-proxy-companion</code> container created by Yves Blusseau, it is possible allow the proxy container to be provisioned with the needed certificates. More information about <a href="https://hub.docker.com/r/jrcs/letsencrypt-nginx-proxy-companion/">this container</a> can be found at Docker hub.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># docker run -d \</span>
+<span class="w">   </span><span class="o">--</span><span class="n">name</span><span class="w"> </span><span class="n">nginx</span><span class="o">-</span><span class="n">proxy</span><span class="o">-</span><span class="n">letsencrypt</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">certs</span><span class="p">:</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">certs</span><span class="p">:</span><span class="n">rw</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">--</span><span class="n">volumes</span><span class="o">-</span><span class="n">from</span><span class="w"> </span><span class="n">nginx</span><span class="o">-</span><span class="n">proxy</span><span class="w"> </span>\
+<span class="w">   </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">docker</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">docker</span><span class="o">.</span><span class="n">sock</span><span class="p">:</span><span class="n">ro</span><span class="w"> </span>\
+<span class="w">   </span><span class="n">jrcs</span><span class="o">/</span><span class="n">letsencrypt</span><span class="o">-</span><span class="n">nginx</span><span class="o">-</span><span class="n">proxy</span><span class="o">-</span><span class="n">companion</span>
+</code></pre></div>
+
+<p>Unfortunately we do not have a way to really test this. But if the container starts correctly and does not terminate, it is likely working correctly, waiting for notifications of newly created containers.</p>
+<h2>Explanation</h2>
+<p>Containers that provide metadata in the form of environment variables, indicate to these service containers what the endpoint will be.</p>
+<p>The <code>nginx-proxy</code> service uses <code>VIRTUAL_HOST</code> to know what the hostname endpoint will be. While the Let's Encrypt companion service uses <code>LETSENCRYPT_HOST</code> for this. In the rest of this article the endpoints will be the same. With <code>LETSENCRYPT_EMAIL</code> we indicate to who the certificate will be addressed.</p>
+<h2>C9 IDE</h2>
+<p>The container hosting C9 is available in different flavors. I have created them based on CentOS 7, Fedora 24 and Ubuntu Xenail (16.04). To prepare, it is a good idea to pull the images locally:</p>
+<div class="highlight"><pre><span></span><code># docker pull gbraad/c9ide:c7
+# docker pull gbraad/c9ide:f24
+# docker pull gbraad/c9ide:u1604
+</code></pre></div>
+
+<p>To setup the containers as endpoints, I created the following helper script. It will deal with setting up the host and email for login to the container.</p>
+<p><code>./create.sh [name] [host] [email] [password] [flavor] [volume]</code></p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/sh -x</span>
+<span class="nb">set</span><span class="w"> </span>-e
+
+<span class="nv">NAME</span><span class="o">=</span><span class="si">${</span><span class="nv">1</span><span class="k">:-</span><span class="s2">&quot;test&quot;</span><span class="si">}</span>
+<span class="nv">HOST</span><span class="o">=</span><span class="si">${</span><span class="nv">2</span><span class="k">:-</span><span class="si">${</span><span class="nv">NAME</span><span class="si">}</span><span class="s2">&quot;.local&quot;</span><span class="si">}</span>
+<span class="nv">USER</span><span class="o">=</span><span class="si">${</span><span class="nv">3</span><span class="k">:-</span><span class="s2">&quot;nobody@local&quot;</span><span class="si">}</span>
+<span class="nv">PASS</span><span class="o">=</span><span class="si">${</span><span class="nv">4</span><span class="k">:-</span><span class="s2">&quot;secrete&quot;</span><span class="si">}</span>
+<span class="nv">FLAVOR</span><span class="o">=</span><span class="si">${</span><span class="nv">5</span><span class="k">:-</span><span class="s2">&quot;u1604&quot;</span><span class="si">}</span><span class="w">  </span><span class="c1"># c7, f24, u1604</span>
+<span class="nv">VOLUME</span><span class="o">=</span><span class="si">${</span><span class="nv">6</span><span class="k">:-</span><span class="s2">&quot;/workspaces/c9ide-&quot;</span><span class="si">${</span><span class="nv">NAME</span><span class="si">}}</span>
+
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="si">${</span><span class="nv">VOLUME</span><span class="si">}</span>
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>--name<span class="w"> </span><span class="si">${</span><span class="nv">NAME</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">VOLUME</span><span class="si">}</span>:/workspace:rw<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-e<span class="w"> </span><span class="s2">&quot;VIRTUAL_HOST=</span><span class="si">${</span><span class="nv">HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-e<span class="w"> </span><span class="s2">&quot;LETSENCRYPT_HOST=</span><span class="si">${</span><span class="nv">HOST</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-e<span class="w"> </span><span class="s2">&quot;LETSENCRYPT_EMAIL=</span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-e<span class="w"> </span><span class="s2">&quot;USERNAME=</span><span class="si">${</span><span class="nv">USER</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-e<span class="w"> </span><span class="s2">&quot;PASSWORD=</span><span class="si">${</span><span class="nv">PASS</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>gbraad/c9ide:<span class="si">${</span><span class="nv">FLAVOR</span><span class="si">}</span>
+</code></pre></div>
+
+<p>The <code>USERNAME</code> and <code>PASSWORD</code> are used to perform basic authentication.  As you can see, the email address used for the certificates is also used for the username for login. This can of course customized.
+ After this, </p>
+<div class="highlight"><pre><span></span><code><span class="err">#</span><span class="w"> </span><span class="n">chmod</span><span class="w"> </span><span class="o">+</span><span class="n">x</span><span class="w"> </span><span class="k">create</span><span class="p">.</span><span class="n">sh</span>
+<span class="err">#</span><span class="w"> </span><span class="n">mkdir</span><span class="w"> </span><span class="o">/</span><span class="n">workspaces</span>
+<span class="err">#</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="k">create</span><span class="p">.</span><span class="n">sh</span><span class="w"> </span><span class="n">ubuntu</span><span class="w"> </span><span class="n">ubuntu</span><span class="p">.</span><span class="n">c9ide</span><span class="p">.</span><span class="n">spotsnel</span><span class="p">.</span><span class="n">net</span><span class="w"> </span><span class="n">me</span><span class="nv">@gbraad</span><span class="p">.</span><span class="n">nl</span><span class="w"> </span><span class="n">verysecrete</span>
+<span class="err">#</span><span class="w"> </span><span class="p">.</span><span class="o">/</span><span class="k">create</span><span class="p">.</span><span class="n">sh</span><span class="w"> </span><span class="n">centos</span><span class="w"> </span><span class="n">quentin</span><span class="p">.</span><span class="n">c9ide</span><span class="p">.</span><span class="n">spotsnel</span><span class="p">.</span><span class="n">net</span><span class="w"> </span><span class="n">me</span><span class="nv">@quentinyong</span><span class="p">.</span><span class="n">nl</span><span class="w"> </span><span class="n">verysecrete</span><span class="w"> </span><span class="n">c7</span>
+</code></pre></div>
+
+<p>will create two containers, hosted at <code>ubuntu.c9ide.spotsnel.net</code> and <code>quentin.c9ide.spotsnel.net</code>. Notice that I used <code>/workspaces</code> to provide the storage location for all the host containers. Make sure this is hosted on a separate mountpoint for instance. </p>
+<p>Now open your IDE by opening <a href="https://ubuntu.c9ide.spotsnel.net">https://ubuntu.c9ide.spotsnel.net</a> in your browser. If all goes well, you will be created by a login prompt. The username is <code>me@gbraad.nl</code> and the password <code>verysecrete</code>.</p>
+<p><img alt="" src="https://cdn.gbraad.nl/images/blog/c9ide-final.png"></p>
+<p>In future articles I will detail more about the composability of infrastructure. if you enjoyed this article, consider tweeting about it. If you have comments, please find me online at <a href="http://twitter.com/gbraad">@gbraad</a>.</p>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>

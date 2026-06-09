@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highly Available storage using GlusterFS - Gerard Braad's blog</title>
+
+        <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="gluster,high availability,web,storage" />
+        <meta name="description" content="In this article I will describe how you can setup a webserver environment with Highly Available (HA) storage, provided by GlusterFS. We will be setting up a simple environment in which storage between two webservers needs to be replicated. GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It …" />
+
+<link rel="canonical" href="https://blog.gbraad.nl/highly-available-storage-using-glusterfs.html">
+
+        <meta property="og:site_name" content="Gerard Braad's blog" />
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Highly Available storage using GlusterFS"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/highly-available-storage-using-glusterfs.html"/>
+        <meta property="og:description" content="In this article I will describe how you can setup a webserver environment with Highly Available (HA) storage, provided by GlusterFS. We will be setting up a simple environment in which storage between two webservers needs to be replicated. GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It …"/>
+        <meta property="article:published_time" content="2016-09-12" />
+            <meta property="article:section" content="High Availability" />
+            <meta property="article:tag" content="gluster" />
+            <meta property="article:tag" content="high availability" />
+            <meta property="article:tag" content="web" />
+            <meta property="article:tag" content="storage" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="//cdn.gbraad.nl/css/pygments-tomorrownightbright.css" rel="stylesheet">
+    <link href="//cdn.gbraad.nl/css/shared-theme.css" rel="stylesheet">
+
+        <link href="https://blog.gbraad.nl/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog ATOM Feed"/>
+
+
+
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog High Availability ATOM Feed"/>
+</head>
+<body>
+
+<div class="top-banner">
+    <div class="banner-left">
+        <a href="https://gbraad.nl" class="back-button" title="gbraad.nl">&#8592;</a>
+        <div class="banner-title">
+            <img src="//cdn.gbraad.nl/images/logo.svg" alt="Gerard Braad" class="banner-logo">
+            <a href="https://blog.gbraad.nl/" style="color: inherit; text-decoration: none;">Gerard Braad's blog</a>
+        </div>
+    </div>
+    <nav class="banner-nav">
+        <a href="https://gbraad.nl">Home</a>
+    </nav>
+</div>
+
+<div class="container">
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Highly Available storage using GlusterFS</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Mon 12 September 2016
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/high-availability.html">High Availability</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/gluster.html" class="tag">gluster</a>
+                        <a href="https://blog.gbraad.nl/tag/high-availability.html" class="tag">high availability</a>
+                        <a href="https://blog.gbraad.nl/tag/web.html" class="tag">web</a>
+                        <a href="https://blog.gbraad.nl/tag/storage.html" class="tag">storage</a>
+            </div>
+        </div>
+        <div class="post-content">
+            <p>In this article I will describe how you can setup a webserver environment with
+Highly Available (HA) storage, provided by GlusterFS. We will be setting up a
+simple environment in which storage between two webservers needs to be replicated.</p>
+<p>GlusterFS is a scalable network filesystem suitable for data-intensive tasks. It
+is free and open source software and can utilize common off-the-shelf hardware.
+To learn more, please see the Gluster project <a href="http://www.gluster.org/">home page</a>.</p>
+<h2>Prerequisites</h2>
+<p>You will need two servers available, each with a dedicated disk for storage,
+such as <code>/dev/vdb</code> or <code>/dev/sdb</code>. I will be using Fedora 24, which of writing
+is the latest version.</p>
+<p>The following needs to be installed on both servers:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>glusterfs-server<span class="w"> </span>xfsprogs
+</code></pre></div>
+
+<p>This includes the server component for the distributed filesystem, and the tools
+needed to format the disk we will use to store the files. Gluster recommends to
+use XFS as the filesystem.</p>
+<p>We will assume for this article, that the machines will be running Apache. If
+this is not installed already, you can do the following:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>httpd
+</code></pre></div>
+
+<h2>Hostnames</h2>
+<p>Make sure the hostnames and IP addresses of the servers are known to each other.
+For this, check the content of <code>/etc/hosts</code></p>
+<p><code>/etc/hosts</code></p>
+<div class="highlight"><pre><span></span><code><span class="mf">37.153.173.244</span><span class="w"> </span><span class="n">server01</span><span class="o">-</span><span class="n">public</span>
+<span class="mf">37.153.173.245</span><span class="w"> </span><span class="n">server01</span><span class="o">-</span><span class="n">public</span>
+<span class="mf">10.3.0.44</span><span class="w"> </span><span class="n">server01</span><span class="o">-</span><span class="n">private</span>
+<span class="mf">10.3.0.45</span><span class="w"> </span><span class="n">server02</span><span class="o">-</span><span class="n">private</span>
+</code></pre></div>
+
+<p>Note: these servers have two interfaces, Although this is not necessary, it is
+strongly recommended to separate the traffic from the web and what you use for
+the storage network. In our case, the web-facing IP addresses have not been
+load-balanced yet. This is a topic for future articles.</p>
+<h2>Prepare disks</h2>
+<p>Since Gluster relies on extended file attributes (xattr), we will need to increase
+the inode size when formatting the disks.</p>
+<p>Perform on the following on both the servers</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>mkfs.xfs<span class="w"> </span>-i<span class="w"> </span><span class="nv">size</span><span class="o">=</span><span class="m">512</span><span class="w"> </span>/dev/vdb
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="nx">meta</span><span class="o">-</span><span class="nx">data</span><span class="p">=</span><span class="o">/</span><span class="nx">dev</span><span class="o">/</span><span class="nx">vdb</span><span class="w">               </span><span class="nx">isize</span><span class="p">=</span><span class="mi">512</span><span class="w">    </span><span class="nx">agcount</span><span class="p">=</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nx">agsize</span><span class="p">=</span><span class="mi">3276800</span><span class="w"> </span><span class="nx">blks</span>
+<span class="w">         </span><span class="p">=</span><span class="w">                       </span><span class="nx">sectsz</span><span class="p">=</span><span class="mi">512</span><span class="w">   </span><span class="nx">attr</span><span class="p">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nx">projid32bit</span><span class="p">=</span><span class="mi">1</span>
+<span class="w">         </span><span class="p">=</span><span class="w">                       </span><span class="nx">crc</span><span class="p">=</span><span class="mi">1</span><span class="w">        </span><span class="nx">finobt</span><span class="p">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nx">sparse</span><span class="p">=</span><span class="mi">0</span>
+<span class="nx">data</span><span class="w">     </span><span class="p">=</span><span class="w">                       </span><span class="nx">bsize</span><span class="p">=</span><span class="mi">4096</span><span class="w">   </span><span class="nx">blocks</span><span class="p">=</span><span class="mi">13107200</span><span class="p">,</span><span class="w"> </span><span class="nx">imaxpct</span><span class="p">=</span><span class="mi">25</span>
+<span class="w">         </span><span class="p">=</span><span class="w">                       </span><span class="nx">sunit</span><span class="p">=</span><span class="mi">0</span><span class="w">      </span><span class="nx">swidth</span><span class="p">=</span><span class="mi">0</span><span class="w"> </span><span class="nx">blks</span>
+<span class="nx">naming</span><span class="w">   </span><span class="p">=</span><span class="nx">version</span><span class="w"> </span><span class="mi">2</span><span class="w">              </span><span class="nx">bsize</span><span class="p">=</span><span class="mi">4096</span><span class="w">   </span><span class="nx">ascii</span><span class="o">-</span><span class="nx">ci</span><span class="p">=</span><span class="mi">0</span><span class="w"> </span><span class="nx">ftype</span><span class="p">=</span><span class="mi">1</span>
+<span class="nx">log</span><span class="w">      </span><span class="p">=</span><span class="nx">internal</span><span class="w"> </span><span class="nx">log</span><span class="w">           </span><span class="nx">bsize</span><span class="p">=</span><span class="mi">4096</span><span class="w">   </span><span class="nx">blocks</span><span class="p">=</span><span class="mi">6400</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="p">=</span><span class="mi">2</span>
+<span class="w">         </span><span class="p">=</span><span class="w">                       </span><span class="nx">sectsz</span><span class="p">=</span><span class="mi">512</span><span class="w">   </span><span class="nx">sunit</span><span class="p">=</span><span class="mi">0</span><span class="w"> </span><span class="nx">blks</span><span class="p">,</span><span class="w"> </span><span class="nx">lazy</span><span class="o">-</span><span class="nx">count</span><span class="p">=</span><span class="mi">1</span>
+<span class="nx">realtime</span><span class="w"> </span><span class="p">=</span><span class="nx">none</span><span class="w">                   </span><span class="nx">extsz</span><span class="p">=</span><span class="mi">4096</span><span class="w">   </span><span class="nx">blocks</span><span class="p">=</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nx">rtextents</span><span class="p">=</span><span class="mi">0</span>
+</code></pre></div>
+
+<p>Now we need to create a mountpoint for the filesystem. We will use
+<code>/data/var-www/brick01</code> on <code>server01</code>:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/data/var-www/brick01
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;/dev/vdb /data/var-www/brick01 xfs defaults 1 2&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/fstab
+$<span class="w"> </span>mount<span class="w"> </span>-a<span class="w"> </span>
+</code></pre></div>
+
+<p>and <code>/data/var-www/brick02</code> on <code>server02</code>:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/data/var-www/brick02
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;/dev/vdb /data/var-www/brick02 xfs defaults 1 2&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/fstab
+$<span class="w"> </span>mount<span class="w"> </span>-a<span class="w"> </span>
+</code></pre></div>
+
+<h2>Setup Gluster</h2>
+<p>You will now create a cluster of Gluster servers, which means that we will create
+a trust between the two nodes. But before we can do this, we need to make sure
+the Gluster daemon is running on the nodes. Perform the following commands on
+both of the nodes:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>glusterd
+$<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>glusterd
+$<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>glusterd
+</code></pre></div>
+
+<p>Now we need to create the trusted connection. The following commands will only
+need to be used on one of the nodes. In my case, this will be <code>server01</code>:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gluster<span class="w"> </span>peer<span class="w"> </span>probe<span class="w"> </span>server02-private
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>peer probe: success.
+</code></pre></div>
+
+<p>Note: the hostname here refers to the private IP address. This is not the same
+range as the public network. For security purposes you will likely separate the
+traffic.</p>
+<p>You can verify is the trust exists by running:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gluster<span class="w"> </span>peer<span class="w"> </span>status
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>Number of Peers: 1
+
+Hostname: server02-private
+Uuid: af523e9b-4257-485d-aa45-ebd24f115c42
+State: Peer in Cluster (Connected)
+</code></pre></div>
+
+<p>If you would run this command also on <code>server02</code>, you would get a similar result:</p>
+<div class="highlight"><pre><span></span><code>Number of Peers: 1
+
+Hostname: server01-private
+Uuid: 74c77082-b62c-4cc4-b33f-02de36083990
+State: Peer in Cluster (Connected)
+</code></pre></div>
+
+<h2>Create Gluster volume</h2>
+<p>In case of a failure, we do not want our data to be unavailable. Therefore we
+need to have two copies of our data, and we do this by creating a replicated
+volume.</p>
+<p>This command will only need to be run on one node, as Gluster will take care of
+the related nodes.</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gluster<span class="w"> </span>volume<span class="w"> </span>create<span class="w"> </span>var-www<span class="w"> </span>replica<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>server01-private:/data/var-www/brick01/volume<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>server02-private:/data/var-www/brick02/volume
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="n">volume</span><span class="w"> </span><span class="n">create</span><span class="p">:</span><span class="w"> </span><span class="k">var</span><span class="o">-</span><span class="n">www</span><span class="p">:</span><span class="w"> </span><span class="n">success</span><span class="p">:</span><span class="w"> </span><span class="n">please</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">volume</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="n">data</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gluster<span class="w"> </span>volume<span class="w"> </span>start<span class="w"> </span>var-www
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="n">volume</span><span class="w"> </span><span class="n">start</span><span class="p">:</span><span class="w"> </span><span class="k">var</span><span class="o">-</span><span class="n">www</span><span class="p">:</span><span class="w"> </span><span class="n">success</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>gluster<span class="w"> </span>volume<span class="w"> </span>info
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="nx">Volume</span><span class="w"> </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="kd">var</span><span class="o">-</span><span class="nx">www</span>
+<span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="nx">Replicate</span>
+<span class="nx">Volume</span><span class="w"> </span><span class="nx">ID</span><span class="p">:</span><span class="w"> </span><span class="nx">e91014ca</span><span class="o">-</span><span class="nx">f98c</span><span class="o">-</span><span class="mi">42</span><span class="nx">e5</span><span class="o">-</span><span class="mi">8</span><span class="nx">e75</span><span class="o">-</span><span class="nx">de4d2e65f569</span>
+<span class="nx">Status</span><span class="p">:</span><span class="w"> </span><span class="nx">Started</span>
+<span class="nx">Number</span><span class="w"> </span><span class="nx">of</span><span class="w"> </span><span class="nx">Bricks</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="nx">x</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="nx">Transport</span><span class="o">-</span><span class="k">type</span><span class="p">:</span><span class="w"> </span><span class="nx">tcp</span>
+<span class="nx">Bricks</span><span class="p">:</span>
+<span class="nx">Brick1</span><span class="p">:</span><span class="w"> </span><span class="nx">server01</span><span class="o">-</span><span class="k">private</span><span class="p">:</span><span class="o">/</span><span class="nx">data</span><span class="o">/</span><span class="kd">var</span><span class="o">-</span><span class="nx">www</span><span class="o">/</span><span class="nx">brick01</span><span class="o">/</span><span class="nx">volume</span>
+<span class="nx">Brick2</span><span class="p">:</span><span class="w"> </span><span class="nx">server02</span><span class="o">-</span><span class="k">private</span><span class="p">:</span><span class="o">/</span><span class="nx">data</span><span class="o">/</span><span class="kd">var</span><span class="o">-</span><span class="nx">www</span><span class="o">/</span><span class="nx">brick02</span><span class="o">/</span><span class="nx">volume</span>
+<span class="nx">Options</span><span class="w"> </span><span class="nx">Reconfigured</span><span class="p">:</span>
+<span class="nx">transport</span><span class="p">.</span><span class="nx">address</span><span class="o">-</span><span class="nx">family</span><span class="p">:</span><span class="w"> </span><span class="nx">inet</span>
+<span class="nx">performance</span><span class="p">.</span><span class="nx">readdir</span><span class="o">-</span><span class="nx">ahead</span><span class="p">:</span><span class="w"> </span><span class="nx">on</span>
+<span class="nx">nfs</span><span class="p">.</span><span class="nx">disable</span><span class="p">:</span><span class="w"> </span><span class="nx">on</span>
+</code></pre></div>
+
+<h2>Mount Gluster volume</h2>
+<p>Before you can mount the volume on <code>/var/www</code> to share the webpages, we need to
+move the original <code>/var/www</code> out of the way and create a new directory to mount.
+Perform the following commands on both the servers:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>httpd
+$<span class="w"> </span>mv<span class="w"> </span>/var/www<span class="o">{</span>,.orig<span class="o">}</span>
+$<span class="w"> </span>mkdir<span class="w"> </span>/var/www
+</code></pre></div>
+
+<p>Now that we have the mountpoint, we can add an entry to <code>fstab</code> to deal with
+mounting of our volume. On <code>server01</code> you need to do the following:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;server01-private:/var-www /var/www glusterfs defaults,_netdev,fetch-attempts=3 0 0&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/fstab
+$<span class="w"> </span>mount<span class="w"> </span>-a
+</code></pre></div>
+
+<p>And on <code>server02</code>:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;server02-private:/var-www /var/www glusterfs defaults,_netdev,fetch-attempts=3 0 0&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/etc/fstab
+$<span class="w"> </span>mount<span class="w"> </span>-a
+</code></pre></div>
+
+<p>Now the volume has been mounted and replication is available. We use <code>_netdev</code>
+because network needs to be up before we can use this filesystem, and <code>fetch_attempts</code>
+will deal with the volume information in case of a failure. Since we have multiple
+IP address, this is a suggested setting.</p>
+<h2>Test replication</h2>
+<p>On <code>server01</code> you can do the following:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/var/www/html
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;Hello, World!&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>/var/www/html/index.html
+$<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>httpd
+</code></pre></div>
+
+<p>If you would now open the web facing IP address, you should see the message:
+<code>Hello, World!</code>.</p>
+<p>Note: if you have issues opening the page, or the default Fedora test page gets
+returned, you might have SELinux enabled. In this case, you need to turn on the
+following boolean:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>setsebool<span class="w"> </span>-P<span class="w"> </span>httpd_use_fusefs<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+
+<p>which will allow Apache to use the FUSE filesystem mount as used by GlusterFS.</p>
+<p>Now, on <code>server02</code> you can check the content of the folder:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ls<span class="w"> </span>/var/www/html
+</code></pre></div>
+
+<p>and you would see an <code>index.html</code> file. Now start Apache and you will see that
+the content is also served from this server.</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>httpd
+</code></pre></div>
+
+<h2>Conclusion</h2>
+<p>Using GlusterFS it is easy to setup an environment that can handle issues with
+storage availability. You now have a replicate volume that is available on two
+servers. Actions we take on each of these servers, will be replicated to the
+other server.</p>
+<p>In this case we have setup the servers to handle both the storage and act as a
+client to read these files. More advanced are available and are described in the
+<a href="http://gluster.readthedocs.io/en/latest/">documentation</a>.</p>
+<h2>Next step</h2>
+<p>Now that we have implemented replicated storage for our webservers, we need to
+provide a HA solution to deal with the traffic on the webfacing IP addresses.
+In an OpenStack environment you could use Neutron to setup a loadbalancer and 
+health monitor for the two servers. How to set this up in described in the
+<a href="./building-a-multi-tier-application-using-openstack-packstack.html">following article</a>.
+However, you can also do so with HAProxy and a failover mechanism, which will be
+the topic of a future article.</p>
+<p>If you have questions please let me know on Twitter at <a href="http://twitter.com/gbraad">@gbraad</a> or by email.</p>
+        </div>
+    </article>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <ul class="social-links">
+            <li><a href="https://github.com/gbraad/" title="GitHub"><i class="fab fa-github"></i></a></li>
+            <li><a href="https://gitlab.com/gbraad" title="GitLab"><i class="fab fa-gitlab"></i></a></li>
+            <li><a href="https://mastodon.social/@gbraad" title="Mastodon"><i class="fab fa-mastodon"></i></a></li>
+            <li><a href="https://linkedin.com/in/gbraad" title="LinkedIn"><i class="fab fa-linkedin"></i></a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Gerard Braad <me@gbraad.nl></p>
+    </div>
+</footer>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-34531495-3']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+</body>
+</html>
