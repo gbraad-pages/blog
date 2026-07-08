@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="https://blog.gbraad.nl/" rel="alternate"/><link href="https://blog.gbraad.nl/feeds/all.atom.xml" rel="self"/><id>https://blog.gbraad.nl/</id><updated>2026-07-08T00:00:00+08:00</updated><entry><title>Betamax and Machinefile</title><link href="https://blog.gbraad.nl/betamax-and-machinefile.html" rel="alternate"/><published>2026-07-08T00:00:00+08:00</published><updated>2026-07-08T00:00:00+08:00</updated><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:blog.gbraad.nl,2026-07-08:/betamax-and-machinefile.html</id><summary type="html">&lt;hr&gt;
-&lt;p&gt;ref: https://share.gemini.google/ClapWvnudTYA&lt;/p&gt;
-&lt;hr&gt;
-&lt;h1&gt;Betamax and Machinefile&lt;/h1&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gerard Braad's blog</title><link href="https://blog.gbraad.nl/" rel="alternate"/><link href="https://blog.gbraad.nl/feeds/all.atom.xml" rel="self"/><id>https://blog.gbraad.nl/</id><updated>2026-07-08T00:00:00+08:00</updated><entry><title>Betamax and Machinefile</title><link href="https://blog.gbraad.nl/betamax-and-machinefile.html" rel="alternate"/><published>2026-07-08T00:00:00+08:00</published><updated>2026-07-08T00:00:00+08:00</updated><author><name>Gerard Braad &lt;me@gbraad.nl&gt;</name></author><id>tag:blog.gbraad.nl,2026-07-08:/betamax-and-machinefile.html</id><summary type="html">&lt;h1&gt;Betamax and Machinefile&lt;/h1&gt;
 &lt;h3&gt;Choosing Convenience over the "Best" Standard&lt;/h3&gt;
 &lt;p&gt;In infrastructure-as-code, the best technical solution does not always win.&lt;/p&gt;
-&lt;p&gt;Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses …&lt;/p&gt;</summary><content type="html">&lt;hr&gt;
-&lt;p&gt;ref: https://share.gemini.google/ClapWvnudTYA&lt;/p&gt;
-&lt;hr&gt;
-&lt;h1&gt;Betamax and Machinefile&lt;/h1&gt;
+&lt;p&gt;Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if …&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Betamax and Machinefile&lt;/h1&gt;
 &lt;h3&gt;Choosing Convenience over the "Best" Standard&lt;/h3&gt;
 &lt;p&gt;In infrastructure-as-code, the best technical solution does not always win.&lt;/p&gt;
 &lt;p&gt;Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if a configuration error occurs. It is predictable.&lt;/p&gt;
