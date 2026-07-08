@@ -3,16 +3,26 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerard Braad's blog</title>
+    <title>Betamax and Machinefile - Gerard Braad's blog</title>
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
+        <meta name="keywords" content="virtual machines,containers,infrastructure,development" />
+        <meta name="description" content="ref: https://share.gemini.google/ClapWvnudTYA Betamax and Machinefile Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses …" />
 
-<link rel="canonical" href="https://blog.gbraad.nl">
+<link rel="canonical" href="https://blog.gbraad.nl/betamax-and-machinefile.html">
+
         <meta property="og:site_name" content="Gerard Braad's blog" />
-        <meta property="og:type" content="website"/>
-        <meta property="og:title" content="Gerard Braad's blog"/>
-        <meta property="og:url" content="https://blog.gbraad.nl"/>
-        <meta property="og:description" content="Gerard Braad's blog"/>
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="Betamax and Machinefile"/>
+        <meta property="og:url" content="https://blog.gbraad.nl/betamax-and-machinefile.html"/>
+        <meta property="og:description" content="ref: https://share.gemini.google/ClapWvnudTYA Betamax and Machinefile Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses …"/>
+        <meta property="article:published_time" content="2026-07-08" />
+            <meta property="article:section" content="Infrastructure" />
+            <meta property="article:tag" content="virtual machines" />
+            <meta property="article:tag" content="containers" />
+            <meta property="article:tag" content="infrastructure" />
+            <meta property="article:tag" content="development" />
+            <meta property="article:author" content="Gerard Braad <me@gbraad.nl>" />
 
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,6 +37,8 @@
 
 
 
+        <link href="https://blog.gbraad.nl/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate"
+              title="Gerard Braad's blog Infrastructure ATOM Feed"/>
 </head>
 <body>
 
@@ -44,23 +56,21 @@
 </div>
 
 <div class="container">
-        <article class="blog-post-card" style="margin-bottom: 2rem;">
-            <div class="post-header">
-                <h1 class="post-title">
-                    <a href="https://blog.gbraad.nl/betamax-and-machinefile.html" style="color: inherit; text-decoration: none;">Betamax and Machinefile</a>
-                </h1>
-                <div class="post-meta">
-                    <i class="fa fa-calendar"></i> Wed 08 July 2026
-                        &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/infrastructure.html">Infrastructure</a>
-                        &nbsp;&middot;&nbsp;
-                            <a href="https://blog.gbraad.nl/tag/virtual-machines.html" class="tag">virtual machines</a>
-                            <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
-                            <a href="https://blog.gbraad.nl/tag/infrastructure.html" class="tag">infrastructure</a>
-                            <a href="https://blog.gbraad.nl/tag/development.html" class="tag">development</a>
-                </div>
+    <article>
+        <div class="post-header">
+            <h1 class="post-title">Betamax and Machinefile</h1>
+            <div class="post-meta">
+                <i class="fa fa-calendar"></i> Wed 08 July 2026
+                    &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/infrastructure.html">Infrastructure</a>
+                    &nbsp;&middot;&nbsp;
+                        <a href="https://blog.gbraad.nl/tag/virtual-machines.html" class="tag">virtual machines</a>
+                        <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
+                        <a href="https://blog.gbraad.nl/tag/infrastructure.html" class="tag">infrastructure</a>
+                        <a href="https://blog.gbraad.nl/tag/development.html" class="tag">development</a>
             </div>
-            <div class="post-content">
-                <hr>
+        </div>
+        <div class="post-content">
+            <hr>
 <p>ref: https://share.gemini.google/ClapWvnudTYA</p>
 <hr>
 <h1>Betamax and Machinefile</h1>
@@ -137,45 +147,8 @@
 <p>I will work more on this tool in future, expecially as one of the arguments is the speed of starting and overhead it has; you are still starting a full virtual machine. And in this age of AI agents and GPU acceleration needs, a leaner approach is needed.</p>
 <p>I will be working on a MicroVM apprach, so instead of full host emulation, instead <code>virtio-mmio</code> will be used. Solutions like cloud-hypervisor and krun already utilize this. Machinefile can already be utilized as a CLI tool for them, but ideally I want this to be part of Ducttape to prepare images, share and convert, and eventually run them on targets in a supported workflow.</p>
 <p>Even if you do not want to use Lima, ducttape and machinefile are still ideal tools for your automation; this can be seen from the <a href="https://github.com/ducttape-infra/packer-machinefile/"><code>Packer-machinefile</code> example</a>, the goal of ducttape is to augment your process.</p>
-            </div>
-        </article>
-
-            <h2 style="margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">Recent Articles</h2>
-            <div class="blog-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-                    <div class="blog-post-card">
-                        <div class="blog-post-title">
-                            <a href="https://blog.gbraad.nl/patreon-busy-days.html">Patreon: Busy days ...</a>
-                        </div>
-                        <div class="blog-post-meta">
-                            <i class="fa fa-calendar"></i> Tue 09 June 2026
-                                &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/patreon.html">Patreon</a>
-                        </div>
-                        <div class="blog-post-summary"><p>... but not for the reasons I expected. Have not been able to make the video I wanted, as I forgot to realize I normally edited on Windows using OpenShot, which started to fail often. Tried DaVinci, but then realized after returning that machine that I was not able to use …</p></div>
-                    </div>
-                    <div class="blog-post-card">
-                        <div class="blog-post-title">
-                            <a href="https://blog.gbraad.nl/patreon-nt-78-now-available.html">Patreon: NT-78 now available!</a>
-                        </div>
-                        <div class="blog-post-meta">
-                            <i class="fa fa-calendar"></i> Fri 01 May 2026
-                                &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/patreon.html">Patreon</a>
-                        </div>
-                        <div class="blog-post-summary"><p><a href="https://www.patreon.com/posts/nt-78-now-156987354"><img alt="" src="https://img.itch.zone/aW1nLzI3MDA2ODY1LnBuZw==/original/IXNOnH.png"></a></p></div>
-                    </div>
-                    <div class="blog-post-card">
-                        <div class="blog-post-title">
-                            <a href="https://blog.gbraad.nl/patreon-update-for-april.html">Patreon: Update for April</a>
-                        </div>
-                        <div class="blog-post-meta">
-                            <i class="fa fa-calendar"></i> Tue 28 April 2026
-                                &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/patreon.html">Patreon</a>
-                        </div>
-                        <div class="blog-post-summary"><p><a href="https://www.patreon.com/posts/update-for-april-156735928"><img alt="" src="https://img.itch.zone/aW1nLzI2OTUwNTY4LnBuZw==/original/S0lTBx.png"></a></p></div>
-                    </div>
-            </div>
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="https://blog.gbraad.nl/archives.html" class="tag" style="font-size: 1em; padding: 8px 20px;">View all archives &rarr;</a>
-            </div>
+        </div>
+    </article>
 </div>
 
 <footer>
