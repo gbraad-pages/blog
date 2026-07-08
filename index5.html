@@ -66,7 +66,7 @@
 <p>Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if a configuration error occurs. It is predictable.</p>
 <h3>Introduction</h3>
 <p>Yet, cloud-init won the format war. Like VHS beating Betamax, <code>cloud-init</code> became the de facto industry standard because it was everywhere, used simple YAML, and was easy to adopt. It won on convenience, not engineering perfection. When you build machine setups or developer environments, you face this exact trade-off.</p>
-<p>In this article I will show you my solution to a container and virtual machine setup, how I automated this and how this led to the development of Machinefile, and eventually <a href="https://github.com/ducttape-infra/ducttape">Ducttape</a>.</p>
+<p>In this article I will show you my solution to a container and virtual machine setup, how I automated this and how this led to the development of <a href="https://github.com/ducttape-infra/machinefile">Machinefile</a>, and eventually <a href="https://github.com/ducttape-infra/ducttape">Ducttape</a>.</p>
 <h3>Containers and virtual machines</h3>
 <p>To understand why modern development environment workflows look the way they do, you have to trace how we isolate and deploy software. We went from heavy, emulated hardware to ultra-lightweight application layers, and finally to a hybrid reality where operating systems are managed exactly like containers.</p>
 <p>Understanding this evolution is the key to seeing why tools like bootc and Machinefile exist</p>
@@ -84,14 +84,14 @@
 <p>The goal isn't to exclude bootc, but to choose a pragmatic tool built for developer speed that augments it, and allow you to use a single solution for containers, virtual machines and allow eventually to even use Bootc. </p>
 <p>In the age of AI agents I found the isolation very beneficial, and with tooling I improved the deployment and ease to experiment.</p>
 <h3>Machinefile</h3>
-<p>To see how this works, you can look at how I created my developer environment. In projects like <a href="https://github.com/gbraad-devenv/fedora"><code>gbraad-devenv/fedora</code></a>, base images are built automatically via CI/CD pipelines. The pipeline generates multiple formats from the same source at the same time: standard containers, immutable bootc disk images, and cloud disk images.</p>
+<p>To see how this works, you can look at how I created my developer environment. In projects like <a href="https://github.com/gbraad-devenv/fedora">gbraad-devenv/fedora</a>, base images are built automatically via CI/CD pipelines. The pipeline generates multiple formats from the same source at the same time: standard containers, immutable bootc disk images, and cloud disk images.</p>
 <p>When a developer needs a localized workspace, local orchestration tools like macadam, KVM, or Lima take over. They boot that pre-baked cloud image and apply configurations using cloud-init.</p>
 <p>This provides convenience and speed without sacrificing the end goal. It gives the developer two things:</p>
 <ul>
 <li>Consistency: The local VM matches the production container or bootc target.</li>
 <li>Isolation: The developer gets a dedicated kernel and a secure sandbox.</li>
 </ul>
-<p>This led me to create this as part of my <a href="https://github.com/gbraad-dotfiles"><code>dotfiles</code></a>, and tools to start a containerized image with <code>devenv</code>, or a virtual machine with <code>machine</code>.</p>
+<p>This led me to create this as part of <a href="https://github.com/gbraad-dotfiles">my dotfiles</a>, and tools to start a containerized image with <code>devenv</code>, or a virtual machine with <code>machine</code>.</p>
 <h3>How Machinefile Works</h3>
 <p>While tools like Packer and vagrant already deel with customize dlocal developmenrt environments, I wanted to use a familiar configuration; the <code>Containerfile</code>.  The <a href="https://github.com/ducttape-infra/machinefile">machinefile</a> CLI is a lightweight executor written in Go.</p>
 <p>You start a cloud image using a tool like Lima, packer or macadam, and execute the statements inside the Machinefile against this. It acts as a direct translator between container syntax and your system via simple shell run commands.</p>
@@ -124,7 +124,7 @@
 
 <h3>Expanding to Non-Linux</h3>
 <p>Crucially, this simple translation also breaks down operating system barriers. Container images and <code>bootc</code> are strictly bound to Linux kernels. But because <code>Machinefile</code> strips away the container engine requirements, you can reuse the exact same syntax on environments where containers cannot natively run.</p>
-<p>Look at <a href="https://github.com/gbraad-dotfiles/freebsd"><code>gbraad-dotfiles/freebsd</code></a> as an example. In this setup, a standard Containerfile format is repurposed to provision a FreeBSD virtual machine.</p>
+<p>Look at <a href="https://github.com/gbraad-dotfiles/freebsd">gbraad-dotfiles/freebsd</a> as an example. In this setup, a standard Containerfile format is repurposed to provision a FreeBSD virtual machine.</p>
 <p>This decouples your configuration layout from a single operating system type. You get a single, unified mental model for setting up environments across entirely different kernels.</p>
 <h3>Conclusion</h3>
 <p>This simplicity gives you a fast shortcut. During the early, messy stages of development, you do not want to wait on a pipeline or re-provision a VM. You just want to change a config line and see if it works instantly.</p>
@@ -138,7 +138,7 @@ $<span class="w"> </span>system-reinstall-bootc<span class="w"> </span>ghcr.io/d
 $<span class="w"> </span>reboot
 </code></pre></div>
 
-<p>This makes immutability a choice, instead of a requirement. When dealing wth an AI agent, you want to allow installing development tools, but also easy recreation, treating them as ephemeral. For this see <a href="github.com/ducttape-infra/examples/tree/main/debian-claude"><code>debian-claude</code></a> as an example.</p>
+<p>This makes immutability a choice, instead of a requirement. When dealing wth an AI agent, you want to allow installing development tools, but also easy recreation, treating them as ephemeral. For this see <a href="https://github.com/ducttape-infra/examples/tree/main/debian-claude">debian-claude</a> as an example.</p>
 <h3>What's next</h3>
 <p>I will work more on this tool in future, expecially as one of the arguments is the speed of starting and overhead it has; you are still starting a full virtual machine. And in this age of AI agents and GPU acceleration needs, a leaner approach is needed.</p>
 <p>I will be working on a MicroVM apprach, so instead of full host emulation, instead <code>virtio-mmio</code> will be used. Solutions like cloud-hypervisor and krun already utilize this. Machinefile can already be utilized as a CLI tool for them, but ideally I want this to be part of Ducttape to prepare images, share and convert, and eventually run them on targets in a supported workflow.</p>
