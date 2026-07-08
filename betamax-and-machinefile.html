@@ -7,7 +7,7 @@
 
         <meta name="author" content="Gerard Braad <me@gbraad.nl>" />
         <meta name="keywords" content="virtual machines,containers,infrastructure,development" />
-        <meta name="description" content="Betamax and Machinefile Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if …" />
+        <meta name="description" content="Betamax, Machinefile and a roll of ducttape Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON …" />
 
 <link rel="canonical" href="https://blog.gbraad.nl/betamax-and-machinefile.html">
 
@@ -15,7 +15,7 @@
         <meta property="og:type" content="article"/>
         <meta property="og:title" content="Betamax and Machinefile"/>
         <meta property="og:url" content="https://blog.gbraad.nl/betamax-and-machinefile.html"/>
-        <meta property="og:description" content="Betamax and Machinefile Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if …"/>
+        <meta property="og:description" content="Betamax, Machinefile and a roll of ducttape Choosing Convenience over the &#34;Best&#34; Standard In infrastructure-as-code, the best technical solution does not always win. Take machine provisioning. Fedora CoreOS&#39;s Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON …"/>
         <meta property="article:published_time" content="2026-07-08" />
             <meta property="article:section" content="Infrastructure" />
             <meta property="article:tag" content="virtual machines" />
@@ -70,8 +70,9 @@
             </div>
         </div>
         <div class="post-content">
-            <h1>Betamax and Machinefile</h1>
+            <h1>Betamax, Machinefile and a roll of ducttape</h1>
 <h3>Choosing Convenience over the "Best" Standard</h3>
+<p><img alt="" src="https://avatars.githubusercontent.com/u/296723703?s=140&amp;v=4"></p>
 <p>In infrastructure-as-code, the best technical solution does not always win.</p>
 <p>Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if a configuration error occurs. It is predictable.</p>
 <h3>Introduction</h3>
@@ -140,6 +141,15 @@
 <p>This simplicity gives you a fast shortcut. During the early, messy stages of development, you do not want to wait on a pipeline or re-provision a VM. You just want to change a config line and see if it works instantly.</p>
 <p>The solution here does not exclude containers or bootc. Instead, Machinefile and Ducttape augments it by providing consistency. Because Machinefile uses near-identical file syntax to your final bootc target, you do not create technical debt. You use one familiar syntax for local hacking, local VM provisioning, and final production builds.</p>
 <p>Machinefile is a choice based on context. It does not replace immutable systems; it accelerates them. It proves that reuse, familiarity, and removing human friction matter more than chasing the perfect standard.</p>
+<h3>Example Forgejo</h3>
+<p>To demonstrate that this process can be applied to containers, virtual machines and eventually upgrade to bootable containers, you can have a look at the <a href="https://github.com/ducttape-lab/forgejo">Forgejo example</a>.</p>
+<p>Moving from a running cloud image to <code>bootc</code> can be done with</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>dnf<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>system-reinstall-bootc
+$<span class="w"> </span>system-reinstall-bootc<span class="w"> </span>ghcr.io/ducttape-lab/forgejo-bootc:latest
+$<span class="w"> </span>reboot
+</code></pre></div>
+
+<p>This makes immutability a choice, instead of a requirement. When dealing wth an AI agent, you want to allow installing development tools, but also easy recreation, treating them as ephemeral. For this see <a href="github.com/ducttape-infra/examples/tree/main/debian-claude"><code>debian-claude</code></a> as an example.</p>
 <h3>What's next</h3>
 <p>I will work more on this tool in future, expecially as one of the arguments is the speed of starting and overhead it has; you are still starting a full virtual machine. And in this age of AI agents and GPU acceleration needs, a leaner approach is needed.</p>
 <p>I will be working on a MicroVM apprach, so instead of full host emulation, instead <code>virtio-mmio</code> will be used. Solutions like cloud-hypervisor and krun already utilize this. Machinefile can already be utilized as a CLI tool for them, but ideally I want this to be part of Ducttape to prepare images, share and convert, and eventually run them on targets in a supported workflow.</p>
