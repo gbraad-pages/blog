@@ -47,107 +47,187 @@
         <article class="blog-post-card" style="margin-bottom: 2rem;">
             <div class="post-header">
                 <h1 class="post-title">
-                    <a href="https://blog.gbraad.nl/betamax-machinefile-and-a-roll-of-ducttape.html" style="color: inherit; text-decoration: none;">Betamax, Machinefile and a roll of Ducttape</a>
+                    <a href="https://blog.gbraad.nl/how-borg-came-about.html" style="color: inherit; text-decoration: none;">How borg came about</a>
                 </h1>
                 <div class="post-meta">
-                    <i class="fa fa-calendar"></i> Wed 08 July 2026
-                        &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/infrastructure.html">Infrastructure</a>
+                    <i class="fa fa-calendar"></i> Wed 11 November 2026
+                        &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/security.html">security</a>
                         &nbsp;&middot;&nbsp;
-                            <a href="https://blog.gbraad.nl/tag/virtual-machines.html" class="tag">virtual machines</a>
-                            <a href="https://blog.gbraad.nl/tag/containers.html" class="tag">containers</a>
-                            <a href="https://blog.gbraad.nl/tag/infrastructure.html" class="tag">infrastructure</a>
-                            <a href="https://blog.gbraad.nl/tag/development.html" class="tag">development</a>
+                            <a href="https://blog.gbraad.nl/tag/synthesizer.html" class="tag">synthesizer</a>
+                            <a href="https://blog.gbraad.nl/tag/work.html" class="tag">work</a>
+                            <a href="https://blog.gbraad.nl/tag/security.html" class="tag">security</a>
+                            <a href="https://blog.gbraad.nl/tag/linux.html" class="tag">linux</a>
                 </div>
             </div>
             <div class="post-content">
-                <h3>Choosing Convenience over the "Best" Standard</h3>
-<p><img alt="" src="https://avatars.githubusercontent.com/u/296723703?s=140&amp;v=4"></p>
-<p>In infrastructure-as-code, the best technical solution does not always win.</p>
-<p>Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if a configuration error occurs. It is predictable.</p>
-<h3>Introduction</h3>
-<p>Yet, cloud-init won the format war. Like VHS beating Betamax, <code>cloud-init</code> became the de facto industry standard because it was everywhere, used simple YAML, and was easy to adopt. It won on convenience, not engineering perfection. When you build machine setups or developer environments, you face this exact trade-off.</p>
-<p>In this article I will show you my solution to a container and virtual machine setup, how I automated this and how this led to the development of <a href="https://github.com/ducttape-infra/machinefile">Machinefile</a>, and eventually <a href="https://github.com/ducttape-infra/ducttape">Ducttape</a>.</p>
-<h3>Containers and virtual machines</h3>
-<p>To understand why modern development environment workflows look the way they do, you have to trace how we isolate and deploy software. We went from heavy, emulated hardware to ultra-lightweight application layers, and finally to a hybrid reality where operating systems are managed exactly like containers.</p>
-<p>Understanding this evolution is the key to seeing why tools like bootc and Machinefile exist</p>
-<h4>Virtual Machines: The Foundation of Isolation</h4>
-<p>For decades, the standard way to isolate environments was the Virtual Machine (VM). A VM emulates an entire physical computer. It bundles an application, its dependencies, and a complete guest operating system—including its own dedicated kernel—running on top of a hypervisor.</p>
-<p>Virtual Machines provide isoltation and platform independence as it runs its own kernel, or evcen a different Operating System, likle FreeBSD or Windows. This however feels heavy due to the use of memory.</p>
-<h4>Containers</h4>
-<p>Containers solved the weight problerm by shifting the isolation boundary. Instead of emulating the hardware and running a kernel, a container shares the host machine's Linux kernel. It uses kernel features like namespaces and cgroups to isolate the application process and it's files.</p>
-<p>This makes it possible to start these environments in seconds as there is less overhead. The standardized configuration format, like <code>Dockerfile</code> (or <code>Containerfile</code>) eased with consistent creation.</p>
-<h4>Bootable Containers</h4>
-<p>This brings us to the modern solution: bootc (bootable containers). Instead of using a <code>Containerfile</code> merely to build an app that runs inside an operating system, bootc applies the container model to the entire host operating system itself.</p>
-<p>You start a virtual machine from a container image and it provides immutability and an atomic update process.</p>
-<h3>The issue and the why</h3>
-<p>While bootc is an excellent deployment standard, forcing a developer into full image builds during early-stage development introduces unnecessary friction. This is why I created an intermediate solution; <code>Machinefile</code>. </p>
-<p>The goal isn't to exclude bootc, but to choose a pragmatic tool built for developer speed that augments it, and allow you to use a single solution for containers, virtual machines and allow eventually to even use Bootc. </p>
-<p>In the age of AI agents I found the isolation very beneficial, and with tooling I improved the deployment and ease to experiment.</p>
-<h3>Machinefile</h3>
-<p>To see how this works, you can look at how I created my developer environment. In projects like <a href="https://github.com/gbraad-devenv/fedora">gbraad-devenv/fedora</a>, base images are built automatically via CI/CD pipelines. The pipeline generates multiple formats from the same source at the same time: standard containers, immutable bootc disk images, and cloud disk images.</p>
-<p>When a developer needs a localized workspace, local orchestration tools like macadam, KVM, or Lima take over. They boot that pre-baked cloud image and apply configurations using cloud-init.</p>
-<p>This provides convenience and speed without sacrificing the end goal. It gives the developer two things:</p>
+                <h4>... and why you should never trust custom code in a privileged process</h4>
+<p>This short article will explain how borg can exist as a non-invasive extension
+framework, and what could have been done to prevent it. But also shortly goes
+into the ethical side of the discussion; should you prevent this?</p>
+<h2>The logue SDK and the Korg drumlogue</h2>
+<p>When Korg started with the <a href="https://korginc.github.io/logue-sdk/">Logue SDK</a> in
+2019, they released a set of development instructions to create custom
+synthesizer oscillators and effects. They created a custom binary format and
+metadata that was zipped, and this would be uploaded to a device's runtime. These
+devices were the Prologue, Minilogue XD, and the programmable synthesizer kit
+NTS-1.</p>
+<p>All were based around a STM32 main processor, optional co-processor(s) and analog
+voice circuitry. This customization would allow sounds and effects to take the
+device beyond imagination. </p>
+<p>In 2024 they released an improved SDK which moved to an ELF format which improved
+the tooling, allowed dynamic loading, and targeted a slightly updated chipset.
+However, they were still essentially armhf. This change was essential for future
+devices like the drumlogue and microKORG2, which were application processors
+running a Linux variant and synth units would be able to use file-loading.</p>
+<p>This allowed people to develop even more interesting capabilities, such as
+loading soundfonts, or playing tracker files, and more. If you allow your device
+to run custom-code, you also need to be aware of the consequences.</p>
+<h2>Units inherit the daemon's privileges</h2>
+<p>I can only guess as to why, but synth units run as root. That is not a bug I
+found. It is how the device is set up, and it is why borg can exist without
+changing anything on the rootfs.</p>
+<p>On the drumlogue, a unit is not sandboxed from the system. It runs inside
+<code>drumlogued</code>, and that daemon runs as root. A unit can therefore read and write
+the filesystem. This is not a hidden channel or an exploit. It is the ordinary
+result of loading third-party code into a privileged process.</p>
+<p>I have hit this by accident. A unit build left files in <code>/</code>, and cleaning them
+up needed access the normal user path does not provide. I did not intend that,
+and that is exactly the point: if someone who knows the device can do it
+unintentionally, it will happen more widely to inexperienced users. This
+observation is important because it also explains what a proper fix would look
+like.</p>
+<p>It is important to understand the consquences. A malicious or poorly written
+unit can modify the device, write repeatedly to NAND/eMMC memory and wear
+it out, interfere with normal operation and leave the filesystem in a state
+that needs recovery. This latter point is a concern, as currently there is no
+way for a user to initiate a recovery.</p>
+<p>The ability to do these things is not unique to borg. Borg only demonstrates
+the level of access already available to any loaded unit.</p>
+<h2>What Borg does with that</h2>
+<p><a href="https://borg.rgrv.nl">Borg</a> is a small shared library that acts as a means to
+extend the functionality of the device. It does so in a non-invasive way, by not
+leaving stuff behind.  It does, however allow borg to extend the functionality of
+the main process by being in-between existing operations.</p>
+<p>Borg is small on purpose. When you fire a <code>GateOn()</code>, the instruction to play
+a note:</p>
+<ol>
+<li>It stages a preload object in <code>/tmp</code>.</li>
+<li>It calls <code>execve("/proc/self/exe")</code> with <code>LD_PRELOAD</code>.</li>
+<li>The daemon restarts in place, same pid, with the extension loaded.</li>
+</ol>
+<p>No file on the rootfs is replaced. No firmware image is patched. Remove power
+and nothing remains. The menu, the MIDI transform and the module loader live in
+the running process, not on the device.</p>
+<p><code>LD_PRELOAD</code> is a standard Linux dynamic linker trick. By pointing it to a custom
+shared library before restarting the process via <code>execve()</code>, it forces the OS to
+load functions ahead of the original binaries.</p>
+<p>This unlocks in-memory function interception (hooking) and transformation of
+those functions; like modifying the return values or suppressing them in its
+entirety. </p>
+<p>It can inspect incoming MIDI events, hijack display buffers to draw custom menu pages, or inject new functionality.</p>
+<h2>What it is not</h2>
+<p>It is also important to understand what it is not. As in recent times a lot
+of discussions is about custom and vibecoded firmware, that is either completely
+new or in some cases reverse-engineered. Borg is not any of those.</p>
 <ul>
-<li>Consistency: The local VM matches the production container or bootc target.</li>
-<li>Isolation: The developer gets a dedicated kernel and a secure sandbox.</li>
+<li>Not custom firmware. The rootfs is unchanged. There is no image to flash and
+  no permanent install.</li>
+<li>Not reverse engineering. No disassembly, no decompilation, no extracted
+  vendor code, no modified manufacturer code. Everything comes from the public
+  logue SDK, the documented unit model, and standard Linux behavior.</li>
+<li>Not a vulnerability in the manufacturer's code. It is the permission model
+  doing what it was configured to do.</li>
 </ul>
-<p>This led me to create this as part of <a href="https://github.com/gbraad-dotfiles">my dotfiles</a>, and tools to start a containerized image with <code>devenv</code>, or a virtual machine with <code>machine</code>.</p>
-<h3>How Machinefile Works</h3>
-<p>While tools like Packer and vagrant already deel with customize dlocal developmenrt environments, I wanted to use a familiar configuration; the <code>Containerfile</code>.  The <a href="https://github.com/ducttape-infra/machinefile">machinefile</a> CLI is a lightweight executor written in Go.</p>
-<p>You start a cloud image using a tool like Lima, packer or macadam, and execute the statements inside the Machinefile against this. It acts as a direct translator between container syntax and your system via simple shell run commands.</p>
-<p>The end result is a disk image according to what the container would be.</p>
-<h3>Ducttape VM</h3>
-<p>Since this was normnally coordinated from a <code>machine.zsh</code> script in my dotfiles, I create a new tool called <code>ducttape</code> that uses <code>machinefile</code> as a library, uses Lima to boot the VM with cloud-init, and creates a completely self-contained binary to handle the build process, running and sharing.</p>
-<p><code>Machinefile</code></p>
-<div class="highlight"><pre><span></span><code>Machinefile
-<span class="k">FROM</span><span class="w"> </span><span class="s">fedora-cloud:44</span>
-
-<span class="k">RUN</span><span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>httpd<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>dnf<span class="w"> </span>clean<span class="w"> </span>all<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>httpM
-</code></pre></div>
-
-<h4>Build</h4>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ductttape<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>my-httpd<span class="w"> </span>-f<span class="w"> </span>Machinefile
-</code></pre></div>
-
-<h4>Run</h4>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ducttape<span class="w"> </span>run<span class="w"> </span>my-httpd<span class="w"> </span>--publish<span class="w"> </span><span class="m">8080</span>:80
-</code></pre></div>
-
-<h4>Share</h4>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ducttape<span class="w"> </span>push<span class="w"> </span>my-httpd<span class="w"> </span>ghcr.io/ducttape-infra/fedora-httpd
-</code></pre></div>
-
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>ducttape<span class="w"> </span>run<span class="w"> </span>ghcr.io/ducttape-infra/fedora-httpd<span class="w"> </span>-n<span class="w"> </span>http-server
-</code></pre></div>
-
-<h3>Expanding to Non-Linux</h3>
-<p>Crucially, this simple translation also breaks down operating system barriers. Container images and <code>bootc</code> are strictly bound to Linux kernels. But because <code>Machinefile</code> strips away the container engine requirements, you can reuse the exact same syntax on environments where containers cannot natively run.</p>
-<p>Look at <a href="https://github.com/gbraad-dotfiles/freebsd">gbraad-dotfiles/freebsd</a> as an example. In this setup, a standard Containerfile format is repurposed to provision a FreeBSD virtual machine.</p>
-<p>This decouples your configuration layout from a single operating system type. You get a single, unified mental model for setting up environments across entirely different kernels.</p>
-<h3>Conclusion</h3>
-<p>This simplicity gives you a fast shortcut. During the early, messy stages of development, you do not want to wait on a pipeline or re-provision a VM. You just want to change a config line and see if it works instantly.</p>
-<p>The solution here does not exclude containers or bootc. Instead, Machinefile and Ducttape augments it by providing consistency. Because Machinefile uses near-identical file syntax to your final bootc target, you do not create technical debt. You use one familiar syntax for local hacking, local VM provisioning, and final production builds.</p>
-<p>Machinefile is a choice based on context. It does not replace immutable systems; it accelerates them. It proves that reuse, familiarity, and removing human friction matter more than chasing the perfect standard.</p>
-<h3>Example Forgejo</h3>
-<p>To demonstrate that this process can be applied to containers, virtual machines and eventually upgrade to bootable containers, you can have a look at the <a href="https://github.com/ducttape-lab/forgejo">Forgejo example</a>.</p>
-<p>Moving from a running cloud image to <code>bootc</code> can be done with</p>
-<div class="highlight"><pre><span></span><code>$<span class="w"> </span>dnf<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>system-reinstall-bootc
-$<span class="w"> </span>system-reinstall-bootc<span class="w"> </span>ghcr.io/ducttape-lab/forgejo-bootc:latest
-$<span class="w"> </span>reboot
-</code></pre></div>
-
-<p>This makes immutability a choice, instead of a requirement. When dealing wth an AI agent, you want to allow installing development tools, but also easy recreation, treating them as ephemeral. For this see <a href="https://github.com/ducttape-infra/examples/tree/main/debian-claude">debian-claude</a> as an example.</p>
-<h3>What's next</h3>
-<p>I will work more on this tool in future, expecially as one of the arguments is the speed of starting and overhead it has; you are still starting a full virtual machine. And in this age of AI agents and GPU acceleration needs, a leaner approach is needed.</p>
-<p>I will be working on a MicroVM apprach, so instead of full host emulation, instead <code>virtio-mmio</code> will be used. Solutions like cloud-hypervisor and krun already utilize this. Machinefile can already be utilized as a CLI tool for them, but ideally I want this to be part of Ducttape to prepare images, share and convert, and eventually run them on targets in a supported workflow.</p>
-<p>Even if you do not want to use Lima, ducttape and machinefile are still ideal tools for your automation; this can be seen from the <a href="https://github.com/ducttape-infra/packer-machinefile/"><code>Packer-machinefile</code> example</a>, the goal of ducttape is to augment your process, to stick them together but allow to be replaced or improved when needed.</p>
+<h2>Why this is not an exploit</h2>
+<p>An exploit bypasses a security boundary.</p>
+<p>Borg does not bypass a security boundary. The loaded unit is already executing
+with the same privileges as the process hosting it. Borg merely demonstrates
+what those permissions make possible when custom code is executed inside a
+privileged process.</p>
+<p>Whether that permission model is desirable is a separate question, but the
+behavior described here follows directly from the design of the system.</p>
+<h2>The fix is ordinary Linux</h2>
+<p>As I mentioned earlier, I can only guess to why this permission was given, as
+certain safeguards for custom code execution aren't in place.</p>
+<p>Running units as root may have simplified development and reduced friction
+between the audio engine, hardware interfaces, storage access and update
+mechanisms. From an engineering perspective, fewer privilege boundaries often
+mean fewer things that can break. The tradeoff is that every extension inherits
+that trust.</p>
+<p>The risk that exists is real, as it is possible to render the device inoperable.
+And with the current influx of vibecoded modifications this risk is even more
+real than ever before.</p>
+<p>An extension model can exist without giving every unit the whole machine:</p>
+<ul>
+<li>Mount the rootfs read-only.</li>
+<li>Run each service under its own user.</li>
+<li>Put audio in an <code>audio</code> group with access only to the devices it needs.</li>
+<li>Give units only the paths and devices their role requires.</li>
+</ul>
+<p>None of this is new. It is how a Linux system is normally hardened. The
+current design makes experimentation easy. It also makes accidents and abuse
+easy.</p>
+<p>None of these measures would prevent extension frameworks from existing. They
+would simply ensure that extension code cannot modify parts of the system
+unrelated to its intended purpose.</p>
+<h2>Why I built it</h2>
+<p>Because the instrument is capable, the SDK is public, and the extension point is
+already there. Borg makes that point usable: an in-process extension framework
+with menu pages, MIDI transforms and modules loaded from the user filesystem. It
+adds capability without touching the system underneath.</p>
+<p>By documenting how the system behaves and where the boundaries are, developers
+can make more informed decisions when building extensions, whether they are
+writing code themselves or using AI-assisted tooling.</p>
+<h2>Ethical question</h2>
+<p>If the device is ever locked down properly, that is a good change. Borg would
+stop working, and that might be the correct outcome. Until then, the honest
+description is this: units run as root, and borg uses the room that model
+leaves.</p>
+<p>However, is that the right approach? You are essentially the owner of the
+device. And in my opinion you should be able to do with it what you want. It
+should not be the manufacturer restricting you when no malicious use is
+intended.</p>
+<p>Though, they are responsible for preventing the user from making the device
+inoperable either when it concerns normal use; as that is the balance here.
+If an inexperienced user would download a custom synth unit, it could have
+his device rendered inoperable, as nothing prevents writing to disk.</p>
+<h2>Why is it called borg?</h2>
+<p>The name borg was chosen for several reasons. The name is often associated
+with a well-known science-fiction series, in which lifeforms are augemented
+augmented and absorbed into a collective. It also means castle in North
+Germanic languages, and is related to the word 'burg' in German and
+'borough' in English. This is a fortified structure, built inside an
+existing landscape. I found these a nice metaphor for what the framework
+does.</p>
+<h2>Closing</h2>
+<p>Borg is not interesting because it uses <code>LD_PRELOAD</code>; Linux systems have
+supported techniques like that for decades. What is interesting is that a
+musical instrument runs third-party code this way, and where the
+boundaries are placed.</p>
+<p>The takeaway isn't that borg exists. People will always find new ways to
+extend the devices they own. The more important lesson is much older: once
+untrusted code runs inside a privileged process, that code inherits the
+trust of the host. Borg is a consequence of that design. It simply makes
+use of it.</p>
+<p>Sometimes intentionally, sometimes accidentally.</p>
             </div>
         </article>
 
             <h2 style="margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">Recent Articles</h2>
             <div class="blog-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                    <div class="blog-post-card">
+                        <div class="blog-post-title">
+                            <a href="https://blog.gbraad.nl/betamax-machinefile-and-a-roll-of-ducttape.html">Betamax, Machinefile and a roll of Ducttape</a>
+                        </div>
+                        <div class="blog-post-meta">
+                            <i class="fa fa-calendar"></i> Wed 08 July 2026
+                                &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/infrastructure.html">Infrastructure</a>
+                        </div>
+                        <div class="blog-post-summary"><h3>Choosing Convenience over the "Best" Standard</h3>
+<p><img alt="" src="https://avatars.githubusercontent.com/u/296723703?s=140&amp;v=4"></p>
+<p>In infrastructure-as-code, the best technical solution does not always win.</p>
+<p>Take machine provisioning. Fedora CoreOS's Ignition is engineered better than cloud-init. Ignition runs early in the initramfs before the root filesystem even mounts. It parses strict JSON and fails instantly if a configuration error …</p></div>
+                    </div>
                     <div class="blog-post-card">
                         <div class="blog-post-title">
                             <a href="https://blog.gbraad.nl/patreon-busy-days.html">Patreon: Busy days ...</a>
@@ -167,16 +247,6 @@ $<span class="w"> </span>reboot
                                 &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/patreon.html">Patreon</a>
                         </div>
                         <div class="blog-post-summary"><p><a href="https://www.patreon.com/posts/nt-78-now-156987354"><img alt="" src="https://img.itch.zone/aW1nLzI3MDA2ODY1LnBuZw==/original/IXNOnH.png"></a></p></div>
-                    </div>
-                    <div class="blog-post-card">
-                        <div class="blog-post-title">
-                            <a href="https://blog.gbraad.nl/patreon-update-for-april.html">Patreon: Update for April</a>
-                        </div>
-                        <div class="blog-post-meta">
-                            <i class="fa fa-calendar"></i> Tue 28 April 2026
-                                &nbsp;&middot;&nbsp; <a href="https://blog.gbraad.nl/category/patreon.html">Patreon</a>
-                        </div>
-                        <div class="blog-post-summary"><p><a href="https://www.patreon.com/posts/update-for-april-156735928"><img alt="" src="https://img.itch.zone/aW1nLzI2OTUwNTY4LnBuZw==/original/S0lTBx.png"></a></p></div>
                     </div>
             </div>
             <div style="text-align: center; margin-top: 2rem;">
