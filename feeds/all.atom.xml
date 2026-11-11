@@ -136,11 +136,10 @@ his device rendered inoperable, as nothing prevents writing to disk.&lt;/p&gt;
 &lt;h2&gt;Why is it called borg?&lt;/h2&gt;
 &lt;p&gt;The name borg was chosen for several reasons. The name is often associated
 with a well-known science-fiction series, in which lifeforms are augemented
-augmented and absorbed into a collective. It also means castle in North
-Germanic languages, and is related to the word 'burg' in German and
-'borough' in English. This is a fortified structure, built inside an
-existing landscape. I found these a nice metaphor for what the framework
-does.&lt;/p&gt;
+and absorbed into a collective. It also means castle in North Germanic
+languages, and is related to the word 'burg' in German and 'borough' in
+English. This is a fortified structure, built inside an existing landscape.
+I found these a nice metaphor for what the framework does.&lt;/p&gt;
 &lt;h2&gt;Closing&lt;/h2&gt;
 &lt;p&gt;Borg is not interesting because it uses &lt;code&gt;LD_PRELOAD&lt;/code&gt;; Linux systems have
 supported techniques like that for decades. What is interesting is that a
